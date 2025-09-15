@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 PLC TCP Server - Demonstração</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 1.125rem;
+        }
+
+        .status-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .status-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .status-item:hover {
+            box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
+            border-color: #cbd5e1;
+        }
+
+        .status-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3b82f6;
+            display: block;
+        }
+
+        .status-label {
+            color: #64748b;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        .data-section {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .data-section h3 {
+            color: #374151;
+            margin-bottom: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .data-list {
+            max-height: 160px;
+            overflow-y: auto;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+            font-size: 0.8rem;
+        }
+
+        .data-item {
+            padding: 4px 0;
+            color: #475569;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .data-item:last-child {
+            border-bottom: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            color: #1f2937;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #9ca3af;
+        }
+
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .logs {
+            background: #1e293b;
+            border: 1px solid #334155;
+            padding: 16px;
+            border-radius: 8px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+            font-size: 0.8rem;
+        }
+
+        .log-item {
+            margin-bottom: 4px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #e2e8f0;
+        }
+
+        .log-item.success {
+            background: rgba(34, 197, 94, 0.1);
+            border-left: 2px solid #22c55e;
+            color: #86efac;
+        }
+
+        .log-item.error {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 2px solid #ef4444;
+            color: #fca5a5;
+        }
+
+        .log-item.info {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 2px solid #3b82f6;
+            color: #93c5fd;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            z-index: 1000;
+            border: 1px solid;
+            backdrop-filter: blur(8px);
+        }
+
+        .connected {
+            background: rgba(34, 197, 94, 0.1);
+            color: #15803d;
+            border-color: #22c55e;
+        }
+
+        .disconnected {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+            border-color: #ef4444;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 16px;
+            }
+
+            .header h1 {
+                font-size: 1.875rem;
+            }
+        }
+
+        .timestamp {
+            color: #64748b;
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        /* Scrollbar personalizada */
+        .logs::-webkit-scrollbar,
+        .data-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .logs::-webkit-scrollbar-track,
+        .data-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .logs::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+
+        .data-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        /* Estilos para nova interface de escrita */
+        .write-sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .write-section {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .write-section h3 {
+            color: #374151;
+            margin-bottom: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .input-list {
+            margin-bottom: 12px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .index-select {
+            min-width: 60px;
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+
+        .value-input {
+            flex: 1;
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+
+        .value-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .remove-btn {
+            width: 28px;
+            height: 28px;
+            border: 1px solid #ef4444;
+            background: #fef2f2;
+            color: #dc2626;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .remove-btn:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 8px;
+            border: 1px dashed #9ca3af;
+            background: transparent;
+            color: #6b7280;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .add-btn:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+            background: #f0f9ff;
+        }
+
+        @media (max-width: 768px) {
+            .write-sections {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status" id="connectionStatus">● Desconectado</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>PLC Interface</h1>
+            <p>Sistema de Comunicação TCP com Siemens PLC</p>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-value" id="plcCount">0</div>
+                <div class="status-label">PLCs Conectados</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="clientCount">0</div>
+                <div class="status-label">Clientes Ativos</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="lastUpdate">--:--:--</div>
+                <div class="status-label">Última Atualização</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="dataSize">0</div>
+                <div class="status-label">Bytes Recebidos</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="card">
+                <h2>📊 Dados Recebidos do PLC</h2>
+                <div class="data-grid">
+                    <div class="data-section">
+                        <h3>Words (0-64)</h3>
+                        <div class="data-list" id="wordsData"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Ints (0-80)</h3>
+                        <div class="data-list" id="intsData"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Reais (0-130)</h3>
+                        <div class="data-list" id="realsData"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Strings (0-1)</h3>
+                        <div class="data-list" id="stringsData"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>⚠️ Status e Alarmes do Sistema</h2>
+                <div class="data-grid">
+                    <div class="data-section">
+                        <h3>Status Ativos</h3>
+                        <div class="data-list" id="statusData"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Alarmes Ativos</h3>
+                        <div class="data-list" id="alarmData"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Eventos Ativos</h3>
+                        <div class="data-list" id="eventData"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Contadores</h3>
+                        <div class="data-list" id="countsData"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="card">
+            <h2>📤 Enviar Comandos para PLC</h2>
+            <div class="write-sections">
+                <div class="write-section">
+                    <h3>Words Envia (0-2)</h3>
+                    <div id="wordInputs" class="input-list">
+                        <div class="input-row">
+                            <select class="index-select">
+                                <option value="0">W0</option>
+                                <option value="1">W1</option>
+                                <option value="2">W2</option>
+                            </select>
+                            <input type="number" class="value-input" min="0" max="65535" placeholder="0-65535">
+                            <button type="button" class="remove-btn">×</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-btn" onclick="addInput('word')">+ Adicionar Word</button>
+                </div>
+
+                <div class="write-section">
+                    <h3>Ints Envia (0-10)</h3>
+                    <div id="intInputs" class="input-list">
+                        <div class="input-row">
+                            <select class="index-select">
+                                <option value="0">I0</option>
+                                <option value="1">I1</option>
+                                <option value="2">I2</option>
+                                <option value="3">I3</option>
+                                <option value="4">I4</option>
+                                <option value="5">I5</option>
+                                <option value="6">I6</option>
+                                <option value="7">I7</option>
+                                <option value="8">I8</option>
+                                <option value="9">I9</option>
+                                <option value="10">I10</option>
+                            </select>
+                            <input type="number" class="value-input" min="-32768" max="32767" placeholder="-32768 a 32767">
+                            <button type="button" class="remove-btn">×</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-btn" onclick="addInput('int')">+ Adicionar Int</button>
+                </div>
+
+                <div class="write-section">
+                    <h3>Reais Envia (0-10)</h3>
+                    <div id="realInputs" class="input-list">
+                        <div class="input-row">
+                            <select class="index-select">
+                                <option value="0">R0</option>
+                                <option value="1">R1</option>
+                                <option value="2">R2</option>
+                                <option value="3">R3</option>
+                                <option value="4">R4</option>
+                                <option value="5">R5</option>
+                                <option value="6">R6</option>
+                                <option value="7">R7</option>
+                                <option value="8">R8</option>
+                                <option value="9">R9</option>
+                                <option value="10">R10</option>
+                            </select>
+                            <input type="number" class="value-input" step="0.01" placeholder="25.75">
+                            <button type="button" class="remove-btn">×</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-btn" onclick="addInput('real')">+ Adicionar Real</button>
+                </div>
+
+                <div class="write-section">
+                    <h3>Strings Envia (0-4)</h3>
+                    <div id="stringInputs" class="input-list">
+                        <div class="input-row">
+                            <select class="index-select">
+                                <option value="0">S0</option>
+                                <option value="1">S1</option>
+                                <option value="2">S2</option>
+                                <option value="3">S3</option>
+                                <option value="4">S4</option>
+                            </select>
+                            <input type="text" class="value-input" maxlength="30" placeholder="Texto (máx 30 caracteres)">
+                            <button type="button" class="remove-btn">×</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-btn" onclick="addInput('string')">+ Adicionar String</button>
+                </div>
+            </div>
+            <button type="button" id="sendBtn" class="btn">Enviar para PLC</button>
+        </div>
+
+        <div class="card">
+            <h2>📋 Log do Sistema</h2>
+            <div class="logs" id="logs"></div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let reconnectInterval = null;
+
+        function connectWebSocket() {
+            try {
+                ws = new WebSocket('ws://localhost:8081/ws');
+
+                ws.onopen = function() {
+                    updateConnectionStatus(true);
+                    addLog('Conectado ao servidor', 'success');
+                    clearInterval(reconnectInterval);
+                };
+
+                ws.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        updateData(data);
+                        addLog(`Dados recebidos: ${data.bytes_size} bytes`, 'info');
+                    } catch (e) {
+                        addLog(`Erro ao processar dados: ${e.message}`, 'error');
+                    }
+                };
+
+                ws.onclose = function() {
+                    updateConnectionStatus(false);
+                    addLog('Conexão perdida', 'error');
+                    reconnectWebSocket();
+                };
+
+                ws.onerror = function(error) {
+                    addLog('Erro de conexão', 'error');
+                };
+
+            } catch (error) {
+                addLog(`Erro ao conectar: ${error.message}`, 'error');
+                reconnectWebSocket();
+            }
+        }
+
+        function reconnectWebSocket() {
+            if (reconnectInterval) return;
+            
+            reconnectInterval = setInterval(() => {
+                addLog('Tentando reconectar...', 'info');
+                connectWebSocket();
+            }, 3000);
+        }
+
+        function updateConnectionStatus(connected) {
+            const status = document.getElementById('connectionStatus');
+            if (connected) {
+                status.textContent = '● Conectado';
+                status.className = 'connection-status connected';
+            } else {
+                status.textContent = '● Desconectado';
+                status.className = 'connection-status disconnected';
+            }
+        }
+
+        function updateData(data) {
+            // Atualizar timestamp
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            document.getElementById('dataSize').textContent = data.bytes_size || 0;
+
+            // Verificar se os arrays existem antes de usar slice
+            if (data.words && Array.isArray(data.words)) {
+                const wordsHtml = data.words.slice(0, 20).map((val, idx) => 
+                    `<div class="data-item">W${idx}: ${val}</div>`
+                ).join('');
+                document.getElementById('wordsData').innerHTML = wordsHtml;
+            }
+
+            if (data.ints && Array.isArray(data.ints)) {
+                const intsHtml = data.ints.slice(0, 20).map((val, idx) => 
+                    `<div class="data-item">I${idx}: ${val}</div>`
+                ).join('');
+                document.getElementById('intsData').innerHTML = intsHtml;
+            }
+
+            if (data.reals && Array.isArray(data.reals)) {
+                const realsHtml = data.reals.slice(0, 20).map((val, idx) => 
+                    `<div class="data-item">R${idx}: ${val.toFixed(2)}</div>`
+                ).join('');
+                document.getElementById('realsData').innerHTML = realsHtml;
+            }
+
+            if (data.strings && Array.isArray(data.strings)) {
+                const stringsHtml = data.strings.map((val, idx) => 
+                    `<div class="data-item">S${idx}: "${val}"</div>`
+                ).join('');
+                document.getElementById('stringsData').innerHTML = stringsHtml;
+            }
+
+            // Atualizar contadores
+            if (data.counts) {
+                const countsHtml = `
+                    <div class="data-item">Words: ${data.counts.word_count || 0}</div>
+                    <div class="data-item">Ints: ${data.counts.int_count || 0}</div>
+                    <div class="data-item">Reais: ${data.counts.real_count || 0}</div>
+                    <div class="data-item">Strings: ${data.counts.string_count || 0}</div>
+                `;
+                document.getElementById('countsData').innerHTML = countsHtml;
+            }
+
+            // Atualizar status bits organizados
+            updateStatusBits(data.status_bits);
+            updateAlarmBits(data.alarm_bits);
+            updateEventBits(data.event_bits);
+        }
+
+        function updateStatusBits(statusBits) {
+            if (!statusBits) {
+                document.getElementById('statusData').innerHTML = '<div class="data-item">Nenhum status ativo</div>';
+                return;
+            }
+
+            let activeStatus = [];
+
+            // Verificar todos os equipamentos de status (Words 0-16)
+            const equipments = ['geral', 'enchimento', 'esvaziamento', 'porta_jusante', 'porta_montante', 'comando_eclusa', 'esgoto_drenagem'];
+            
+            equipments.forEach(equipment => {
+                if (statusBits[equipment]) {
+                    statusBits[equipment].forEach(bit => {
+                        if (bit.value === true) {
+                            activeStatus.push(`${bit.equipment}: ${bit.description}`);
+                        }
+                    });
+                }
+            });
+
+            const statusHtml = activeStatus.length > 0 
+                ? activeStatus.slice(0, 15).map(status => `<div class="data-item">${status}</div>`).join('')
+                : '<div class="data-item">Nenhum status ativo</div>';
+            
+            document.getElementById('statusData').innerHTML = statusHtml;
+        }
+
+        function updateAlarmBits(alarmBits) {
+            if (!alarmBits) {
+                document.getElementById('alarmData').innerHTML = '<div class="data-item">Nenhum alarme ativo</div>';
+                return;
+            }
+
+            let activeAlarms = [];
+
+            // Verificar todos os equipamentos de alarme (Words 17-47,63)
+            const equipments = ['enchimento', 'esvaziamento', 'porta_jusante', 'porta_montante', 'comando_eclusa', 'esgoto_drenagem', 'reserva_falhas'];
+            
+            equipments.forEach(equipment => {
+                if (alarmBits[equipment]) {
+                    alarmBits[equipment].forEach(bit => {
+                        if (bit.value === true) {
+                            activeAlarms.push(`${bit.equipment}: ${bit.description}`);
+                        }
+                    });
+                }
+            });
+
+            const alarmHtml = activeAlarms.length > 0 
+                ? activeAlarms.slice(0, 15).map(alarm => `<div class="data-item" style="color: #ef4444;">${alarm}</div>`).join('')
+                : '<div class="data-item">Nenhum alarme ativo</div>';
+            
+            document.getElementById('alarmData').innerHTML = alarmHtml;
+        }
+
+        function updateEventBits(eventBits) {
+            if (!eventBits) {
+                document.getElementById('eventData').innerHTML = '<div class="data-item">Nenhum evento ativo</div>';
+                return;
+            }
+
+            let activeEvents = [];
+
+            // Verificar todos os equipamentos de evento (Words 48-62)
+            const equipments = ['enchimento', 'esvaziamento', 'porta_jusante', 'porta_montante', 'comando_eclusa', 'esgoto_drenagem'];
+            
+            equipments.forEach(equipment => {
+                if (eventBits[equipment]) {
+                    eventBits[equipment].forEach(bit => {
+                        if (bit.value === true) {
+                            activeEvents.push(`${bit.equipment}: ${bit.description}`);
+                        }
+                    });
+                }
+            });
+
+            const eventHtml = activeEvents.length > 0 
+                ? activeEvents.slice(0, 15).map(event => `<div class="data-item" style="color: #3b82f6;">${event}</div>`).join('')
+                : '<div class="data-item">Nenhum evento ativo</div>';
+            
+            document.getElementById('eventData').innerHTML = eventHtml;
+        }
+
+        function addLog(message, type = '') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const logClass = type ? `log-item ${type}` : 'log-item';
+            logs.innerHTML += `<div class="${logClass}"><span class="timestamp">${timestamp}</span> ${message}</div>`;
+            logs.scrollTop = logs.scrollHeight;
+            
+            // Limitar a 50 logs
+            const logItems = logs.querySelectorAll('.log-item');
+            if (logItems.length > 50) {
+                logItems[0].remove();
+            }
+        }
+
+        function sendToPLC(data) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(data));
+                addLog(`Comandos enviados: W=${data.word}, I=${data.int}, R=${data.real}, S="${data.string}"`, 'success');
+            } else {
+                // Fallback para HTTP API
+                fetch('/api/write', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    addLog(`Enviado via API: ${result.message}`, 'success');
+                })
+                .catch(error => {
+                    addLog(`Erro no envio: ${error.message}`, 'error');
+                });
+            }
+        }
+
+        // Função para adicionar nova linha de input
+        function addInput(type) {
+            const containers = {
+                'word': 'wordInputs',
+                'int': 'intInputs', 
+                'real': 'realInputs',
+                'string': 'stringInputs'
+            };
+            
+            const maxIndexes = {
+                'word': 2,
+                'int': 10,
+                'real': 10,
+                'string': 4
+            };
+            
+            const prefixes = {
+                'word': 'W',
+                'int': 'I',
+                'real': 'R', 
+                'string': 'S'
+            };
+            
+            const placeholders = {
+                'word': '0-65535',
+                'int': '-32768 a 32767',
+                'real': '25.75',
+                'string': 'Texto (máx 30 caracteres)'
+            };
+            
+            const inputTypes = {
+                'word': 'number',
+                'int': 'number',
+                'real': 'number',
+                'string': 'text'
+            };
+            
+            const container = document.getElementById(containers[type]);
+            const newRow = document.createElement('div');
+            newRow.className = 'input-row';
+            
+            let selectOptions = '';
+            for (let i = 0; i <= maxIndexes[type]; i++) {
+                selectOptions += `<option value="${i}">${prefixes[type]}${i}</option>`;
+            }
+            
+            let inputAttrs = `type="${inputTypes[type]}" class="value-input" placeholder="${placeholders[type]}"`;
+            if (type === 'word') inputAttrs += ' min="0" max="65535"';
+            if (type === 'int') inputAttrs += ' min="-32768" max="32767"';  
+            if (type === 'real') inputAttrs += ' step="0.01"';
+            if (type === 'string') inputAttrs += ' maxlength="30"';
+            
+            newRow.innerHTML = `
+                <select class="index-select">${selectOptions}</select>
+                <input ${inputAttrs}>
+                <button type="button" class="remove-btn" onclick="removeInput(this)">×</button>
+            `;
+            
+            container.appendChild(newRow);
+        }
+        
+        // Função para remover linha de input
+        function removeInput(button) {
+            button.parentElement.remove();
+        }
+        
+        // Função para enviar múltiplos comandos como uma estrutura única
+        function sendMultipleCommands(data) {
+            // Estrutura de envio para PLC
+            const cmd = {
+                words: data.words,
+                ints: data.ints,
+                reals: data.reals,
+                strings: data.strings
+            };
+            
+            sendToPLC(cmd);
+            
+            // Log detalhado do que foi enviado
+            let summary = [];
+            data.words.forEach(w => summary.push(`W${w.index}=${w.value}`));
+            data.ints.forEach(i => summary.push(`I${i.index}=${i.value}`));
+            data.reals.forEach(r => summary.push(`R${r.index}=${r.value}`));
+            data.strings.forEach(s => summary.push(`S${s.index}="${s.value}"`));
+            
+            addLog(`Enviado: ${summary.join(', ')}`, 'success');
+        }
+        
+        // Coletar dados de todas as seções
+        function collectWriteData() {
+            const data = {
+                words: [],
+                ints: [],
+                reals: [],
+                strings: []
+            };
+            
+            // Words
+            document.querySelectorAll('#wordInputs .input-row').forEach(row => {
+                const index = parseInt(row.querySelector('.index-select').value);
+                const value = row.querySelector('.value-input').value;
+                if (value !== '') {
+                    data.words.push({ index, value: parseInt(value) });
+                }
+            });
+            
+            // Ints
+            document.querySelectorAll('#intInputs .input-row').forEach(row => {
+                const index = parseInt(row.querySelector('.index-select').value);
+                const value = row.querySelector('.value-input').value;
+                if (value !== '') {
+                    data.ints.push({ index, value: parseInt(value) });
+                }
+            });
+            
+            // Reals
+            document.querySelectorAll('#realInputs .input-row').forEach(row => {
+                const index = parseInt(row.querySelector('.index-select').value);
+                const value = row.querySelector('.value-input').value;
+                if (value !== '') {
+                    data.reals.push({ index, value: parseFloat(value) });
+                }
+            });
+            
+            // Words
+            document.querySelectorAll('#wordInputs .input-row').forEach(row => {
+                const index = parseInt(row.querySelector('.index-select').value);
+                const value = row.querySelector('.value-input').value;
+                if (value !== '') {
+                    data.words.push({ index, value: parseInt(value) });
+                }
+            });
+            
+            // Strings
+            document.querySelectorAll('#stringInputs .input-row').forEach(row => {
+                const index = parseInt(row.querySelector('.index-select').value);
+                const value = row.querySelector('.value-input').value;
+                if (value !== '') {
+                    data.strings.push({ index, value: value });
+                }
+            });
+            
+            return data;
+        }
+        
+        // Event handler para o botão de envio
+        document.getElementById('sendBtn').addEventListener('click', function() {
+            const data = collectWriteData();
+            
+            // Verificar se há dados para enviar
+            const hasData = data.words.length > 0 || data.ints.length > 0 || 
+                           data.reals.length > 0 || data.strings.length > 0;
+            
+            if (!hasData) {
+                addLog('Nenhum dado para enviar', 'error');
+                return;
+            }
+            
+            // Enviar comando com estrutura completa
+            sendMultipleCommands(data);
+            
+            // Limpar inputs após envio
+            document.querySelectorAll('.value-input').forEach(input => {
+                if (input.type === 'text' || input.type === 'number') {
+                    input.value = '';
+                } else if (input.tagName === 'SELECT') {
+                    input.selectedIndex = 0;
+                }
+            });
+        });
+
+        // Buscar status periodicamente
+        function fetchStatus() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('plcCount').textContent = data.plc_connections;
+                    document.getElementById('clientCount').textContent = data.websocket_clients;
+                })
+                .catch(() => {
+                    // Silently fail
+                });
+        }
+
+        // Inicializar
+        connectWebSocket();
+        setInterval(fetchStatus, 2000);
+        addLog('Sistema iniciado', 'info');
+    </script>
+</body>
+</html>
