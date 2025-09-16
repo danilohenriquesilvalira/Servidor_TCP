@@ -10,6 +10,8 @@ type PLCData struct {
 	StatusBits  *StatusBitsStructure `json:"status_bits"` // Bits de status organizados (Words 0-16)
 	AlarmBits   *AlarmBitsStructure  `json:"alarm_bits"`  // Bits de alarmes organizados (Words 17-47,63)
 	EventBits   *EventBitsStructure  `json:"event_bits"`  // Bits de eventos organizados (Words 48-62)
+	IntData     *IntDataStructure    `json:"int_data"`    // Dados inteiros organizados por equipamento
+	RealData    *RealDataStructure   `json:"real_data"`   // Dados reais organizados por equipamento
 	Counts      Counts               `json:"counts"`
 	Timestamp   string               `json:"timestamp"`
 	BytesSize   int                  `json:"bytes_size"`

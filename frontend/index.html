@@ -410,6 +410,101 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Estilos para sistema de abas */
+        .tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 24px;
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+        }
+
+        .tab {
+            padding: 16px 24px;
+            background: #e2e8f0;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.2s ease;
+            flex: 1;
+            text-align: center;
+        }
+
+        .tab:hover {
+            background: #cbd5e1;
+            color: #374151;
+        }
+
+        .tab.active {
+            background: white;
+            color: #3b82f6;
+            border-bottom: 2px solid #3b82f6;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Melhorar visualização de bits */
+        .bit-visual {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 4px 0;
+            font-size: 0.8rem;
+        }
+
+        .bit-active {
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .bit-inactive {
+            color: #64748b;
+        }
+
+        .data-summary {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0ea5e9;
+        }
+
+        .summary-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
@@ -421,70 +516,92 @@
             <p>Sistema de Comunicação TCP com Siemens PLC</p>
         </div>
 
-        <div class="status-bar">
-            <div class="status-item">
-                <div class="status-value" id="plcCount">0</div>
-                <div class="status-label">PLCs Conectados</div>
-            </div>
-            <div class="status-item">
-                <div class="status-value" id="clientCount">0</div>
-                <div class="status-label">Clientes Ativos</div>
-            </div>
-            <div class="status-item">
-                <div class="status-value" id="lastUpdate">--:--:--</div>
-                <div class="status-label">Última Atualização</div>
-            </div>
-            <div class="status-item">
-                <div class="status-value" id="dataSize">0</div>
-                <div class="status-label">Bytes Recebidos</div>
+        <!-- Resumo dos Dados -->
+        <div class="data-summary">
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-value" id="plcCount">0</div>
+                    <div class="summary-label">PLCs Conectados</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="clientCount">0</div>
+                    <div class="summary-label">Clientes Ativos</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="lastUpdate">--:--:--</div>
+                    <div class="summary-label">Última Atualização</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="dataSize">0</div>
+                    <div class="summary-label">Bytes Recebidos</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="totalWords">0</div>
+                    <div class="summary-label">Total Words</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="activeBits">0</div>
+                    <div class="summary-label">Bits Ativos</div>
+                </div>
             </div>
         </div>
 
-        <div class="main-grid">
-            <div class="card">
-                <h2>📊 Dados Recebidos do PLC</h2>
-                <div class="data-grid">
-                    <div class="data-section">
-                        <h3>Words (0-64)</h3>
-                        <div class="data-list" id="wordsData"></div>
-                    </div>
-                    <div class="data-section">
-                        <h3>Ints (0-80)</h3>
-                        <div class="data-list" id="intsData"></div>
-                    </div>
-                    <div class="data-section">
-                        <h3>Reais (0-130)</h3>
-                        <div class="data-list" id="realsData"></div>
-                    </div>
-                    <div class="data-section">
-                        <h3>Strings (0-1)</h3>
-                        <div class="data-list" id="stringsData"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>⚠️ Status e Alarmes do Sistema</h2>
-                <div class="data-grid">
-                    <div class="data-section">
-                        <h3>Status Ativos</h3>
-                        <div class="data-list" id="statusData"></div>
-                    </div>
-                    <div class="data-section">
-                        <h3>Alarmes Ativos</h3>
-                        <div class="data-list" id="alarmData"></div>
-                    </div>
-                    <div class="data-section">
-                        <h3>Eventos Ativos</h3>
-                        <div class="data-list" id="eventData"></div>
-                    </div>
-                    <div class="data-section">
-                        <h3>Contadores</h3>
-                        <div class="data-list" id="countsData"></div>
-                    </div>
-                </div>
-            </div>
+        <!-- Sistema de Abas -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('dados')">📊 Dados Brutos</button>
+            <button class="tab" onclick="showTab('bits')">🔢 Visualização Bits</button>
+            <button class="tab" onclick="showTab('equipamentos')">⚙️ Equipamentos</button>
+            <button class="tab" onclick="showTab('comandos')">📤 Comandos</button>
+            <button class="tab" onclick="showTab('logs')">📋 Logs</button>
+        </div>
 
+        <!-- ABA 1: Dados Brutos -->
+        <div id="dados" class="tab-content active">
+            <div class="main-grid">
+                <div class="card">
+                    <h2>📊 Dados Recebidos do PLC</h2>
+                    <div class="data-grid">
+                        <div class="data-section">
+                            <h3>Words (0-64)</h3>
+                            <div class="data-list" id="wordsData"></div>
+                        </div>
+                        <div class="data-section">
+                            <h3>Ints (0-80)</h3>
+                            <div class="data-list" id="intsData"></div>
+                        </div>
+                        <div class="data-section">
+                            <h3>Reais (0-130)</h3>
+                            <div class="data-list" id="realsData"></div>
+                        </div>
+                        <div class="data-section">
+                            <h3>Strings (0-1)</h3>
+                            <div class="data-list" id="stringsData"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2>⚠️ Status e Alarmes do Sistema</h2>
+                    <div class="data-grid">
+                        <div class="data-section">
+                            <h3>Status Ativos</h3>
+                            <div class="data-list" id="statusData"></div>
+                        </div>
+                        <div class="data-section">
+                            <h3>Alarmes Ativos</h3>
+                            <div class="data-list" id="alarmData"></div>
+                        </div>
+                        <div class="data-section">
+                            <h3>Eventos Ativos</h3>
+                            <div class="data-list" id="eventData"></div>
+                        </div>
+                        <div class="data-section">
+                            <h3>Contadores</h3>
+                            <div class="data-list" id="countsData"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="card">
@@ -575,15 +692,208 @@
             <button type="button" id="sendBtn" class="btn">Enviar para PLC</button>
         </div>
 
-        <div class="card">
-            <h2>📋 Log do Sistema</h2>
-            <div class="logs" id="logs"></div>
+        <!-- ABA 2: Visualização Bits -->
+        <div id="bits" class="tab-content">
+            <div class="card">
+                <h2>🔢 Visualização Bit a Bit (Words em Binário)</h2>
+                <div class="data-grid">
+                    <div class="data-section">
+                        <h3>Status Bits (Words 0-16)</h3>
+                        <div class="data-list" id="statusBitsRaw"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Alarm Bits (Words 17-47)</h3>
+                        <div class="data-list" id="alarmBitsRaw"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Event Bits (Words 48-64)</h3>
+                        <div class="data-list" id="eventBitsRaw"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Todos os Bits Extraídos</h3>
+                        <div class="data-list" id="allBitsData"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA 3: Equipamentos -->
+        <div id="equipamentos" class="tab-content">
+            <div class="card">
+                <h2>🔢 Dados Inteiros por Equipamento</h2>
+                <div class="data-grid">
+                    <div class="data-section">
+                        <h3>Enchimento</h3>
+                        <div class="data-list" id="intEnchimentoData"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Esvaziamento</h3>
+                        <div class="data-list" id="intEsvaziamentoData"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Porta Jusante</h3>
+                        <div class="data-list" id="intPortaJusanteData"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Porta Montante</h3>
+                        <div class="data-list" id="intPortaMontanteData"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Esgoto/Drenagem</h3>
+                        <div class="data-list" id="intEsgotoDrenagemData"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Sala Comando</h3>
+                        <div class="data-list" id="intSalaComandoData"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📊 Dados Reais por Equipamento</h2>
+                <div class="data-grid">
+                    <div class="data-section">
+                        <h3>Enchimento</h3>
+                        <div class="data-list" id="realEnchimentoData"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Esvaziamento</h3>
+                        <div class="data-list" id="realEsvaziamentoData"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Porta Jusante</h3>
+                        <div class="data-list" id="realPortaJusanteData"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Porta Montante</h3>
+                        <div class="data-list" id="realPortaMontanteData"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Esgoto/Drenagem</h3>
+                        <div class="data-list" id="realEsgotoDrenagemData"></div>
+                    </div>
+                    <div class="data-section">
+                        <h3>Sala Comando</h3>
+                        <div class="data-list" id="realSalaComandoData"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA 4: Comandos -->
+        <div id="comandos" class="tab-content">
+            <div class="card">
+                <h2>📤 Enviar Comandos para PLC</h2>
+                <div class="write-sections">
+                    <div class="write-section">
+                        <h3>Words Envia (0-2)</h3>
+                        <div id="wordInputs" class="input-list">
+                            <div class="input-row">
+                                <select class="index-select">
+                                    <option value="0">W0</option>
+                                    <option value="1">W1</option>
+                                    <option value="2">W2</option>
+                                </select>
+                                <input type="number" class="value-input" min="0" max="65535" placeholder="0-65535">
+                                <button type="button" class="remove-btn">×</button>
+                            </div>
+                        </div>
+                        <button type="button" class="add-btn" onclick="addInput('word')">+ Adicionar Word</button>
+                    </div>
+
+                    <div class="write-section">
+                        <h3>Ints Envia (0-10)</h3>
+                        <div id="intInputs" class="input-list">
+                            <div class="input-row">
+                                <select class="index-select">
+                                    <option value="0">I0</option>
+                                    <option value="1">I1</option>
+                                    <option value="2">I2</option>
+                                    <option value="3">I3</option>
+                                    <option value="4">I4</option>
+                                    <option value="5">I5</option>
+                                    <option value="6">I6</option>
+                                    <option value="7">I7</option>
+                                    <option value="8">I8</option>
+                                    <option value="9">I9</option>
+                                    <option value="10">I10</option>
+                                </select>
+                                <input type="number" class="value-input" min="-32768" max="32767" placeholder="-32768 a 32767">
+                                <button type="button" class="remove-btn">×</button>
+                            </div>
+                        </div>
+                        <button type="button" class="add-btn" onclick="addInput('int')">+ Adicionar Int</button>
+                    </div>
+
+                    <div class="write-section">
+                        <h3>Reais Envia (0-10)</h3>
+                        <div id="realInputs" class="input-list">
+                            <div class="input-row">
+                                <select class="index-select">
+                                    <option value="0">R0</option>
+                                    <option value="1">R1</option>
+                                    <option value="2">R2</option>
+                                    <option value="3">R3</option>
+                                    <option value="4">R4</option>
+                                    <option value="5">R5</option>
+                                    <option value="6">R6</option>
+                                    <option value="7">R7</option>
+                                    <option value="8">R8</option>
+                                    <option value="9">R9</option>
+                                    <option value="10">R10</option>
+                                </select>
+                                <input type="number" class="value-input" step="0.01" placeholder="25.75">
+                                <button type="button" class="remove-btn">×</button>
+                            </div>
+                        </div>
+                        <button type="button" class="add-btn" onclick="addInput('real')">+ Adicionar Real</button>
+                    </div>
+
+                    <div class="write-section">
+                        <h3>Strings Envia (0-4)</h3>
+                        <div id="stringInputs" class="input-list">
+                            <div class="input-row">
+                                <select class="index-select">
+                                    <option value="0">S0</option>
+                                    <option value="1">S1</option>
+                                    <option value="2">S2</option>
+                                    <option value="3">S3</option>
+                                    <option value="4">S4</option>
+                                </select>
+                                <input type="text" class="value-input" maxlength="30" placeholder="Texto (máx 30 caracteres)">
+                                <button type="button" class="remove-btn">×</button>
+                            </div>
+                        </div>
+                        <button type="button" class="add-btn" onclick="addInput('string')">+ Adicionar String</button>
+                    </div>
+                </div>
+                <button type="button" id="sendBtn" class="btn">Enviar para PLC</button>
+            </div>
+        </div>
+
+        <!-- ABA 5: Logs -->
+        <div id="logs" class="tab-content">
+            <div class="card">
+                <h2>📋 Log do Sistema</h2>
+                <div class="logs" id="logsContainer"></div>
+            </div>
         </div>
     </div>
 
     <script>
         let ws = null;
         let reconnectInterval = null;
+
+        // Função auxiliar para mostrar estado dos bits - DEFINIDA NO INÍCIO
+        function getBitStates(word) {
+            const bits = [];
+            for (let i = 0; i < 16; i++) {
+                if ((word & (1 << i)) !== 0) {
+                    bits.push(`B${i}`);
+                }
+            }
+            return bits.length > 0 ? bits.join(',') : 'Nenhum bit ativo';
+        }
 
         function connectWebSocket() {
             try {
@@ -646,23 +956,23 @@
             document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
             document.getElementById('dataSize').textContent = data.bytes_size || 0;
 
-            // Verificar se os arrays existem antes de usar slice
+            // Mostrar TODOS os words (sem limite de slice)
             if (data.words && Array.isArray(data.words)) {
-                const wordsHtml = data.words.slice(0, 20).map((val, idx) => 
-                    `<div class="data-item">W${idx}: ${val}</div>`
+                const wordsHtml = data.words.map((val, idx) => 
+                    `<div class="data-item">W${idx}: ${val} (0x${val.toString(16).toUpperCase().padStart(4, '0')})</div>`
                 ).join('');
                 document.getElementById('wordsData').innerHTML = wordsHtml;
             }
 
             if (data.ints && Array.isArray(data.ints)) {
-                const intsHtml = data.ints.slice(0, 20).map((val, idx) => 
+                const intsHtml = data.ints.map((val, idx) => 
                     `<div class="data-item">I${idx}: ${val}</div>`
                 ).join('');
                 document.getElementById('intsData').innerHTML = intsHtml;
             }
 
             if (data.reals && Array.isArray(data.reals)) {
-                const realsHtml = data.reals.slice(0, 20).map((val, idx) => 
+                const realsHtml = data.reals.map((val, idx) => 
                     `<div class="data-item">R${idx}: ${val.toFixed(2)}</div>`
                 ).join('');
                 document.getElementById('realsData').innerHTML = realsHtml;
@@ -690,6 +1000,16 @@
             updateStatusBits(data.status_bits);
             updateAlarmBits(data.alarm_bits);
             updateEventBits(data.event_bits);
+            
+            // Atualizar dados inteiros e reais organizados
+            updateIntData(data.int_data);
+            updateRealData(data.real_data);
+            
+            // Atualizar visualização bit a bit
+            updateBitVisualization(data);
+            
+            // Atualizar resumo
+            updateSummary(data);
         }
 
         function updateStatusBits(statusBits) {
@@ -714,7 +1034,7 @@
             });
 
             const statusHtml = activeStatus.length > 0 
-                ? activeStatus.slice(0, 15).map(status => `<div class="data-item">${status}</div>`).join('')
+                ? activeStatus.map(status => `<div class="data-item">${status}</div>`).join('')
                 : '<div class="data-item">Nenhum status ativo</div>';
             
             document.getElementById('statusData').innerHTML = statusHtml;
@@ -742,7 +1062,7 @@
             });
 
             const alarmHtml = activeAlarms.length > 0 
-                ? activeAlarms.slice(0, 15).map(alarm => `<div class="data-item" style="color: #ef4444;">${alarm}</div>`).join('')
+                ? activeAlarms.map(alarm => `<div class="data-item" style="color: #ef4444;">${alarm}</div>`).join('')
                 : '<div class="data-item">Nenhum alarme ativo</div>';
             
             document.getElementById('alarmData').innerHTML = alarmHtml;
@@ -770,14 +1090,132 @@
             });
 
             const eventHtml = activeEvents.length > 0 
-                ? activeEvents.slice(0, 15).map(event => `<div class="data-item" style="color: #3b82f6;">${event}</div>`).join('')
+                ? activeEvents.map(event => `<div class="data-item" style="color: #3b82f6;">${event}</div>`).join('')
                 : '<div class="data-item">Nenhum evento ativo</div>';
             
             document.getElementById('eventData').innerHTML = eventHtml;
         }
 
+        function updateIntData(intData) {
+            if (!intData) {
+                // Limpar todas as seções se não houver dados
+                ['intEnchimentoData', 'intEsvaziamentoData', 'intPortaJusanteData', 
+                 'intPortaMontanteData', 'intEsgotoDrenagemData', 'intSalaComandoData'].forEach(id => {
+                    document.getElementById(id).innerHTML = '<div class="data-item">Sem dados</div>';
+                });
+                return;
+            }
+
+            // Enchimento - TODOS os dados
+            if (intData.enchimento) {
+                const enchimentoHtml = intData.enchimento.map(item => 
+                    `<div class="data-item">${item.description}: ${item.value}</div>`
+                ).join('');
+                document.getElementById('intEnchimentoData').innerHTML = enchimentoHtml;
+            }
+
+            // Esvaziamento - TODOS os dados
+            if (intData.esvaziamento) {
+                const esvaziamentoHtml = intData.esvaziamento.map(item => 
+                    `<div class="data-item">${item.description}: ${item.value}</div>`
+                ).join('');
+                document.getElementById('intEsvaziamentoData').innerHTML = esvaziamentoHtml;
+            }
+
+            // Porta Jusante - TODOS os dados
+            if (intData.porta_jusante) {
+                const portaJusanteHtml = intData.porta_jusante.map(item => 
+                    `<div class="data-item">${item.description}: ${item.value}</div>`
+                ).join('');
+                document.getElementById('intPortaJusanteData').innerHTML = portaJusanteHtml;
+            }
+
+            // Porta Montante - TODOS os dados
+            if (intData.porta_montante) {
+                const portaMontanteHtml = intData.porta_montante.map(item => 
+                    `<div class="data-item">${item.description}: ${item.value}</div>`
+                ).join('');
+                document.getElementById('intPortaMontanteData').innerHTML = portaMontanteHtml;
+            }
+
+            // Esgoto/Drenagem - TODOS os dados
+            if (intData.esgoto_drenagem) {
+                const esgotoDrenagemHtml = intData.esgoto_drenagem.map(item => 
+                    `<div class="data-item">${item.description}: ${item.value}</div>`
+                ).join('');
+                document.getElementById('intEsgotoDrenagemData').innerHTML = esgotoDrenagemHtml;
+            }
+
+            // Sala Comando - TODOS os dados
+            if (intData.sala_comando) {
+                const salaComandoHtml = intData.sala_comando.map(item => 
+                    `<div class="data-item">${item.description}: ${item.value}</div>`
+                ).join('');
+                document.getElementById('intSalaComandoData').innerHTML = salaComandoHtml;
+            }
+        }
+
+        function updateRealData(realData) {
+            if (!realData) {
+                // Limpar todas as seções se não houver dados
+                ['realEnchimentoData', 'realEsvaziamentoData', 'realPortaJusanteData', 
+                 'realPortaMontanteData', 'realEsgotoDrenagemData', 'realSalaComandoData'].forEach(id => {
+                    document.getElementById(id).innerHTML = '<div class="data-item">Sem dados</div>';
+                });
+                return;
+            }
+
+            // Enchimento - TODOS os dados
+            if (realData.enchimento) {
+                const enchimentoHtml = realData.enchimento.map(item => 
+                    `<div class="data-item">${item.description}: ${item.value.toFixed(2)}</div>`
+                ).join('');
+                document.getElementById('realEnchimentoData').innerHTML = enchimentoHtml;
+            }
+
+            // Esvaziamento - TODOS os dados
+            if (realData.esvaziamento) {
+                const esvaziamentoHtml = realData.esvaziamento.map(item => 
+                    `<div class="data-item">${item.description}: ${item.value.toFixed(2)}</div>`
+                ).join('');
+                document.getElementById('realEsvaziamentoData').innerHTML = esvaziamentoHtml;
+            }
+
+            // Porta Jusante - TODOS os dados
+            if (realData.porta_jusante) {
+                const portaJusanteHtml = realData.porta_jusante.map(item => 
+                    `<div class="data-item">${item.description}: ${item.value.toFixed(2)}</div>`
+                ).join('');
+                document.getElementById('realPortaJusanteData').innerHTML = portaJusanteHtml;
+            }
+
+            // Porta Montante - TODOS os dados
+            if (realData.porta_montante) {
+                const portaMontanteHtml = realData.porta_montante.map(item => 
+                    `<div class="data-item">${item.description}: ${item.value.toFixed(2)}</div>`
+                ).join('');
+                document.getElementById('realPortaMontanteData').innerHTML = portaMontanteHtml;
+            }
+
+            // Esgoto/Drenagem - TODOS os dados
+            if (realData.esgoto_drenagem) {
+                const esgotoDrenagemHtml = realData.esgoto_drenagem.map(item => 
+                    `<div class="data-item">${item.description}: ${item.value.toFixed(2)}</div>`
+                ).join('');
+                document.getElementById('realEsgotoDrenagemData').innerHTML = esgotoDrenagemHtml;
+            }
+
+            // Sala Comando - TODOS os dados
+            if (realData.sala_comando) {
+                const salaComandoHtml = realData.sala_comando.map(item => 
+                    `<div class="data-item">${item.description}: ${item.value.toFixed(2)}</div>`
+                ).join('');
+                document.getElementById('realSalaComandoData').innerHTML = salaComandoHtml;
+            }
+        }
+
         function addLog(message, type = '') {
-            const logs = document.getElementById('logs');
+            const logs = document.getElementById('logsContainer');
             const timestamp = new Date().toLocaleTimeString();
             const logClass = type ? `log-item ${type}` : 'log-item';
             logs.innerHTML += `<div class="${logClass}"><span class="timestamp">${timestamp}</span> ${message}</div>`;
@@ -997,10 +1435,138 @@
                 });
         }
 
+
+        // Função para gerenciar abas
+        function showTab(tabName) {
+            // Esconder todas as abas
+            const tabContents = document.querySelectorAll('.tab-content');
+            const tabs = document.querySelectorAll('.tab');
+            
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostrar aba selecionada
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Função para atualizar resumo
+        function updateSummary(data) {
+            if (data.words) {
+                document.getElementById('totalWords').textContent = data.words.length;
+                
+                // Contar bits ativos
+                let activeBitsCount = 0;
+                if (data.bit_data) {
+                    if (data.bit_data.status_bits) {
+                        data.bit_data.status_bits.forEach(wordBits => {
+                            if (wordBits) activeBitsCount += wordBits.filter(bit => bit).length;
+                        });
+                    }
+                    if (data.bit_data.alarm_bits) {
+                        data.bit_data.alarm_bits.forEach(wordBits => {
+                            if (wordBits) activeBitsCount += wordBits.filter(bit => bit).length;
+                        });
+                    }
+                    if (data.bit_data.event_bits) {
+                        data.bit_data.event_bits.forEach(wordBits => {
+                            if (wordBits) activeBitsCount += wordBits.filter(bit => bit).length;
+                        });
+                    }
+                }
+                document.getElementById('activeBits').textContent = activeBitsCount;
+            }
+        }
+
+        // Melhorar visualização de bits
+        function updateBitVisualization(data) {
+            if (!data.words || !Array.isArray(data.words)) {
+                return;
+            }
+
+            // Status Bits (Words 0-16)
+            let statusBitsHtml = '';
+            for (let i = 0; i <= 16 && i < data.words.length; i++) {
+                const word = data.words[i];
+                const binary = word.toString(2).padStart(16, '0');
+                const bitStates = getBitStates(word);
+                const activeBits = bitStates !== 'Nenhum bit ativo' ? `<span class="bit-active">${bitStates}</span>` : `<span class="bit-inactive">${bitStates}</span>`;
+                statusBitsHtml += `<div class="bit-visual">W${i}: ${word} (0x${word.toString(16).toUpperCase().padStart(4, '0')}) ${binary} → ${activeBits}</div>`;
+            }
+            document.getElementById('statusBitsRaw').innerHTML = statusBitsHtml;
+
+            // Alarm Bits (Words 17-47)
+            let alarmBitsHtml = '';
+            for (let i = 17; i <= 47 && i < data.words.length; i++) {
+                const word = data.words[i];
+                const binary = word.toString(2).padStart(16, '0');
+                const bitStates = getBitStates(word);
+                const activeBits = bitStates !== 'Nenhum bit ativo' ? `<span class="bit-active">${bitStates}</span>` : `<span class="bit-inactive">${bitStates}</span>`;
+                alarmBitsHtml += `<div class="bit-visual">W${i}: ${word} (0x${word.toString(16).toUpperCase().padStart(4, '0')}) ${binary} → ${activeBits}</div>`;
+            }
+            document.getElementById('alarmBitsRaw').innerHTML = alarmBitsHtml;
+
+            // Event Bits (Words 48-64)
+            let eventBitsHtml = '';
+            for (let i = 48; i <= 64 && i < data.words.length; i++) {
+                const word = data.words[i];
+                const binary = word.toString(2).padStart(16, '0');
+                const bitStates = getBitStates(word);
+                const activeBits = bitStates !== 'Nenhum bit ativo' ? `<span class="bit-active">${bitStates}</span>` : `<span class="bit-inactive">${bitStates}</span>`;
+                eventBitsHtml += `<div class="bit-visual">W${i}: ${word} (0x${word.toString(16).toUpperCase().padStart(4, '0')}) ${binary} → ${activeBits}</div>`;
+            }
+            document.getElementById('eventBitsRaw').innerHTML = eventBitsHtml;
+
+            // Todos os bits extraídos do BitData
+            if (data.bit_data) {
+                let allBitsHtml = '';
+                
+                // Status bits
+                if (data.bit_data.status_bits) {
+                    data.bit_data.status_bits.forEach((wordBits, wordIdx) => {
+                        if (wordBits && Array.isArray(wordBits)) {
+                            const activeBits = wordBits.map((bit, bitIdx) => bit ? `B${bitIdx}` : '').filter(b => b).join(',');
+                            const bitClass = activeBits ? 'bit-active' : 'bit-inactive';
+                            allBitsHtml += `<div class="bit-visual">Status W${wordIdx}: <span class="${bitClass}">[${activeBits || 'Nenhum bit ativo'}]</span></div>`;
+                        }
+                    });
+                }
+                
+                // Alarm bits
+                if (data.bit_data.alarm_bits) {
+                    data.bit_data.alarm_bits.forEach((wordBits, wordIdx) => {
+                        if (wordBits && Array.isArray(wordBits)) {
+                            const activeBits = wordBits.map((bit, bitIdx) => bit ? `B${bitIdx}` : '').filter(b => b).join(',');
+                            const bitClass = activeBits ? 'bit-active' : 'bit-inactive';
+                            allBitsHtml += `<div class="bit-visual">Alarm W${wordIdx + 17}: <span class="${bitClass}">[${activeBits || 'Nenhum bit ativo'}]</span></div>`;
+                        }
+                    });
+                }
+                
+                // Event bits
+                if (data.bit_data.event_bits) {
+                    data.bit_data.event_bits.forEach((wordBits, wordIdx) => {
+                        if (wordBits && Array.isArray(wordBits)) {
+                            const activeBits = wordBits.map((bit, bitIdx) => bit ? `B${bitIdx}` : '').filter(b => b).join(',');
+                            const bitClass = activeBits ? 'bit-active' : 'bit-inactive';
+                            allBitsHtml += `<div class="bit-visual">Event W${wordIdx + 48}: <span class="${bitClass}">[${activeBits || 'Nenhum bit ativo'}]</span></div>`;
+                        }
+                    });
+                }
+                
+                document.getElementById('allBitsData').innerHTML = allBitsHtml;
+            }
+        }
+
         // Inicializar
         connectWebSocket();
         setInterval(fetchStatus, 2000);
-        addLog('Sistema iniciado', 'info');
+        addLog('Sistema HMI iniciado - Interface organizada com abas para melhor visualização', 'info');
     </script>
 </body>
 </html>

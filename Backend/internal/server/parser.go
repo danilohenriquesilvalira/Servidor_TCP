@@ -42,6 +42,12 @@ func ParsePLCData(data []byte) *plcdata.PLCData {
 	
 	// 9. PROCESSAR BITS DE EVENTOS (Words 48-62)
 	plcData.EventBits = plcdata.ProcessEventBits(plcData.BitData)
+	
+	// 10. PROCESSAR DADOS INTEIROS ORGANIZADOS (Ints 0-80)
+	plcData.IntData = plcdata.ProcessIntData(plcData.Ints)
+	
+	// 11. PROCESSAR DADOS REAIS ORGANIZADOS (Reals 0-130)
+	plcData.RealData = plcdata.ProcessRealData(plcData.Reals)
 
 	return plcData
 }
