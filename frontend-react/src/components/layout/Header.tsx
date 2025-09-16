@@ -1,26 +1,23 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SignalIcon, BellIcon, UserIcon, ArrowLeftOnRectangleIcon } from '@heroicons/react/24/solid';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface HeaderProps {
-  onLogout?: () => void;
   onToggleMobileMenu?: () => void;
 }
 
 export const Header = ({ 
-  onLogout,
-  onToggleMobileMenu
+  onToggleMobileMenu: _onToggleMobileMenu
 }: HeaderProps) => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [notificationCount] = useState(3);
-  const [backendStatus, setBackendStatus] = useState<'active' | 'inactive' | 'failure'>('active');
+  const [backendStatus] = useState<'active' | 'inactive' | 'failure'>('active');
 
   const handleLogout = () => {
-    if (onLogout) {
-      onLogout();
-    } else {
-      navigate('/');
-    }
+    logout();
+    navigate('/login');
   };
 
   const getBackendStatusColor = () => {
@@ -101,17 +98,47 @@ export const Header = ({
         <div className="relative group">
           <button 
             className="w-12 h-12 flex items-center justify-center text-white bg-edp-neutral-600 rounded-full hover:bg-edp-electric hover:text-black transition-all duration-200"
-            aria-label="Menu do usuário"
+            aria-label={`Menu do usuário - ${user?.nome || 'Usuário'}`}
+            title={`${user?.nome || 'Usuário'} (${user?.cargo || 'Sem cargo'})`}
           >
-            <UserIcon className="w-6 h-6" />
+            {user?.url_avatar ? (
+              <img 
+                src={user.url_avatar} 
+                alt={user.nome}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <UserIcon className="w-6 h-6" />
+            )}
           </button>
           
-          <div className="absolute right-0 top-full mt-2 w-48 bg-white border-2 border-edp-neutral-300 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+          <div className="absolute right-0 top-full mt-2 w-64 bg-white border-2 border-edp-neutral-300 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            {/* Informações do Usuário */}
+            {user && (
+              <div className="px-4 py-3 border-b border-edp-neutral-200">
+                <div className="font-edp">
+                  <div className="font-semibold text-edp-neutral-900">{user.nome}</div>
+                  <div className="text-sm text-edp-neutral-600">{user.email}</div>
+                  <div className="text-xs text-edp-neutral-500 mt-1">
+                    <span className="inline-block bg-edp-electric/20 text-edp-marine px-2 py-1 rounded">
+                      {user.cargo}
+                    </span>
+                    {user.eclusa && (
+                      <span className="inline-block bg-edp-ice/20 text-edp-marine px-2 py-1 rounded ml-2">
+                        {user.eclusa}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Botão de Logout */}
             <button 
               onClick={handleLogout}
-              className="w-full px-4 py-3 text-left font-edp text-edp-neutral-900 hover:bg-edp-electric hover:text-black transition-colors flex items-center gap-3 border-2 border-transparent hover:border-edp-electric"
+              className="w-full px-4 py-3 text-left font-edp text-edp-neutral-900 hover:bg-edp-semantic-red hover:text-white transition-colors flex items-center gap-3"
             >
-              <ArrowLeftOnRectangleIcon className="w-4 h-4 text-red-600" />
+              <ArrowLeftOnRectangleIcon className="w-4 h-4 text-edp-semantic-red group-hover:text-white" />
               <span className="font-medium">Sair do Sistema</span>
             </button>
           </div>

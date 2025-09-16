@@ -7,8 +7,11 @@ import (
 	"sync"
 
 	"projeto-hmi/internal/plcdata"
+	"projeto-hmi/internal/handlers"
+	"projeto-hmi/internal/middleware"
 
 	"github.com/gorilla/websocket"
+	"github.com/gorilla/mux"
 )
 
 // Config contém as configurações do servidor
@@ -34,14 +37,20 @@ type WriteValue struct {
 
 // Server gerencia as conexões TCP e WebSocket
 type Server struct {
-	config       *Config
-	clients      map[*websocket.Conn]bool
-	plcConns     map[net.Conn]bool
-	mutex        sync.RWMutex
-	plcMutex     sync.RWMutex
-	broadcast    chan *plcdata.PLCData
-	writeChannel chan WriteRequest
-	upgrader     websocket.Upgrader
+	config         *Config
+	clients        map[*websocket.Conn]bool
+	plcConns       map[net.Conn]bool
+	mutex          sync.RWMutex
+	plcMutex       sync.RWMutex
+	broadcast      chan *plcdata.PLCData
+	writeChannel   chan WriteRequest
+	upgrader       websocket.Upgrader
+	
+	// Campos para autenticação de usuários
+	userHandler    *handlers.UserHandler
+	authMiddleware *middleware.AuthMiddleware
+	rateLimiter    *middleware.RateLimiter
+	router         *mux.Router
 }
 
 // New cria uma nova instância do servidor
@@ -52,6 +61,7 @@ func New(config *Config) *Server {
 		plcConns:     make(map[net.Conn]bool),
 		broadcast:    make(chan *plcdata.PLCData, 1000),
 		writeChannel: make(chan WriteRequest, 100),
+		router:       mux.NewRouter(),
 		upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool { return true },
 		},
@@ -69,6 +79,11 @@ func (s *Server) Start() error {
 	go s.startTCP()
 
 	return s.startHTTP()
+}
+
+// GetRouter retorna o router para configuração de rotas
+func (s *Server) GetRouter() *mux.Router {
+	return mux.NewRouter()
 }
 
 // GetClientCount retorna o número de clientes conectados
@@ -176,3 +191,45 @@ func (s *Server) handleWriteRequests() {
 		s.plcMutex.RUnlock()
 	}
 }
+
+// SetupAuthRoutes configura as rotas de autenticação no router mux
+func (s *Server) SetupAuthRoutes(userHandler *handlers.UserHandler, authMiddleware *middleware.AuthMiddleware, rateLimiter *middleware.RateLimiter) {
+	s.userHandler = userHandler
+	s.authMiddleware = authMiddleware
+	s.rateLimiter = rateLimiter
+	
+	// Subrouter para /api
+	apiRouter := s.router.PathPrefix("/api").Subrouter()
+	
+	// Rota de login (sem autenticação)
+	apiRouter.HandleFunc("/login", s.rateLimiter.LoginRateLimit(s.userHandler.Login)).Methods("POST", "OPTIONS")
+	
+	// Rotas protegidas (requerem autenticação)
+	apiRouter.HandleFunc("/me", s.authMiddleware.RequireAuth(s.userHandler.GetCurrentUser)).Methods("GET", "OPTIONS")
+	apiRouter.HandleFunc("/permissions", s.authMiddleware.RequireAuth(s.userHandler.GetUserPermissions)).Methods("GET", "OPTIONS")
+	
+	// Rotas de gerenciamento de usuários
+	apiRouter.HandleFunc("/users", s.authMiddleware.RequireAuth(s.userHandler.GetUsers)).Methods("GET", "OPTIONS")
+	apiRouter.HandleFunc("/users", s.authMiddleware.RequireAuth(s.userHandler.CreateUser)).Methods("POST", "OPTIONS")
+	apiRouter.HandleFunc("/users/{id}", s.authMiddleware.RequireAuth(s.userHandler.GetUserByID)).Methods("GET", "OPTIONS")
+	apiRouter.HandleFunc("/users/{id}", s.authMiddleware.RequireAuth(s.userHandler.UpdateUser)).Methods("PUT", "OPTIONS")
+	apiRouter.HandleFunc("/users/{id}", s.authMiddleware.RequireAuth(s.userHandler.DeleteUser)).Methods("DELETE", "OPTIONS")
+	apiRouter.HandleFunc("/users/{id}/password", s.authMiddleware.RequireAuth(s.userHandler.ChangePassword)).Methods("PUT", "OPTIONS")
+	apiRouter.HandleFunc("/users/{id}/block", s.authMiddleware.RequireAuth(s.userHandler.BlockUser)).Methods("PUT", "OPTIONS")
+	apiRouter.HandleFunc("/users/{id}/unblock", s.authMiddleware.RequireAuth(s.userHandler.UnblockUser)).Methods("PUT", "OPTIONS")
+	
+	// Rota de health check para autenticação
+	apiRouter.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Sistema de autenticação EDP ativo"))
+	}).Methods("GET", "OPTIONS")
+	
+	log.Println("✅ Rotas de autenticação registradas no mux!")
+	log.Println("🔐 Login: POST /api/login")
+	log.Println("👤 Perfil: GET /api/me")
+	log.Println("🔑 Permissões: GET /api/permissions")
+	log.Println("👥 Usuários: GET/POST /api/users")
+	log.Println("🏥 Health: GET /api/health")
+}
+

@@ -4,24 +4,30 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"projeto-hmi/internal/middleware"
 )
 
 // startHTTP inicia o servidor HTTP e WebSocket
 func (s *Server) startHTTP() error {
-	http.HandleFunc("/ws", s.handleWebSocket)
-	http.HandleFunc("/api/write", s.handleWriteAPI)
-	http.HandleFunc("/api/status", s.handleStatusAPI)
+	// Middleware CORS para todas as rotas
+	corsMiddleware := middleware.NewCORSMiddleware()
+	s.router.Use(corsMiddleware.Handler)
+	
+	// Rotas do PLC (WebSocket e APIs de escrita)
+	s.router.HandleFunc("/ws", s.handleWebSocket).Methods("GET")
+	s.router.HandleFunc("/api/write", s.handleWriteAPI).Methods("POST", "OPTIONS")
+	s.router.HandleFunc("/api/status", s.handleStatusAPI).Methods("GET", "OPTIONS")
 
 	// Serve arquivos estáticos
 	fs := http.FileServer(http.Dir(s.config.StaticDir))
-	http.Handle("/", fs)
+	s.router.PathPrefix("/").Handler(fs)
 
 	log.Println("✅ Servidores rodando!")
 	log.Printf("🌐 Acesse: http://localhost%s", s.config.HTTPPort)
 	log.Printf("📡 API Write: http://localhost%s/api/write", s.config.HTTPPort)
 	log.Printf("📊 API Status: http://localhost%s/api/status", s.config.HTTPPort)
 
-	return http.ListenAndServe(s.config.HTTPPort, nil)
+	return http.ListenAndServe(s.config.HTTPPort, s.router)
 }
 
 // handleWebSocket gerencia conexões WebSocket
@@ -93,3 +99,4 @@ func (s *Server) handleStatusAPI(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(status)
 }
+
