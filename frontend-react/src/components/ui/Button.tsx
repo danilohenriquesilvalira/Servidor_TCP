@@ -39,10 +39,10 @@ export const Button: React.FC<ButtonProps> = ({
       'focus:ring-edp-marine/30'
     ],
     outline: [
-      // Electric Green outline com texto Electric Green
-      'bg-white text-edp-electric shadow-sm font-semibold',
+      // Fundo neutro com texto Marine Blue (seguindo diretrizes EDP)
+      'bg-edp-neutral-white-wash text-edp-marine shadow-sm font-semibold',
       'hover:bg-edp-electric hover:text-black active:bg-edp-electric/90 active:text-black',
-      'border-2 border-edp-electric hover:border-edp-electric/90',
+      'border-2 border-edp-neutral-lighter hover:border-edp-electric',
       'focus:ring-edp-electric/30'
     ],
     ghost: [

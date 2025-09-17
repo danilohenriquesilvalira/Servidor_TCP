@@ -31,8 +31,8 @@ func main() {
 	log.Printf("📁 Diretório frontend: %s", frontendDir)
 
 	config := &server.Config{
-		TCPPort:   ":8080",
-		HTTPPort:  ":8081",
+		TCPPort:   "0.0.0.0:8080",
+		HTTPPort:  "0.0.0.0:8081",
 		StaticDir: frontendDir,
 	}
 

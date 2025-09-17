@@ -10,8 +10,34 @@ import {
   ApiError
 } from '@/types/auth';
 
-// Configuração da API
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8081';
+// Configuração da API - detecta automaticamente o host
+const getApiBaseUrl = (): string => {
+  // Se estiver definido nas variáveis de ambiente, usa essa
+  if ((import.meta as any).env?.VITE_API_URL) {
+    console.log(`🌍 Usando VITE_API_URL: ${(import.meta as any).env.VITE_API_URL}`);
+    return (import.meta as any).env.VITE_API_URL;
+  }
+  
+  // Detecta automaticamente o host atual e usa a porta 8081
+  const hostname = window.location.hostname;
+  const port = window.location.port;
+  const protocol = window.location.protocol;
+  
+  console.log(`📍 Informações da página atual:`);
+  console.log(`   - Hostname: ${hostname}`);
+  console.log(`   - Port: ${port}`);
+  console.log(`   - Protocol: ${protocol}`);
+  console.log(`   - Full URL: ${window.location.href}`);
+  
+  const apiUrl = `http://${hostname}:8081`;
+  
+  // Log para debug
+  console.log(`🔗 API Base URL detectada: ${apiUrl}`);
+  
+  return apiUrl;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 const API_PREFIX = '/api';
 
 class ApiService {
@@ -38,6 +64,9 @@ class ApiService {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
+    
+    // Log para debug
+    console.log(`🌐 Fazendo requisição: ${options.method || 'GET'} ${url}`);
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -73,6 +102,7 @@ class ApiService {
 
       return data;
     } catch (error) {
+      console.error(`❌ Erro na requisição ${url}:`, error);
       if (error instanceof Error) {
         throw error;
       }
@@ -82,10 +112,18 @@ class ApiService {
 
   // Endpoints de Autenticação
   async login(credentials: LoginRequest): Promise<LoginResponse> {
+    console.log(`🔑 Tentativa de login:`, {
+      username: credentials.username,
+      baseURL: this.baseURL,
+      fullURL: `${this.baseURL}/login`
+    });
+    
     const response = await this.request<LoginResponse>('/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
+    
+    console.log(`✅ Login bem-sucedido!`, response);
     
     // Define o token automaticamente após login bem-sucedido
     this.setToken(response.token);

@@ -11,7 +11,9 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    host: true
+    host: true, // Permite conexões externas mas não força 0.0.0.0 
+    strictPort: false, // Permite trocar de porta se estiver ocupada
+    open: false, // Não abre automaticamente o browser
   },
   build: {
     outDir: 'dist',

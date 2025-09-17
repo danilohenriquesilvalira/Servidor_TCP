@@ -7,7 +7,7 @@ import { Layout } from './components/layout';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import LoginPage from '@/pages/LoginPage';
 import Dashboard from './pages/Dashboard';
-import UsersPage from './pages/UsersPage';
+import UsersPage from './pages/UsersPageModern.tsx';
 
 const App: React.FC = () => {
   return (

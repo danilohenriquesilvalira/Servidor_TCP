@@ -26,9 +26,9 @@ export const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className="w-full min-h-screen flex bg-edp-neutral-white-wash">
+    <div className="w-full h-screen flex bg-edp-neutral-white-wash overflow-hidden">
       {/* Sidebar */}
-      <div className="flex-shrink-0 h-screen">
+      <div className="flex-shrink-0">
         <Sidebar 
           isOpen={isSidebarOpen}
           onToggle={toggleSidebar}
@@ -37,14 +37,16 @@ export const Layout = ({ children }: LayoutProps) => {
       </div>
 
       {/* Conteúdo Principal */}
-      <div className="flex flex-col flex-1 min-h-screen">
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
         {/* Header */}
         <Header />
 
         {/* Conteúdo da Página */}
-        <main className="flex-1 overflow-y-auto bg-edp-neutral-white-wash">
-          <div className="container mx-auto p-6 max-w-none">
-            {children}
+        <main className="flex-1 overflow-hidden bg-edp-neutral-white-wash">
+          <div className="h-full overflow-y-auto">
+            <div className="w-full max-w-full p-4 lg:p-6 h-full">
+              {children}
+            </div>
           </div>
         </main>
       </div>

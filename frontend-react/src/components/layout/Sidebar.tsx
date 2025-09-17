@@ -113,7 +113,7 @@ export const Sidebar = ({ isOpen, onToggle, onClose }: SidebarProps) => {
     <>
       {/* Desktop Sidebar */}
       <aside className={`
-        h-full bg-edp-marine z-50 flex flex-col transition-[width] duration-100 ease-out sticky top-0
+        h-screen bg-edp-marine z-50 flex flex-col transition-[width] duration-100 ease-out sticky top-0
         ${isOpen ? 'w-64' : 'w-16'}
         ${isMobile ? 'hidden' : 'flex'}
       `}>
