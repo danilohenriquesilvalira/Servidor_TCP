@@ -3,10 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { PLCProvider } from './contexts/PLCContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { Header, Sidebar } from './components/layout';
+import { Layout } from './components/layout';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import LoginPage from '@/pages/LoginPage';
 import Dashboard from './pages/Dashboard';
+import UsersPage from './pages/UsersPage';
 
 const App: React.FC = () => {
   return (
@@ -23,16 +24,20 @@ const App: React.FC = () => {
                 path="/dashboard"
                 element={
                   <ProtectedRoute>
-                    {/* Layout EDP Design System */}
-                    <div className="min-h-screen bg-white">
-                      <Header />
-                      <Sidebar />
-                      
-                      {/* Main Content Area - Respects EDP spacing guidelines */}
-                      <main className="pt-6 pb-20 lg:pb-6 lg:ml-24 bg-white min-h-screen transition-all duration-300">
-                        <Dashboard />
-                      </main>
-                    </div>
+                    <Layout>
+                      <Dashboard />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/usuarios"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <UsersPage />
+                    </Layout>
                   </ProtectedRoute>
                 }
               />

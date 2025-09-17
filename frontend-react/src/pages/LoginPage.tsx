@@ -1,4 +1,4 @@
-// Página de Login EDP - Design System Oficial EDP 2025
+// Página de Login EDP - Design System Oficial EDP 2025 - RESPONSIVIDADE CORRIGIDA
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -7,9 +7,11 @@ import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { EyeIcon, EyeSlashIcon, LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
 import { Notification, useNotification } from '@/components/ui/Notification';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 
 const loginSchema = z.object({
-  email: z.string().min(1, 'Email é obrigatório').email('Email inválido'),
+  username: z.string().min(1, 'Nome de usuário é obrigatório').min(3, 'Nome de usuário deve ter pelo menos 3 caracteres'),
   password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres')
 });
 
@@ -68,7 +70,7 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
     try {
-      await login(data.email, data.password);
+      await login(data.username, data.password);
       showNotification('Login realizado com sucesso!', 'success');
     } catch (error) {
       console.error('Erro no login:', error);
@@ -105,136 +107,129 @@ export default function LoginPage() {
         </div>
       )}
 
-      {/* Contêiner Principal - Fundo EDP Marine */}
-      <div className="min-h-screen bg-edp-marine flex items-center justify-center p-6 lg:p-12 overflow-hidden">
+      {/* Contêiner Principal - RESPONSIVIDADE CORRIGIDA */}
+      <div className="min-h-screen bg-edp-marine flex items-center justify-center px-4 py-6 lg:px-8 relative overflow-hidden">
         
-        {/* Card Grande Centralizado para o Efeito 3D */}
-        <div className="w-full max-w-5xl bg-edp-spruce rounded-3xl py-12 px-8 flex flex-col justify-center items-center text-center shadow-2xl animate-fade-in-right space-y-8">
+        {/* Logo EDP Grande no Canto Superior Esquerdo - MOBILE FIRST RESPONSIVO */}
+        <div className="absolute -top-[10%] -left-[10%] xs:-top-[12%] xs:-left-[12%] sm:-top-[15%] sm:-left-[15%] md:-top-[20%] md:-left-[20%] lg:-top-[25%] lg:-left-[22.5%] xl:-top-[30%] xl:-left-[25%] 2xl:-top-[35%] 2xl:-left-[27.5%] z-0">
+          <img 
+            src="/Logo_EDP.svg" 
+            alt="EDP Logo Background" 
+            className="w-[40vw] min-w-[120px] xs:w-[42vw] sm:w-[45vw] md:w-[48vw] lg:w-[50vw] xl:w-[52vw] 2xl:w-[55vw] h-auto object-contain transform rotate-12 opacity-90"
+          />
+        </div>
+        
+        {/* Card Principal Centralizado - LARGURAS CONTROLADAS */}
+        <div className="w-full max-w-xs mx-auto sm:max-w-sm md:max-w-md lg:max-w-md xl:max-w-lg 2xl:max-w-lg 3xl:max-w-xl relative z-10">
+          
+          <div className="bg-edp-spruce rounded-2xl sm:rounded-3xl py-5 sm:py-6 lg:py-8 px-5 sm:px-6 lg:px-8 shadow-2xl animate-fade-in-right">
             
             {/* Logo EDP no topo */}
-            <div>
-                <img 
-                    src="/LOGO_EDP_2025.svg" 
-                    alt="Logo EDP 2025" 
-                    className="h-28 w-auto object-contain mx-auto"
-                />
+            <div className="text-center mb-4 sm:mb-5">
+              <img 
+                src="/LOGO_EDP_2025.svg" 
+                alt="Logo EDP 2025" 
+                className="h-12 sm:h-14 lg:h-16 w-auto object-contain mx-auto"
+              />
             </div>
 
-            {/* Card de Login Centralizado no Meio */}
-            <div className="w-full max-w-sm">
-                <div className="w-full bg-edp-spruce/40 backdrop-blur-sm border border-white/20 rounded-2xl p-6 md:p-8 shadow-xl text-white">
-                    {/* Header do Card de Login */}
-                    <div className="text-center mb-6">
-                        <h2 className="text-xl font-edp font-semibold text-white">Acesso ao Sistema HMI</h2>
-                    </div>
-
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-left">
-                        {/* Input Email */}
-                        <div className="space-y-2">
-                            <label className="block text-sm font-edp font-medium text-white/90">
-                                Email
-                            </label>
-                            <div className="relative group">
-                                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                                    <UserIcon className="h-5 w-5 text-white/60 group-focus-within:text-edp-electric transition-all duration-300" />
-                                </div>
-                                <input
-                                    {...register('email')}
-                                    type="email"
-                                    placeholder="seu.email@edp.com"
-                                    className="w-full h-14 pl-12 pr-4 text-base font-edp font-medium text-white placeholder-white/50 bg-white/10 border border-white/20 rounded-xl focus:border-edp-electric focus:bg-white/15 focus:outline-none focus:ring-0 transition-all duration-300 hover:border-white/30"
-                                    autoComplete="email"
-                                />
-                                {errors.email && (
-                                    <div className="text-edp-semantic-red font-edp text-sm mt-2 ml-1">
-                                        {errors.email.message}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Input Senha */}
-                        <div className="space-y-2">
-                            <label className="block text-sm font-edp font-medium text-white/90">
-                                Senha
-                            </label>
-                            <div className="relative group">
-                                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                                    <LockClosedIcon className="h-5 w-5 text-white/60 group-focus-within:text-edp-electric transition-all duration-300" />
-                                </div>
-                                <input
-                                    {...register('password')}
-                                    type={showPassword ? 'text' : 'password'}
-                                    placeholder="••••••••••"
-                                    className="w-full h-14 pl-12 pr-12 text-base font-edp font-medium text-white placeholder-white/50 bg-white/10 border border-white/20 rounded-xl focus:border-edp-electric focus:bg-white/15 focus:outline-none focus:ring-0 transition-all duration-300 hover:border-white/30"
-                                    autoComplete="current-password"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-4 flex items-center text-white/60 hover:text-edp-electric group-focus-within:text-edp-electric transition-all duration-300 focus:outline-none"
-                                    tabIndex={-1}
-                                >
-                                    {showPassword ? (
-                                        <EyeSlashIcon className="h-5 w-5" />
-                                    ) : (
-                                        <EyeIcon className="h-5 w-5" />
-                                    )}
-                                </button>
-                                {errors.password && (
-                                    <div className="text-edp-semantic-red font-edp text-sm mt-2 ml-1">
-                                        {errors.password.message}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Botão Login */}
-                        <div className="pt-2 text-center">
-                            <button
-                                type="submit"
-                                disabled={isLoading}
-                                className="w-full h-14 text-base font-edp font-semibold bg-edp-electric hover:bg-edp-electric/90 text-edp-marine rounded-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center space-x-3 shadow-[0_8px_32px_rgba(40,255,82,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none"
-                            >
-                                {isLoading ? (
-                                    <div className="flex items-center space-x-3">
-                                        <div className="w-5 h-5 border-2 border-edp-marine/30 border-t-edp-marine rounded-full animate-spin"></div>
-                                        <span>Entrando no sistema...</span>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <span>Entrar</span>
-                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                                        </svg>
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </form>
+            {/* Card de Login - CONTAINER RESPONSIVO CORRIGIDO */}
+            <div className="w-full">
+              <div className="bg-edp-spruce/40 backdrop-blur-sm border border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 shadow-xl text-white">
+                
+                {/* Header do Card de Login */}
+                <div className="text-center mb-3 sm:mb-4">
+                  <h2 className="text-base sm:text-lg font-edp font-semibold text-white">
+                    Acesso ao Sistema HMI
+                  </h2>
                 </div>
+
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" autoComplete="off">
+                  
+                  {/* Input Username - COMPONENTE PADRONIZADO */}
+                  <Input
+                    {...register('username')}
+                    type="text"
+                    label="Nome de Usuário"
+                    placeholder="admin"
+                    error={errors.username?.message}
+                    leftIcon={<UserIcon className="h-5 w-5" />}
+                    autoComplete="nope"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
+                    variant="login"
+                    data-form-type="other"
+                  />
+
+                  {/* Input Senha - COMPONENTE PADRONIZADO */}
+                  <Input
+                    {...register('password')}
+                    type={showPassword ? 'text' : 'password'}
+                    label="Senha"
+                    placeholder="••••••••••"
+                    error={errors.password?.message}
+                    leftIcon={<LockClosedIcon className="h-5 w-5" />}
+                    rightIcon={
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="text-white/60 hover:text-edp-electric transition-colors focus:outline-none"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? (
+                          <EyeSlashIcon className="h-5 w-5" />
+                        ) : (
+                          <EyeIcon className="h-5 w-5" />
+                        )}
+                      </button>
+                    }
+                    autoComplete="new-password"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
+                    variant="login"
+                    data-form-type="other"
+                  />
+
+                  {/* Botão Login - COMPONENTE PADRONIZADO */}
+                  <div className="pt-2">
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="lg"
+                      isLoading={isLoading}
+                      disabled={isLoading}
+                      className="w-full bg-edp-electric hover:bg-edp-electric/90 text-edp-marine shadow-[0_8px_32px_rgba(40,255,82,0.3)] transform hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      {isLoading ? (
+                        <>
+                          <span className="hidden sm:inline">Entrando no sistema...</span>
+                          <span className="sm:hidden">Entrando...</span>
+                        </>
+                      ) : (
+                        <>
+                          Entrar
+                          <svg className="ml-2 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </div>
             </div>
 
-            {/* Slogan e Footer na parte de baixo */}
-            <div className="pb-8 text-white">
-                <h1 className="text-2xl font-display font-bold text-white drop-shadow-lg">
-                    Inovação e <br /> Energia Conectada
-                </h1>
-                <p className="mt-4 text-edp-neutral-light/80 text-lg font-edp max-w-sm mx-auto">
-                    O futuro da energia começa aqui. Bem-vindo ao Sistema HMI Industrial.
-                </p>
-                <div className="mt-8 pt-6 border-t border-white/5 text-center">
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-center space-x-2 text-sm font-edp">
-                            <span className="text-white/60">Desenvolvido por</span>
-                            <span className="font-bold text-edp-electric">EDP Portugal</span>
-                        </div>
-                        <div className="text-xs font-edp text-white/40">
-                            © 2025 • Sistema HMI Industrial • Todos os direitos reservados
-                        </div>
-                    </div>
-                </div>
+            {/* Footer Compacto */}
+            <div className="mt-4 pt-3 border-t border-white/5 text-center">
+              <div className="flex items-center justify-center space-x-2 text-xs font-edp text-white/60">
+                <span>Desenvolvido por</span>
+                <span className="font-bold text-edp-electric">EDP Portugal</span>
+                <span>© 2025</span>
+              </div>
             </div>
+          </div>
         </div>
       </div>
     </>

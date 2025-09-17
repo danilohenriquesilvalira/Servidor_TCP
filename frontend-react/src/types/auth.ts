@@ -13,7 +13,7 @@ export interface User {
 }
 
 export interface LoginRequest {
-  email: string;
+  username: string;
   senha: string;
 }
 
@@ -64,7 +64,7 @@ export interface AuthContextType {
   permissions: UserPermissions | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
 }
@@ -86,5 +86,11 @@ export const VALID_CARGOS = [
   'Operador'
 ] as const;
 
+export const VALID_STATUS = [
+  'Ativo',
+  'Bloqueado'
+] as const;
+
 export type Eclusa = typeof VALID_ECLUSAS[number];
 export type Cargo = typeof VALID_CARGOS[number];
+export type Status = typeof VALID_STATUS[number];

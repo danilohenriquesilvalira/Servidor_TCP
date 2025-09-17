@@ -52,8 +52,8 @@ type UserResponse struct {
 }
 
 type LoginRequest struct {
-	Email string `json:"email" validate:"required,email"`
-	Senha string `json:"senha" validate:"required"`
+	Username string `json:"username" validate:"required"`
+	Senha    string `json:"senha" validate:"required"`
 }
 
 type LoginResponse struct {

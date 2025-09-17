@@ -64,9 +64,9 @@ func (rl *RateLimiter) LoginRateLimit(next http.HandlerFunc) http.HandlerFunc {
 		
 		client.requests++
 		
-		if client.requests >= 5 {
+		if client.requests >= 50 {
 			client.blocked = true
-			client.blockUntil = now.Add(15 * time.Minute)
+			client.blockUntil = now.Add(1 * time.Minute)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusTooManyRequests)
 			json.NewEncoder(w).Encode(map[string]string{

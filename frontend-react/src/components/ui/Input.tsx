@@ -6,7 +6,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   helper?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
-  variant?: 'default' | 'filled' | 'outline';
+  variant?: 'default' | 'filled' | 'outline' | 'login';
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(({
@@ -25,7 +25,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
   const baseClasses = [
     // INPUTS QUADRADOS EDP - SEM BORDER RADIUS
     'w-full font-edp transition-all duration-200',
-    'focus:outline-none focus:ring-2 focus:ring-offset-1',
+    'focus:outline-none',
     'disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-edp-neutral-100',
     'placeholder:text-edp-neutral-500'
   ];
@@ -35,22 +35,29 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
       // Input padrão com cores EDP
       'border-2 border-edp-neutral-400 bg-white text-edp-neutral-900',
       'hover:border-edp-neutral-600',
-      'focus:border-edp-electric focus:ring-edp-electric/30',
-      error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/30' : ''
+      'focus:border-edp-electric',
+      error ? 'border-red-500 focus:border-red-500' : ''
     ],
     filled: [
       // Input preenchido com Slate Grey
       'border-2 border-transparent bg-edp-neutral-100 text-edp-neutral-900',
       'hover:bg-edp-neutral-200 focus:bg-white focus:border-edp-electric',
-      'focus:ring-edp-electric/30',
-      error ? 'bg-red-50 border-red-500 focus:border-red-500 focus:ring-red-500/30' : ''
+      error ? 'bg-red-50 border-red-500 focus:border-red-500' : ''
     ],
     outline: [
       // Input outline com Electric Green
       'border-2 border-edp-electric bg-transparent text-edp-neutral-900',
       'hover:border-edp-electric/80',
-      'focus:border-edp-electric focus:ring-edp-electric/30',
-      error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/30' : ''
+      'focus:border-edp-electric',
+      error ? 'border-red-500 focus:border-red-500' : ''
+    ],
+    login: [
+      // Input para página de login com tema dark
+      'border-2 border-white/20 bg-white/10 text-white rounded-xl',
+      'hover:border-white/30',
+      'focus:border-edp-electric focus:bg-white/15',
+      'placeholder:text-white/50',
+      error ? 'border-red-400 focus:border-red-400' : ''
     ]
   };
 
@@ -75,15 +82,19 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
       {label && (
         <label 
           htmlFor={inputId} 
-          className="block text-sm font-edp font-medium text-edp-neutral-800 mb-2"
+          className={`block text-sm font-edp font-medium mb-2 ${
+            variant === 'login' ? 'text-white/90' : 'text-edp-neutral-800'
+          }`}
         >
           {label}
         </label>
       )}
       
-      <div className="relative">
+      <div className="relative group">
         {leftIcon && (
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-edp-neutral-500">
+          <div className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors duration-300 ${
+            variant === 'login' ? 'text-white/60 group-focus-within:text-edp-electric' : 'text-edp-neutral-500'
+          }`}>
             {leftIcon}
           </div>
         )}
@@ -96,14 +107,18 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
         />
         
         {rightIcon && (
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-edp-neutral-500">
+          <div className={`absolute inset-y-0 right-0 pr-3 flex items-center ${
+            variant === 'login' ? 'text-white/60' : 'text-edp-neutral-500'
+          }`}>
             {rightIcon}
           </div>
         )}
       </div>
       
       {error && (
-        <p className="mt-2 text-sm font-edp text-red-600 font-medium">
+        <p className={`mt-2 text-sm font-edp font-medium ${
+          variant === 'login' ? 'text-red-400' : 'text-red-600'
+        }`}>
           {error}
         </p>
       )}

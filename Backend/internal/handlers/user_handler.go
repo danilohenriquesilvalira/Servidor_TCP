@@ -32,7 +32,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	ipAddress := utils.GetClientIP(r)
 	userAgent := r.Header.Get("User-Agent")
 
-	response, err := h.userService.Login(req.Email, req.Senha, ipAddress, userAgent)
+	response, err := h.userService.Login(req.Username, req.Senha, ipAddress, userAgent)
 	if err != nil {
 		h.respondWithError(w, http.StatusUnauthorized, err.Error())
 		return

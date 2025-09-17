@@ -59,6 +59,13 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
+        // Se receber 401, pode ser que o usuário foi bloqueado ou token expirado
+        if (response.status === 401) {
+          this.setToken(null);
+          // Dispatch custom event for auth failure
+          window.dispatchEvent(new CustomEvent('auth-failure'));
+        }
+        
         // Trata erros da API
         const error = data as ApiError;
         throw new Error(error.error || `HTTP ${response.status}`);

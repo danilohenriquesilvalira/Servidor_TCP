@@ -5,6 +5,11 @@ import (
 	"log"
 	"net/http"
 	"projeto-hmi/internal/middleware"
+	"projeto-hmi/internal/handlers"
+	"projeto-hmi/internal/database"
+	"projeto-hmi/internal/repository"
+	"projeto-hmi/internal/services"
+	"projeto-hmi/internal/auth"
 )
 
 // startHTTP inicia o servidor HTTP e WebSocket
@@ -12,6 +17,9 @@ func (s *Server) startHTTP() error {
 	// Middleware CORS para todas as rotas
 	corsMiddleware := middleware.NewCORSMiddleware()
 	s.router.Use(corsMiddleware.Handler)
+	
+	// Configurar autenticação primeiro
+	s.setupAuthentication()
 	
 	// Rotas do PLC (WebSocket e APIs de escrita)
 	s.router.HandleFunc("/ws", s.handleWebSocket).Methods("GET")
@@ -98,5 +106,43 @@ func (s *Server) handleStatusAPI(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(status)
+}
+
+// setupAuthentication configura todos os handlers e middlewares de autenticação
+func (s *Server) setupAuthentication() {
+	// Configuração do banco de dados
+	dbConfig := database.Config{
+		Host:     "localhost",
+		Port:     "5432",
+		User:     "danilo",
+		Password: "Danilo@34333528",
+		DBName:   "EDP_USERS",
+	}
+	
+	// Inicializar database
+	db, err := database.NewConnection(dbConfig)
+	if err != nil {
+		log.Printf("❌ Erro ao conectar database: %v", err)
+		return
+	}
+	
+	// Inicializar repositórios
+	userRepo := repository.NewUserRepository(db)
+	auditRepo := repository.NewAuditRepository(db)
+	
+	// Inicializar serviços
+	jwtService := auth.NewJWTService("edp-users-jwt-secret-key-2024-secure", "edp-users-api")
+	rbacService := auth.NewRBACService()
+	userService := services.NewUserService(userRepo, auditRepo, jwtService, rbacService)
+	
+	// Inicializar handlers e middlewares
+	userHandler := handlers.NewUserHandler(userService)
+	authMiddleware := middleware.NewAuthMiddleware(jwtService, userRepo)
+	rateLimiter := middleware.NewRateLimiter()
+	
+	// Configurar rotas de autenticação
+	s.SetupAuthRoutes(userHandler, authMiddleware, rateLimiter)
+	
+	log.Println("✅ Sistema de autenticação configurado!")
 }
 

@@ -27,25 +27,25 @@ func NewUserService(userRepo *repository.UserRepository, auditRepo *repository.A
 	}
 }
 
-func (s *UserService) Login(email, password, ipAddress, userAgent string) (*models.LoginResponse, error) {
-	user, err := s.userRepo.GetByEmail(email)
+func (s *UserService) Login(username, password, ipAddress, userAgent string) (*models.LoginResponse, error) {
+	user, err := s.userRepo.GetByIDUsuarioEDP(username)
 	if err != nil {
-		s.logAuth(uuid.Nil, email, models.ActionLoginFailed, ipAddress, userAgent, false)
+		s.logAuth(uuid.Nil, username, models.ActionLoginFailed, ipAddress, userAgent, false)
 		return nil, fmt.Errorf("credenciais inválidas")
 	}
 
 	if user == nil {
-		s.logAuth(uuid.Nil, email, models.ActionLoginFailed, ipAddress, userAgent, false)
+		s.logAuth(uuid.Nil, username, models.ActionLoginFailed, ipAddress, userAgent, false)
 		return nil, fmt.Errorf("credenciais inválidas")
 	}
 
 	if user.Status == models.StatusBloqueado {
-		s.logAuth(user.ID, email, models.ActionLoginFailed, ipAddress, userAgent, false)
+		s.logAuth(user.ID, username, models.ActionLoginFailed, ipAddress, userAgent, false)
 		return nil, fmt.Errorf("usuário bloqueado")
 	}
 
 	if !utils.CheckPasswordHash(password, user.SenhaHash) {
-		s.logAuth(user.ID, email, models.ActionLoginFailed, ipAddress, userAgent, false)
+		s.logAuth(user.ID, username, models.ActionLoginFailed, ipAddress, userAgent, false)
 		return nil, fmt.Errorf("credenciais inválidas")
 	}
 
@@ -54,7 +54,7 @@ func (s *UserService) Login(email, password, ipAddress, userAgent string) (*mode
 		return nil, fmt.Errorf("erro ao gerar token: %w", err)
 	}
 
-	s.logAuth(user.ID, email, models.ActionLogin, ipAddress, userAgent, true)
+	s.logAuth(user.ID, username, models.ActionLogin, ipAddress, userAgent, true)
 
 	return &models.LoginResponse{
 		Token: token,

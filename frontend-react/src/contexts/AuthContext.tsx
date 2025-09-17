@@ -42,14 +42,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(false);
     };
 
+    // Listener para falhas de autenticação (usuário bloqueado, token expirado)
+    const handleAuthFailure = () => {
+      logout();
+    };
+
+    window.addEventListener('auth-failure', handleAuthFailure);
     initializeAuth();
+
+    return () => {
+      window.removeEventListener('auth-failure', handleAuthFailure);
+    };
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (username: string, password: string) => {
     try {
       setIsLoading(true);
       
-      const response = await authAPI.login({ email, senha: password });
+      const response = await authAPI.login({ username, senha: password });
       
       // Define os dados do usuário autenticado
       setToken(response.token);
