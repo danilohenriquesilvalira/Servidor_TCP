@@ -6,15 +6,15 @@ import (
 	"net"
 	"net/http"
 	"sync"
-	"time"
 	"sync/atomic"
+	"time"
 
-	"projeto-hmi/internal/plcdata"
 	"projeto-hmi/internal/handlers"
 	"projeto-hmi/internal/middleware"
+	"projeto-hmi/internal/plcdata"
 
-	"github.com/gorilla/websocket"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
 // Config contém as configurações do servidor
@@ -40,59 +40,59 @@ type WriteValue struct {
 
 // WSClient representa um cliente WebSocket com rate limiting e controle de qualidade
 type WSClient struct {
-	conn           *websocket.Conn
-	send           chan []byte
-	lastSent       time.Time
-	messageCount   int64
-	rateLimit      time.Duration
-	isHealthy      bool
-	slowResponses  int
-	maxSlowCount   int
-	writeTimeout   time.Duration
-	readTimeout    time.Duration
-	pingInterval   time.Duration
-	lastPong       time.Time
-	closed         bool
-	closeMutex     sync.Mutex
+	conn          *websocket.Conn
+	send          chan []byte
+	lastSent      time.Time
+	messageCount  int64
+	rateLimit     time.Duration
+	isHealthy     bool
+	slowResponses int
+	maxSlowCount  int
+	writeTimeout  time.Duration
+	readTimeout   time.Duration
+	pingInterval  time.Duration
+	lastPong      time.Time
+	closed        bool
+	closeMutex    sync.Mutex
 }
 
 // NewWSClient cria um novo cliente WebSocket com configurações de segurança
 func NewWSClient(conn *websocket.Conn) *WSClient {
 	return &WSClient{
-		conn:           conn,
-		send:           make(chan []byte, 1000), // Buffer maior para evitar bloqueios
-		rateLimit:      100 * time.Millisecond, // Máximo 10 msgs/segundo por cliente
-		isHealthy:      true,
-		maxSlowCount:   5, // Máximo 5 respostas lentas antes de desconectar
-		writeTimeout:   10 * time.Second,
-		readTimeout:    60 * time.Second,
-		pingInterval:   30 * time.Second,
-		lastPong:       time.Now(),
-		closed:         false,
+		conn:         conn,
+		send:         make(chan []byte, 1000), // Buffer maior para evitar bloqueios
+		rateLimit:    100 * time.Millisecond,  // Máximo 10 msgs/segundo por cliente
+		isHealthy:    true,
+		maxSlowCount: 5, // Máximo 5 respostas lentas antes de desconectar
+		writeTimeout: 10 * time.Second,
+		readTimeout:  60 * time.Second,
+		pingInterval: 30 * time.Second,
+		lastPong:     time.Now(),
+		closed:       false,
 	}
 }
 
 // Server gerencia as conexões TCP e WebSocket
 type Server struct {
-	config         *Config
-	clients        map[*WSClient]bool
-	plcConns       map[net.Conn]bool
-	mutex          sync.RWMutex
-	plcMutex       sync.RWMutex
-	broadcast      chan *plcdata.PLCData
-	writeChannel   chan WriteRequest
-	upgrader       websocket.Upgrader
-	
+	config       *Config
+	clients      map[*WSClient]bool
+	plcConns     map[net.Conn]bool
+	mutex        sync.RWMutex
+	plcMutex     sync.RWMutex
+	broadcast    chan *plcdata.PLCData
+	writeChannel chan WriteRequest
+	upgrader     websocket.Upgrader
+
 	// Controle de broadcast avançado
 	lastBroadcast  time.Time
 	debounceTimer  *time.Timer
 	debounceDelay  time.Duration
 	broadcastStats struct {
-		sent     int64
-		dropped  int64
-		errors   int64
+		sent    int64
+		dropped int64
+		errors  int64
 	}
-	
+
 	// Campos para autenticação de usuários
 	userHandler    *handlers.UserHandler
 	authMiddleware *middleware.AuthMiddleware
@@ -107,11 +107,11 @@ func New(config *Config) *Server {
 		clients:       make(map[*WSClient]bool),
 		plcConns:      make(map[net.Conn]bool),
 		broadcast:     make(chan *plcdata.PLCData, 5000), // Buffer muito maior
-		writeChannel:  make(chan WriteRequest, 500), // Buffer maior para escritas
+		writeChannel:  make(chan WriteRequest, 500),      // Buffer maior para escritas
 		router:        mux.NewRouter(),
 		debounceDelay: 50 * time.Millisecond, // Debounce de 50ms
 		upgrader: websocket.Upgrader{
-			CheckOrigin: func(r *http.Request) bool { return true },
+			CheckOrigin:     func(r *http.Request) bool { return true },
 			ReadBufferSize:  4096,
 			WriteBufferSize: 4096,
 		},
@@ -153,20 +153,20 @@ func (s *Server) GetPLCCount() int {
 // BroadcastData envia dados para todos os clientes WebSocket com debounce e controle de qualidade
 func (s *Server) BroadcastData(data *plcdata.PLCData) {
 	now := time.Now()
-	
+
 	// Rate limiting global: evita spam de broadcasts
 	if now.Sub(s.lastBroadcast) < 10*time.Millisecond {
 		atomic.AddInt64(&s.broadcastStats.dropped, 1)
 		return
 	}
-	
+
 	select {
 	case s.broadcast <- data:
 		s.lastBroadcast = now
 		atomic.AddInt64(&s.broadcastStats.sent, 1)
 	default:
 		atomic.AddInt64(&s.broadcastStats.dropped, 1)
-		log.Printf("⚠️ Canal broadcast cheio (%d enviadas, %d descartadas)", 
+		log.Printf("⚠️ Canal broadcast cheio (%d enviadas, %d descartadas)",
 			atomic.LoadInt64(&s.broadcastStats.sent),
 			atomic.LoadInt64(&s.broadcastStats.dropped))
 	}
@@ -189,11 +189,11 @@ func (s *Server) AddClient(conn *websocket.Conn) *WSClient {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.clients[client] = true
-	
+
 	// Iniciar goroutines para o cliente
 	go s.handleClientWrites(client)
 	go s.handleClientHealth(client)
-	
+
 	return client
 }
 
@@ -202,7 +202,7 @@ func (s *Server) RemoveClient(client *WSClient) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	delete(s.clients, client)
-	
+
 	// Evitar fechar canal duas vezes
 	client.closeMutex.Lock()
 	defer client.closeMutex.Unlock()
@@ -229,26 +229,37 @@ func (s *Server) RemovePLCConnection(conn net.Conn) {
 // handleBroadcast processa o broadcast de dados para clientes WebSocket com timeout
 func (s *Server) handleBroadcast() {
 	for data := range s.broadcast {
-		dataBytes, err := json.Marshal(data)
+		// Extrai bits das words usando BitExtractor
+		bitExtractor := plcdata.ExtractBitsFromWords(data.Words)
+		// Payload organizado: primeiro bits das words, depois ints, reals, strings
+		payload := map[string]interface{}{
+			"status_bits": bitExtractor.StatusBits, // Words 0-16 (Status/Animações)
+			"alarm_bits":  bitExtractor.AlarmBits,  // Words 17-47 (Alarmes)
+			"event_bits":  bitExtractor.EventBits,  // Words 48-64 (Eventos)
+			"ints":        data.Ints,               // Inteiros
+			"reals":       data.Reals,              // Reais
+			"strings":     data.Strings,            // Strings
+		}
+		dataBytes, err := json.Marshal(payload)
 		if err != nil {
 			log.Printf("❌ Erro serializando dados: %v", err)
 			continue
 		}
-		
+
 		s.mutex.RLock()
 		var clientsToRemove []*WSClient
-		
+
 		for client := range s.clients {
 			if !client.isHealthy {
 				clientsToRemove = append(clientsToRemove, client)
 				continue
 			}
-			
+
 			// Rate limiting por cliente
 			if time.Since(client.lastSent) < client.rateLimit {
 				continue
 			}
-			
+
 			// Envio com timeout para evitar clientes lentos
 			select {
 			case client.send <- dataBytes:
@@ -264,7 +275,7 @@ func (s *Server) handleBroadcast() {
 			}
 		}
 		s.mutex.RUnlock()
-		
+
 		// Remover clientes problemáticos
 		for _, client := range clientsToRemove {
 			s.RemoveClient(client)
@@ -307,7 +318,7 @@ func (s *Server) handleClientWrites(client *WSClient) {
 		client.conn.Close()
 		s.RemoveClient(client)
 	}()
-	
+
 	for {
 		// Verificar se cliente já foi fechado
 		client.closeMutex.Lock()
@@ -316,19 +327,19 @@ func (s *Server) handleClientWrites(client *WSClient) {
 			return
 		}
 		client.closeMutex.Unlock()
-		
+
 		select {
 		case message, ok := <-client.send:
 			if !ok {
 				return
 			}
-			
+
 			client.conn.SetWriteDeadline(time.Now().Add(client.writeTimeout))
 			if err := client.conn.WriteMessage(websocket.TextMessage, message); err != nil {
 				log.Printf("❌ Erro enviando para cliente: %v", err)
 				return
 			}
-			
+
 		case <-time.After(client.pingInterval):
 			client.conn.SetWriteDeadline(time.Now().Add(client.writeTimeout))
 			if err := client.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
@@ -347,10 +358,10 @@ func (s *Server) handleClientHealth(client *WSClient) {
 		client.conn.SetReadDeadline(time.Now().Add(client.readTimeout))
 		return nil
 	})
-	
+
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-ticker.C:
@@ -367,8 +378,8 @@ func (s *Server) handleClientHealth(client *WSClient) {
 // GetBroadcastStats retorna estatísticas do broadcast
 func (s *Server) GetBroadcastStats() (sent, dropped, errors int64) {
 	return atomic.LoadInt64(&s.broadcastStats.sent),
-		   atomic.LoadInt64(&s.broadcastStats.dropped),
-		   atomic.LoadInt64(&s.broadcastStats.errors)
+		atomic.LoadInt64(&s.broadcastStats.dropped),
+		atomic.LoadInt64(&s.broadcastStats.errors)
 }
 
 // SetupAuthRoutes configura as rotas de autenticação no router mux
@@ -376,17 +387,17 @@ func (s *Server) SetupAuthRoutes(userHandler *handlers.UserHandler, authMiddlewa
 	s.userHandler = userHandler
 	s.authMiddleware = authMiddleware
 	s.rateLimiter = rateLimiter
-	
+
 	// Subrouter para /api
 	apiRouter := s.router.PathPrefix("/api").Subrouter()
-	
+
 	// Rota de login (sem autenticação)
 	apiRouter.HandleFunc("/login", s.rateLimiter.LoginRateLimit(s.userHandler.Login)).Methods("POST", "OPTIONS")
-	
+
 	// Rotas protegidas (requerem autenticação)
 	apiRouter.HandleFunc("/me", s.authMiddleware.RequireAuth(s.userHandler.GetCurrentUser)).Methods("GET", "OPTIONS")
 	apiRouter.HandleFunc("/permissions", s.authMiddleware.RequireAuth(s.userHandler.GetUserPermissions)).Methods("GET", "OPTIONS")
-	
+
 	// Rotas de gerenciamento de usuários
 	apiRouter.HandleFunc("/users", s.authMiddleware.RequireAuth(s.userHandler.GetUsers)).Methods("GET", "OPTIONS")
 	apiRouter.HandleFunc("/users", s.authMiddleware.RequireAuth(s.userHandler.CreateUser)).Methods("POST", "OPTIONS")
@@ -396,14 +407,14 @@ func (s *Server) SetupAuthRoutes(userHandler *handlers.UserHandler, authMiddlewa
 	apiRouter.HandleFunc("/users/{id}/password", s.authMiddleware.RequireAuth(s.userHandler.ChangePassword)).Methods("PUT", "OPTIONS")
 	apiRouter.HandleFunc("/users/{id}/block", s.authMiddleware.RequireAuth(s.userHandler.BlockUser)).Methods("PUT", "OPTIONS")
 	apiRouter.HandleFunc("/users/{id}/unblock", s.authMiddleware.RequireAuth(s.userHandler.UnblockUser)).Methods("PUT", "OPTIONS")
-	
+
 	// Rota de health check para autenticação
 	apiRouter.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Sistema de autenticação EDP ativo"))
 	}).Methods("GET", "OPTIONS")
-	
+
 	log.Println("✅ Rotas de autenticação registradas no mux!")
 	log.Println("🔐 Login: POST /api/login")
 	log.Println("👤 Perfil: GET /api/me")
@@ -411,4 +422,3 @@ func (s *Server) SetupAuthRoutes(userHandler *handlers.UserHandler, authMiddlewa
 	log.Println("👥 Usuários: GET/POST /api/users")
 	log.Println("🏥 Health: GET /api/health")
 }
-

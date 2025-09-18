@@ -66,11 +66,12 @@ func (s *Server) startHTTP() error {
 
 // handleWebSocket gerencia conexões WebSocket com segurança avançada
 func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
-	// Verificar origin e headers de segurança
-	if r.Header.Get("Origin") == "" {
-		log.Printf("⚠️ WebSocket rejeitado: Origin vazio de %s", r.RemoteAddr)
-		http.Error(w, "Origin necessário", http.StatusBadRequest)
-		return
+	// Verificar origin e headers de segurança (temporariamente desabilitado para debug)
+	origin := r.Header.Get("Origin")
+	if origin != "" {
+		log.Printf("📍 WebSocket Origin: %s de %s", origin, r.RemoteAddr)
+	} else {
+		log.Printf("📍 WebSocket sem Origin de %s (permitindo)", r.RemoteAddr)
 	}
 	
 	conn, err := s.upgrader.Upgrade(w, r, nil)

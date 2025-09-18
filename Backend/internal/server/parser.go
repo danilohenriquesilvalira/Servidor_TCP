@@ -31,23 +31,8 @@ func ParsePLCData(data []byte) *plcdata.PLCData {
 	// 5. CONTADORES = 8 bytes (4 contadores de 2 bytes cada)
 	parseCounts(data, offset, &plcData.Counts)
 
-	// 6. EXTRAIR BITS DAS WORDS
+	// 6. EXTRAIR BITS DAS WORDS (usado no WebSocket)
 	plcData.BitData = plcdata.ExtractBitsFromWords(plcData.Words)
-	
-	// 7. PROCESSAR BITS DE STATUS (Words 0-16)
-	plcData.StatusBits = plcdata.ProcessStatusBits(plcData.BitData)
-	
-	// 8. PROCESSAR BITS DE ALARMES (Words 17-47,63)
-	plcData.AlarmBits = plcdata.ProcessAlarmBits(plcData.BitData)
-	
-	// 9. PROCESSAR BITS DE EVENTOS (Words 48-62)
-	plcData.EventBits = plcdata.ProcessEventBits(plcData.BitData)
-	
-	// 10. PROCESSAR DADOS INTEIROS ORGANIZADOS (Ints 0-80)
-	plcData.IntData = plcdata.ProcessIntData(plcData.Ints)
-	
-	// 11. PROCESSAR DADOS REAIS ORGANIZADOS (Reals 0-130)
-	plcData.RealData = plcdata.ProcessRealData(plcData.Reals)
 
 	return plcData
 }

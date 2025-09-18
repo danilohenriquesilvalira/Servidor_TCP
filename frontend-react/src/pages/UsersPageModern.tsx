@@ -538,17 +538,36 @@ const UsersPage: React.FC = () => {
               ) : isMobile ? (
                 /* Mobile Cards List */
                 <div className="space-y-3 px-1">
-                  {/* Botão Criar Usuário - Mobile Simples */}
+                  {/* Card Criar Usuário - Mobile Estilizado */}
                   {permissions?.can_create_users && (
-                    <div className="flex justify-center py-4">
-                      <button 
-                        onClick={openCreateModal}
-                        className="w-14 h-14 bg-edp-marine rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
-                      >
-                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                      </button>
+                    <div
+                      onClick={openCreateModal}
+                      className="bg-gray-50 rounded-xl shadow-sm border border-gray-200 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 overflow-hidden group cursor-pointer mb-3"
+                    >
+                      <div className="bg-gray-200 p-4 flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-edp-marine flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
+                          <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base font-semibold text-gray-800 truncate mb-1 group-hover:text-edp-marine transition-colors">
+                            Criar Novo Usuário
+                          </h3>
+                          <p className="text-xs text-gray-600 truncate">Adicionar usuário ao sistema</p>
+                        </div>
+                      </div>
+                      <div className="bg-gray-300 px-4 py-3 flex items-center justify-between">
+                        <span className="text-xs font-medium text-gray-700 flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-full bg-gray-500" />
+                          Criar Usuário
+                        </span>
+                        <div className="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded transition-all">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
                     </div>
                   )}
                   

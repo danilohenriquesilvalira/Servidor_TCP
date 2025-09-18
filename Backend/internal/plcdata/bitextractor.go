@@ -2,22 +2,26 @@ package plcdata
 
 // BitExtractor extrai bits individuais das Words
 type BitExtractor struct {
-	StatusBits  [][]bool `json:"status_bits"`  // Words 0-16 (Status/Animações)
-	AlarmBits   [][]bool `json:"alarm_bits"`   // Words 17-47 (Alarmes)
-	EventBits   [][]bool `json:"event_bits"`   // Words 48-64 (Eventos)
+	StatusBits [][]bool `json:"status_bits"` // Words 0-16 (Status/Animações)
+	AlarmBits  [][]bool `json:"alarm_bits"`  // Words 17-47 (Alarmes)
+	EventBits  [][]bool `json:"event_bits"`  // Words 48-64 (Eventos)
 }
 
 // ExtractBitsFromWords converte array de Words em bits categorizados
 func ExtractBitsFromWords(words []uint16) *BitExtractor {
 	extractor := &BitExtractor{
 		StatusBits: make([][]bool, 17), // Words 0-16
-		AlarmBits:  make([][]bool, 31), // Words 17-47  
+		AlarmBits:  make([][]bool, 31), // Words 17-47
 		EventBits:  make([][]bool, 17), // Words 48-64
 	}
 
+	// Garante 65 words preenchendo com zero se necessário
+	paddedWords := make([]uint16, 65)
+	copy(paddedWords, words)
+
 	// Processar todas as 65 words (0-64)
-	for wordIndex := 0; wordIndex < len(words) && wordIndex < 65; wordIndex++ {
-		word := words[wordIndex]
+	for wordIndex := 0; wordIndex < 65; wordIndex++ {
+		word := paddedWords[wordIndex]
 		bits := extractBitsFromWord(word)
 
 		// Categorizar por faixa de Word

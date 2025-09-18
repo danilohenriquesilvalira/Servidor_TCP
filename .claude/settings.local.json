@@ -7,7 +7,8 @@
       "Bash(mkdir:*)",
       "Bash(mv:*)",
       "Bash(npm run build:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(find:*)"
     ],
     "defaultMode": "acceptEdits"
   }

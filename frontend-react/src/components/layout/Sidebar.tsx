@@ -79,7 +79,7 @@ export const Sidebar = ({ isOpen, onToggle, onClose }: SidebarProps) => {
       id: 'eclusa' as NavItem,
       label: 'Eclusa',
       icon: RectangleStackIcon,
-      path: '/caldeira-eclusa'
+      path: '/eclusa-regua'
     },
     {
       id: 'enchimento' as NavItem,
