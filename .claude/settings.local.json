@@ -4,7 +4,10 @@
       "Bash(curl:*)",
       "Bash(node:*)",
       "Bash(rm:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(npm run build:*)",
+      "Bash(cp:*)"
     ],
     "defaultMode": "acceptEdits"
   }

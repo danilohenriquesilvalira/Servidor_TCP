@@ -1,10 +1,13 @@
 package server
 
 import (
+	"encoding/json"
 	"log"
 	"net"
 	"net/http"
 	"sync"
+	"time"
+	"sync/atomic"
 
 	"projeto-hmi/internal/plcdata"
 	"projeto-hmi/internal/handlers"
@@ -35,16 +38,57 @@ type WriteValue struct {
 	Value interface{} `json:"value"`
 }
 
+// WSClient representa um cliente WebSocket com rate limiting e controle de qualidade
+type WSClient struct {
+	conn           *websocket.Conn
+	send           chan []byte
+	lastSent       time.Time
+	messageCount   int64
+	rateLimit      time.Duration
+	isHealthy      bool
+	slowResponses  int
+	maxSlowCount   int
+	writeTimeout   time.Duration
+	readTimeout    time.Duration
+	pingInterval   time.Duration
+	lastPong       time.Time
+}
+
+// NewWSClient cria um novo cliente WebSocket com configurações de segurança
+func NewWSClient(conn *websocket.Conn) *WSClient {
+	return &WSClient{
+		conn:           conn,
+		send:           make(chan []byte, 1000), // Buffer maior para evitar bloqueios
+		rateLimit:      100 * time.Millisecond, // Máximo 10 msgs/segundo por cliente
+		isHealthy:      true,
+		maxSlowCount:   5, // Máximo 5 respostas lentas antes de desconectar
+		writeTimeout:   10 * time.Second,
+		readTimeout:    60 * time.Second,
+		pingInterval:   30 * time.Second,
+		lastPong:       time.Now(),
+	}
+}
+
 // Server gerencia as conexões TCP e WebSocket
 type Server struct {
 	config         *Config
-	clients        map[*websocket.Conn]bool
+	clients        map[*WSClient]bool
 	plcConns       map[net.Conn]bool
 	mutex          sync.RWMutex
 	plcMutex       sync.RWMutex
 	broadcast      chan *plcdata.PLCData
 	writeChannel   chan WriteRequest
 	upgrader       websocket.Upgrader
+	
+	// Controle de broadcast avançado
+	lastBroadcast  time.Time
+	debounceTimer  *time.Timer
+	debounceDelay  time.Duration
+	broadcastStats struct {
+		sent     int64
+		dropped  int64
+		errors   int64
+	}
 	
 	// Campos para autenticação de usuários
 	userHandler    *handlers.UserHandler
@@ -56,14 +100,17 @@ type Server struct {
 // New cria uma nova instância do servidor
 func New(config *Config) *Server {
 	return &Server{
-		config:       config,
-		clients:      make(map[*websocket.Conn]bool),
-		plcConns:     make(map[net.Conn]bool),
-		broadcast:    make(chan *plcdata.PLCData, 1000),
-		writeChannel: make(chan WriteRequest, 100),
-		router:       mux.NewRouter(),
+		config:        config,
+		clients:       make(map[*WSClient]bool),
+		plcConns:      make(map[net.Conn]bool),
+		broadcast:     make(chan *plcdata.PLCData, 5000), // Buffer muito maior
+		writeChannel:  make(chan WriteRequest, 500), // Buffer maior para escritas
+		router:        mux.NewRouter(),
+		debounceDelay: 50 * time.Millisecond, // Debounce de 50ms
 		upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool { return true },
+			ReadBufferSize:  4096,
+			WriteBufferSize: 4096,
 		},
 	}
 }
@@ -100,12 +147,25 @@ func (s *Server) GetPLCCount() int {
 	return len(s.plcConns)
 }
 
-// BroadcastData envia dados para todos os clientes WebSocket
+// BroadcastData envia dados para todos os clientes WebSocket com debounce e controle de qualidade
 func (s *Server) BroadcastData(data *plcdata.PLCData) {
+	now := time.Now()
+	
+	// Rate limiting global: evita spam de broadcasts
+	if now.Sub(s.lastBroadcast) < 10*time.Millisecond {
+		atomic.AddInt64(&s.broadcastStats.dropped, 1)
+		return
+	}
+	
 	select {
 	case s.broadcast <- data:
+		s.lastBroadcast = now
+		atomic.AddInt64(&s.broadcastStats.sent, 1)
 	default:
-		log.Println("⚠️ Canal broadcast cheio, descartando mensagem")
+		atomic.AddInt64(&s.broadcastStats.dropped, 1)
+		log.Printf("⚠️ Canal broadcast cheio (%d enviadas, %d descartadas)", 
+			atomic.LoadInt64(&s.broadcastStats.sent),
+			atomic.LoadInt64(&s.broadcastStats.dropped))
 	}
 }
 
@@ -121,17 +181,25 @@ func (s *Server) WriteToPLC(req WriteRequest) {
 }
 
 // AddClient adiciona um cliente WebSocket
-func (s *Server) AddClient(conn *websocket.Conn) {
+func (s *Server) AddClient(conn *websocket.Conn) *WSClient {
+	client := NewWSClient(conn)
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	s.clients[conn] = true
+	s.clients[client] = true
+	
+	// Iniciar goroutines para o cliente
+	go s.handleClientWrites(client)
+	go s.handleClientHealth(client)
+	
+	return client
 }
 
 // RemoveClient remove um cliente WebSocket
-func (s *Server) RemoveClient(conn *websocket.Conn) {
+func (s *Server) RemoveClient(client *WSClient) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	delete(s.clients, conn)
+	delete(s.clients, client)
+	close(client.send)
 }
 
 // AddPLCConnection adiciona uma conexão PLC
@@ -148,19 +216,50 @@ func (s *Server) RemovePLCConnection(conn net.Conn) {
 	delete(s.plcConns, conn)
 }
 
-// handleBroadcast processa o broadcast de dados para clientes WebSocket
+// handleBroadcast processa o broadcast de dados para clientes WebSocket com timeout
 func (s *Server) handleBroadcast() {
 	for data := range s.broadcast {
+		dataBytes, err := json.Marshal(data)
+		if err != nil {
+			log.Printf("❌ Erro serializando dados: %v", err)
+			continue
+		}
+		
 		s.mutex.RLock()
+		var clientsToRemove []*WSClient
+		
 		for client := range s.clients {
-			err := client.WriteJSON(data)
-			if err != nil {
-				log.Printf("❌ Erro enviando WebSocket: %v", err)
-				client.Close()
-				delete(s.clients, client)
+			if !client.isHealthy {
+				clientsToRemove = append(clientsToRemove, client)
+				continue
+			}
+			
+			// Rate limiting por cliente
+			if time.Since(client.lastSent) < client.rateLimit {
+				continue
+			}
+			
+			// Envio com timeout para evitar clientes lentos
+			select {
+			case client.send <- dataBytes:
+				client.lastSent = time.Now()
+				atomic.AddInt64(&client.messageCount, 1)
+			default:
+				// Cliente lento, incrementar contador
+				client.slowResponses++
+				if client.slowResponses >= client.maxSlowCount {
+					log.Printf("⚠️ Cliente lento removido após %d tentativas", client.maxSlowCount)
+					clientsToRemove = append(clientsToRemove, client)
+				}
 			}
 		}
 		s.mutex.RUnlock()
+		
+		// Remover clientes problemáticos
+		for _, client := range clientsToRemove {
+			s.RemoveClient(client)
+			client.conn.Close()
+		}
 	}
 }
 
@@ -190,6 +289,68 @@ func (s *Server) handleWriteRequests() {
 		}
 		s.plcMutex.RUnlock()
 	}
+}
+
+// handleClientWrites gerencia envio de mensagens para um cliente específico
+func (s *Server) handleClientWrites(client *WSClient) {
+	defer func() {
+		client.conn.Close()
+		s.RemoveClient(client)
+	}()
+	
+	for {
+		select {
+		case message, ok := <-client.send:
+			if !ok {
+				return
+			}
+			
+			client.conn.SetWriteDeadline(time.Now().Add(client.writeTimeout))
+			if err := client.conn.WriteMessage(websocket.TextMessage, message); err != nil {
+				log.Printf("❌ Erro enviando para cliente: %v", err)
+				return
+			}
+			
+		case <-time.After(client.pingInterval):
+			client.conn.SetWriteDeadline(time.Now().Add(client.writeTimeout))
+			if err := client.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				log.Printf("❌ Erro enviando ping: %v", err)
+				return
+			}
+		}
+	}
+}
+
+// handleClientHealth monitora a saúde do cliente
+func (s *Server) handleClientHealth(client *WSClient) {
+	client.conn.SetReadDeadline(time.Now().Add(client.readTimeout))
+	client.conn.SetPongHandler(func(string) error {
+		client.lastPong = time.Now()
+		client.conn.SetReadDeadline(time.Now().Add(client.readTimeout))
+		return nil
+	})
+	
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+	
+	for {
+		select {
+		case <-ticker.C:
+			// Verificar se cliente está responsivo
+			if time.Since(client.lastPong) > 90*time.Second {
+				log.Printf("⚠️ Cliente não responsivo há %v", time.Since(client.lastPong))
+				client.isHealthy = false
+				return
+			}
+		}
+	}
+}
+
+// GetBroadcastStats retorna estatísticas do broadcast
+func (s *Server) GetBroadcastStats() (sent, dropped, errors int64) {
+	return atomic.LoadInt64(&s.broadcastStats.sent),
+		   atomic.LoadInt64(&s.broadcastStats.dropped),
+		   atomic.LoadInt64(&s.broadcastStats.errors)
 }
 
 // SetupAuthRoutes configura as rotas de autenticação no router mux

@@ -32,17 +32,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
 
   const variantClasses = {
     default: [
-      // Input padrão com cores EDP
-      'border-2 border-edp-neutral-400 bg-white text-edp-neutral-900',
-      'hover:border-edp-neutral-600',
-      'focus:border-edp-electric',
-      error ? 'border-red-500 focus:border-red-500' : ''
+      // Input mais fino e elegante
+      'border border-gray-200 bg-white text-gray-900 rounded-lg',
+      'hover:border-gray-300',
+      'focus:border-[#7C9599] focus:ring-1 focus:ring-[#7C9599]/30',
+      error ? 'border-red-300 focus:border-red-400 focus:ring-red-200' : ''
     ],
     filled: [
-      // Input preenchido com Slate Grey
-      'border-2 border-transparent bg-edp-neutral-100 text-edp-neutral-900',
-      'hover:bg-edp-neutral-200 focus:bg-white focus:border-edp-electric',
-      error ? 'bg-red-50 border-red-500 focus:border-red-500' : ''
+      // Input preenchido moderno
+      'border border-transparent bg-gray-50 text-gray-900 rounded-xl',
+      'hover:bg-gray-100 focus:bg-white focus:border-[#7C9599] focus:ring-2 focus:ring-[#7C9599]/20',
+      error ? 'bg-red-50 border-red-300 focus:border-red-400 focus:ring-red-100' : ''
     ],
     outline: [
       // Input outline com Electric Green
@@ -63,17 +63,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
 
   const paddingClasses = leftIcon || rightIcon 
     ? leftIcon && rightIcon 
-      ? 'px-10 py-3'
+      ? 'px-10 py-2.5'
       : leftIcon 
-        ? 'pl-10 pr-4 py-3'
-        : 'pl-4 pr-10 py-3'
-    : 'px-4 py-3';
+        ? 'pl-10 pr-3 py-2.5'
+        : 'pl-3 pr-10 py-2.5'
+    : 'px-3 py-2.5';
 
   const inputClasses = [
     ...baseClasses,
     ...variantClasses[variant],
     paddingClasses,
-    'min-h-[48px]',
+    'min-h-[42px]',
     className
   ].join(' ');
 
@@ -82,8 +82,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
       {label && (
         <label 
           htmlFor={inputId} 
-          className={`block text-sm font-edp font-medium mb-2 ${
-            variant === 'login' ? 'text-white/90' : 'text-edp-neutral-800'
+          className={`block text-sm font-medium mb-2 ${
+            variant === 'login' ? 'text-white/90' : 'text-gray-700'
           }`}
         >
           {label}

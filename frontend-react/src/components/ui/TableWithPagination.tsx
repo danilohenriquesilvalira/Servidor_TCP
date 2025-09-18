@@ -19,7 +19,6 @@ interface TableWithPaginationProps<T> {
   loading?: boolean;
   emptyMessage?: string;
   itemsPerPage?: number;
-  onItemsPerPageChange?: (items: number) => void;
   showPagination?: boolean;
 }
 
@@ -32,7 +31,6 @@ export function TableWithPagination<T extends Record<string, any>>({
   loading = false,
   emptyMessage = 'Nenhum item encontrado',
   itemsPerPage = 5,
-  onItemsPerPageChange,
   showPagination = true
 }: TableWithPaginationProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -149,7 +147,7 @@ export function TableWithPagination<T extends Record<string, any>>({
                     return (
                       <td key={String(column.key)} className="px-3 lg:px-4 py-2.5 text-sm text-edp-neutral-darkest font-edp">
                         <div className="truncate max-w-xs lg:max-w-md xl:max-w-lg">
-                          {column.render ? column.render(value, item) : value}
+                          {column.render ? column.render(value, item) : String(value || '')}
                         </div>
                       </td>
                     );

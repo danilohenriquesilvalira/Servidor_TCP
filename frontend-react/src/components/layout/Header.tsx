@@ -35,18 +35,6 @@ export const Header = () => {
     navigate('/login');
   };
 
-  const getBackendStatusColor = () => {
-    switch (backendStatus) {
-      case 'active':
-        return '#28FF52';
-      case 'inactive':
-        return '#90A5A8';
-      case 'failure':
-        return '#E32C2C';
-      default:
-        return '#90A5A8';
-    }
-  };
 
   const getBackendStatusText = () => {
     switch (backendStatus) {

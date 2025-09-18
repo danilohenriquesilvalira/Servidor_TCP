@@ -7,8 +7,6 @@ import {
   Cog6ToothIcon,
   RectangleStackIcon,
   UsersIcon,
-  XMarkIcon,
-  Bars3Icon,
   ChevronLeftIcon,
   ChevronRightIcon
 } from '@heroicons/react/24/outline';

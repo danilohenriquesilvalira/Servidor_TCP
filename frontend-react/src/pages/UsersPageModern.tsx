@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { User, VALID_ECLUSAS, VALID_STATUS } from '@/types/auth';
 import { usersAPI } from '@/services/api';
 import ProfilePage from './ProfilePage';
+import { generateAvatarUrl, generateRandomAvatarUrl } from '@/utils/avatarUtils';
 
 // Importar componentes organizados
 import { 
@@ -10,22 +11,15 @@ import {
   UserSubPage,
   UsersFilters,
   GestaoCards,
-  GestaoCharts
+  GestaoCharts,
+  UserCard
 } from '@/components/usuarios';
-import { UserMobileCard } from '@/components/usuarios/UsersList/UserMobileCard';
-import { TableWithPagination } from '@/components/ui/TableWithPagination';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { TrashIcon } from '@heroicons/react/24/outline';
 
-// Importar ícones necessários
-import { 
-  PencilIcon,
-  TrashIcon,
-  LockClosedIcon,
-  LockOpenIcon
-} from '@heroicons/react/24/outline';
 
 const UsersPage: React.FC = () => {
   const { user: currentUser, permissions } = useAuth();
@@ -40,77 +34,100 @@ const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Paginação inteligente baseada no espaço disponível real
-  const [itemsPerPage, setItemsPerPage] = useState(5);
+  // Sistema de paginação responsiva para cards
+  const [itemsPerPage, setItemsPerPage] = useState(6);
   
   useEffect(() => {
-    const calculateItemsPerPage = () => {
+    const calculateCardsPerPage = () => {
       const windowHeight = window.innerHeight;
       const windowWidth = window.innerWidth;
       
-      // Altura ocupada pelos elementos fixos (valores otimizados):
-      // Header (~64px) + Padding Layout (~32px) + Tabs (~40px) + Filtros (~60px) + Paginação (~48px) + Buffer (~24px)
-      const fixedElementsHeight = 268;
+      // ALTURA: Elementos fixos ocupados
+      // Header (64px) + Layout padding (48px) + Tabs+Filtros (56px) + Paginação (48px) + Margens (32px)
+      const fixedHeight = 248;
+      const availableHeight = windowHeight - fixedHeight;
       
-      // Altura disponível para a tabela
-      const availableHeight = windowHeight - fixedElementsHeight;
+      // LARGURA: Sistema responsivo inteligente com máximo de 4 cards horizontais
+      let cardsPerRow;
+      let cardMinWidth; // Largura mínima necessária por card
       
-      // Altura de cada linha da tabela (otimizada: ~48px incluindo borders)
-      const rowHeight = 48;
-      
-      // Máximo de linhas que cabem fisicamente
-      const maxRowsThatFit = Math.floor(availableHeight / rowHeight);
-      
-      // Cálculo inteligente baseado em categorias de tela
-      let calculatedItems;
-      
-      // Categorização por resolução total (width x height)
-      const screenArea = windowWidth * windowHeight;
-      
-      if (screenArea >= 3686400) {
-        // 4K+ (2560x1440+ = 3,686,400px²) - Telas enormes
-        calculatedItems = Math.min(maxRowsThatFit, 12);
-      } else if (screenArea >= 2073600) {
-        // Full HD+ (1920x1080 = 2,073,600px²) - Desktop grande
-        calculatedItems = Math.min(maxRowsThatFit, 10);
-      } else if (screenArea >= 1440000) {
-        // Laptop grande (1600x900 = 1,440,000px²)
-        calculatedItems = Math.min(maxRowsThatFit, 8);
-      } else if (screenArea >= 1200000) {
-        // Sua resolução debug (1528x834 = 1,274,352px²) - Laptop médio/grande
-        calculatedItems = Math.min(maxRowsThatFit, 7);
-      } else if (screenArea >= 786432) {
-        // Laptop padrão (1024x768 = 786,432px²)
-        calculatedItems = Math.min(maxRowsThatFit, 5);
+      if (windowWidth < 768) {
+        // Mobile: 1 card por linha
+        cardsPerRow = 1;
+        cardMinWidth = windowWidth - 48; // padding lateral
       } else {
-        // Tablet/Mobile
-        calculatedItems = Math.min(maxRowsThatFit, 3);
+        // Desktop/Tablet: Cálculo inteligente baseado na largura disponível
+        const containerWidth = windowWidth - 48; // padding lateral do container
+        const gaps = 16; // gap entre cards
+        
+        // Largura mínima por card para boa legibilidade
+        const minCardWidth = 280;
+        
+        // Calcular quantos cards cabem horizontalmente
+        let possibleCards = 1;
+        for (let i = 2; i <= 4; i++) {
+          const totalGaps = (i - 1) * gaps;
+          const availableForCards = containerWidth - totalGaps;
+          const cardWidth = availableForCards / i;
+          
+          if (cardWidth >= minCardWidth) {
+            possibleCards = i;
+          } else {
+            break;
+          }
+        }
+        
+        cardsPerRow = Math.min(possibleCards, 4); // Máximo 4 cards horizontais
+        cardMinWidth = (containerWidth - ((cardsPerRow - 1) * gaps)) / cardsPerRow;
       }
       
-      // Verificação adicional por altura específica
-      if (windowHeight < 700) {
-        calculatedItems = Math.min(calculatedItems, 5);
-      } else if (windowHeight < 600) {
-        calculatedItems = Math.min(calculatedItems, 3);
+      // ALTURA DO CARD: Baseado no novo layout otimizado
+      // Mobile: seção cinza (76px) + seção azul (52px) = 128px total
+      // Desktop: seção cinza (88px) + seção azul (52px) = 140px total
+      const cardHeight = windowWidth < 768 ? 128 : 140;
+      const rowGap = 16; // gap vertical entre linhas
+      
+      // Quantas linhas cabem na altura disponível
+      const maxRows = Math.floor((availableHeight + rowGap) / (cardHeight + rowGap));
+      const safeMaxRows = Math.max(1, maxRows); // Garantir pelo menos 1 linha
+      
+      // Total de cards baseado em linhas e colunas
+      let calculatedCards = cardsPerRow * safeMaxRows;
+      
+      // Limites inteligentes por dispositivo
+      if (windowWidth < 768) {
+        // Mobile: 3-8 cards (flexível baseado na altura)
+        calculatedCards = Math.min(calculatedCards, 8);
+        calculatedCards = Math.max(calculatedCards, 3);
+      } else if (windowWidth < 1024) {
+        // Tablet: 4-12 cards 
+        calculatedCards = Math.min(calculatedCards, 12);
+        calculatedCards = Math.max(calculatedCards, 4);
+      } else {
+        // Desktop: 6-20 cards
+        calculatedCards = Math.min(calculatedCards, 20);
+        calculatedCards = Math.max(calculatedCards, 6);
       }
       
-      // Garantir limites razoáveis
-      const finalItems = Math.max(3, Math.min(12, calculatedItems));
+      // Garantir múltiplos da grade para layout perfeito
+      const cleanGrid = Math.floor(calculatedCards / cardsPerRow) * cardsPerRow;
+      const finalCards = cleanGrid > 0 ? cleanGrid : cardsPerRow;
       
-      console.log(`📊 Cálculo: ${windowWidth}x${windowHeight} (${screenArea.toLocaleString()}px²) → ${finalItems} usuários (máx: ${maxRowsThatFit})`);
-      setItemsPerPage(finalItems);
+      console.log(`🎯 Layout Inteligente: ${windowWidth}x${windowHeight} → ${cardsPerRow} cols × ${Math.floor(finalCards/cardsPerRow)} rows = ${finalCards} cards (min width: ${Math.round(cardMinWidth)}px)`);
+      setItemsPerPage(finalCards);
     };
     
-    calculateItemsPerPage();
-    window.addEventListener('resize', calculateItemsPerPage);
+    calculateCardsPerPage();
+    window.addEventListener('resize', calculateCardsPerPage);
     
-    return () => window.removeEventListener('resize', calculateItemsPerPage);
+    return () => window.removeEventListener('resize', calculateCardsPerPage);
   }, []);
   
-  // Estados dos filtros
+  // Estados dos filtros e paginação
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCargo, setSelectedCargo] = useState('');
   const [selectedEclusa, setSelectedEclusa] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   
   // Estados dos modals
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -170,7 +187,7 @@ const UsersPage: React.FC = () => {
     }
   };
 
-  // Filtrar usuários
+  // Filtrar e ordenar usuários (bloqueados sempre no final)
   const filteredUsers = users.filter(user => {
     const canSeeUser = canManageUser(user.cargo);
     if (!canSeeUser) return false;
@@ -182,7 +199,27 @@ const UsersPage: React.FC = () => {
     const matchesEclusa = !selectedEclusa || user.eclusa === selectedEclusa;
     
     return matchesSearch && matchesCargo && matchesEclusa;
+  }).sort((a, b) => {
+    // Usuários ativos primeiro, bloqueados por último
+    const aActive = a.status === VALID_STATUS[0];
+    const bActive = b.status === VALID_STATUS[0];
+    
+    if (aActive && !bActive) return -1;
+    if (!aActive && bActive) return 1;
+    
+    // Se ambos têm o mesmo status, ordena por nome
+    return a.nome.localeCompare(b.nome);
   });
+
+  // Paginação
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
+
+  // Reset página quando filtros mudam
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCargo, selectedEclusa, filteredUsers.length]);
 
   // Handlers dos filtros
   const handleClearFilters = () => {
@@ -193,7 +230,14 @@ const UsersPage: React.FC = () => {
 
   // Form handlers
   const handleFormChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    const newFormData = { ...formData, [field]: value };
+    
+    // Auto-gerar avatar quando nome for digitado
+    if (field === 'nome' && value.trim() && !isEditModalOpen) {
+      newFormData.url_avatar = generateAvatarUrl(value);
+    }
+    
+    setFormData(newFormData);
     if (formErrors[field]) {
       setFormErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -324,7 +368,7 @@ const UsersPage: React.FC = () => {
     setIsDeleteModalOpen(true);
   };
 
-  // Detectar mobile para ajustar colunas
+  // Detectar mobile para ajustar layout
   const [isMobile, setIsMobile] = useState(false);
   
   useEffect(() => {
@@ -334,237 +378,39 @@ const UsersPage: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Colunas da tabela - ajustadas para mobile
-  const mobileColumns = [
-    {
-      key: 'url_avatar',
-      label: '',
-      width: '10',
-      render: (avatar: string, user: User) => (
-        <div className="w-8 h-8 rounded-full bg-edp-neutral-lighter flex items-center justify-center overflow-hidden flex-shrink-0">
-          {avatar ? (
-            <img src={avatar} alt={user.nome} className="w-full h-full object-cover" />
-          ) : (
-            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clipRule="evenodd" />
-            </svg>
-          )}
-        </div>
-      )
-    },
-    {
-      key: 'nome',
-      label: 'Usuário',
-      sortable: true,
-      render: (nome: string, user: User) => (
-        <div className="min-w-0 flex-1">
-          <div className="font-medium text-edp-neutral-darkest text-sm truncate">{nome}</div>
-          <div className="flex flex-wrap gap-1 mt-1">
-            <span className="inline-flex px-1.5 py-0.5 text-xs font-medium bg-edp-electric/20 text-edp-marine rounded">
-              {user.cargo}
-            </span>
-            <span className="inline-flex px-1.5 py-0.5 text-xs font-medium bg-edp-ice/20 text-edp-marine rounded">
-              {user.eclusa}
-            </span>
-          </div>
-          <div className="text-xs text-edp-neutral-medium mt-1 truncate">{user.email}</div>
-        </div>
-      )
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      render: (status: string) => (
-        <div className="text-center">
-          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded ${
-            status === VALID_STATUS[0] 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-red-100 text-red-800'
-          }`}>
-            {status === VALID_STATUS[0] ? 'Ativo' : 'Bloqueado'}
-          </span>
-        </div>
-      )
-    },
-    {
-      key: 'actions',
-      label: '',
-      render: (_: any, user: User) => (
-        <div className="flex items-center justify-end gap-1">
-          {permissions?.can_update_users && canManageUser(user.cargo) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => openEditModal(user)}
-              className="w-8 h-8 p-0 hover:bg-edp-electric/10"
-              title="Editar"
-            >
-              <PencilIcon className="w-4 h-4 text-edp-neutral-dark" />
-            </Button>
-          )}
-          
-          {permissions?.can_block_users && user.id !== currentUser?.id && canManageUser(user.cargo) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleBlock(user)}
-              className="w-8 h-8 p-0 hover:bg-edp-electric/10"
-              title={user.status === VALID_STATUS[0] ? 'Bloquear' : 'Desbloquear'}
-            >
-              {user.status === VALID_STATUS[0] ? (
-                <LockClosedIcon className="w-4 h-4 text-edp-semantic-red" />
-              ) : (
-                <LockOpenIcon className="w-4 h-4 text-green-600" />
-              )}
-            </Button>
-          )}
-          
-          {permissions?.can_delete_users && user.id !== currentUser?.id && canManageUser(user.cargo) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => openDeleteModal(user)}
-              className="w-8 h-8 p-0 hover:bg-edp-semantic-red/10"
-              title="Excluir"
-            >
-              <TrashIcon className="w-4 h-4 text-edp-semantic-red" />
-            </Button>
-          )}
-        </div>
-      )
-    }
-  ];
-
-  const desktopColumns = [
-    {
-      key: 'url_avatar',
-      label: '',
-      width: '12',
-      render: (avatar: string, user: User) => (
-        <div className="w-10 h-10 rounded-full bg-edp-neutral-lighter flex items-center justify-center overflow-hidden">
-          {avatar ? (
-            <img src={avatar} alt={user.nome} className="w-full h-full object-cover" />
-          ) : (
-            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clipRule="evenodd" />
-            </svg>
-          )}
-        </div>
-      )
-    },
-    {
-      key: 'nome',
-      label: 'Nome',
-      sortable: true,
-      render: (nome: string, user: User) => (
-        <div>
-          <div className="font-medium text-edp-neutral-darkest">{nome}</div>
-          <div className="text-xs text-edp-neutral-medium">{user.email}</div>
-        </div>
-      )
-    },
-    {
-      key: 'id_usuario_edp',
-      label: 'ID EDP',
-      sortable: true
-    },
-    {
-      key: 'cargo',
-      label: 'Cargo',
-      sortable: true,
-      render: (cargo: string) => (
-        <span className="inline-flex px-2 py-1 text-xs font-medium bg-edp-electric/20 text-edp-marine rounded">
-          {cargo}
-        </span>
-      )
-    },
-    {
-      key: 'eclusa',
-      label: 'Eclusa',
-      sortable: true,
-      render: (eclusa: string) => (
-        <span className="inline-flex px-2 py-1 text-xs font-medium bg-edp-ice/20 text-edp-marine rounded">
-          {eclusa}
-        </span>
-      )
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      sortable: true,
-      render: (status: string) => (
-        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded ${
-          status === VALID_STATUS[0] 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
-        }`}>
-          {status === VALID_STATUS[0] ? 'Ativo' : 'Bloqueado'}
-        </span>
-      )
-    },
-    {
-      key: 'actions',
-      label: 'Ações',
-      render: (_: any, user: User) => (
-        <div className="flex items-center gap-2">
-          {permissions?.can_update_users && canManageUser(user.cargo) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => openEditModal(user)}
-              className="w-10 h-10 p-0 hover:bg-edp-electric/10"
-              title="Editar usuário"
-            >
-              <PencilIcon className="w-6 h-6 text-edp-neutral-dark hover:text-edp-electric" />
-            </Button>
-          )}
-          
-          {permissions?.can_block_users && user.id !== currentUser?.id && canManageUser(user.cargo) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleBlock(user)}
-              className="w-10 h-10 p-0 hover:bg-edp-electric/10"
-              title={user.status === VALID_STATUS[0] ? 'Bloquear usuário' : 'Desbloquear usuário'}
-            >
-              {user.status === VALID_STATUS[0] ? (
-                <LockClosedIcon className="w-6 h-6 text-edp-semantic-red hover:text-red-700" />
-              ) : (
-                <LockOpenIcon className="w-6 h-6 text-green-600 hover:text-green-700" />
-              )}
-            </Button>
-          )}
-          
-          {permissions?.can_delete_users && user.id !== currentUser?.id && canManageUser(user.cargo) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => openDeleteModal(user)}
-              className="w-10 h-10 p-0 hover:bg-edp-semantic-red/10"
-              title="Excluir usuário"
-            >
-              <TrashIcon className="w-6 h-6 text-edp-semantic-red hover:text-red-700" />
-            </Button>
-          )}
-        </div>
-      )
-    }
-  ];
-
-  const columns = isMobile ? mobileColumns : desktopColumns;
-
   return (
     <div className="w-full h-full flex flex-col">
-      {/* Navegação com Tabs */}
+      {/* Header com Tabs e Filtros */}
       <div className="flex-shrink-0 mb-4">
-        <TabNavigation
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
+        <div className="flex items-center justify-between">
+          <TabNavigation
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+          
+          {/* Filtros só aparecem na aba Lista */}
+          {activeTab === 'lista' && (
+            <UsersFilters
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              selectedCargo={selectedCargo}
+              onCargoChange={setSelectedCargo}
+              selectedEclusa={selectedEclusa}
+              onEclusaChange={setSelectedEclusa}
+              cargoOptions={getManageableCargos()}
+              eclusaOptions={[...VALID_ECLUSAS]}
+              onClearFilters={handleClearFilters}
+              onCreateUser={openCreateModal}
+              canCreateUsers={permissions?.can_create_users}
+              totalResults={filteredUsers.length}
+            />
+          )}
+        </div>
       </div>
 
       {/* Conteúdo das Tabs */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="h-full overflow-y-auto"  style={{ scrollBehavior: 'smooth' }}>
         {activeTab === 'gestao' ? (
           /* Página de Gestão - 100% Gráficos e Dados */
           <div className="w-full space-y-4">
@@ -583,48 +429,159 @@ const UsersPage: React.FC = () => {
             </div>
           </div>
         ) : (
-          /* Página de Lista - Tabela + Filtros + CRUD */
+          /* Página de Lista - Cards + CRUD */
           <div className="h-full flex flex-col gap-4">
-            {/* Filtros compactos */}
-            <div className="flex-shrink-0">
-              <UsersFilters
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                selectedCargo={selectedCargo}
-                onCargoChange={setSelectedCargo}
-                selectedEclusa={selectedEclusa}
-                onEclusaChange={setSelectedEclusa}
-                cargoOptions={getManageableCargos()}
-                eclusaOptions={[...VALID_ECLUSAS]}
-                onClearFilters={handleClearFilters}
-                onCreateUser={openCreateModal}
-                canCreateUsers={permissions?.can_create_users}
-                totalResults={filteredUsers.length}
-              />
-            </div>
 
-            {/* Tabela / Lista Mobile */}
+            {/* Cards de Usuários */}
             <div className="flex-1 min-h-0">
-              {isMobile ? (
-                /* Mobile List */
-                <div className="space-y-3">
-                  {loading ? (
-                    <div className="bg-white border border-edp-neutral-lighter rounded-lg shadow-sm p-8 text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-edp-electric mx-auto"></div>
-                      <p className="mt-4 text-edp-neutral-medium font-edp">Carregando...</p>
-                    </div>
-                  ) : filteredUsers.length === 0 ? (
-                    <div className="bg-white border border-edp-neutral-lighter rounded-lg shadow-sm p-8 text-center">
-                      <div className="w-12 h-12 mx-auto mb-4 opacity-50">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="text-edp-neutral-medium">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m0 0V9a2 2 0 012-2h8a2 2 0 012 2v4M6 13h12" />
-                        </svg>
+              {loading ? (
+                isMobile ? (
+                  /* Mobile Loading Skeletons */
+                  <div className="space-y-3 px-1">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="bg-gray-50 rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-pulse">
+                        <div className="bg-gray-200 p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-gray-300" />
+                            <div className="flex-1">
+                              <div className="h-4 bg-gray-300 rounded w-3/4 mb-2" />
+                              <div className="h-3 bg-gray-300 rounded w-1/2" />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="bg-gray-800 px-4 py-3">
+                          <div className="flex items-center justify-between">
+                            <div className="h-6 bg-gray-300 rounded-full w-16" />
+                            <div className="flex gap-1">
+                              <div className="w-7 h-7 bg-gray-300 rounded" />
+                              <div className="w-7 h-7 bg-gray-300 rounded" />
+                              <div className="w-7 h-7 bg-gray-300 rounded" />
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-edp-neutral-medium font-edp">Nenhum usuário encontrado</p>
+                    ))}
+                  </div>
+                ) : (
+                  /* Desktop Loading Skeletons */
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {Array.from({ length: itemsPerPage }).map((_, i) => (
+                      <div key={i} className="bg-gray-50 rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-pulse">
+                        <div className="bg-gray-200 p-5">
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-full bg-gray-300" />
+                            <div className="flex-1">
+                              <div className="h-5 bg-gray-300 rounded w-3/4 mb-2" />
+                              <div className="h-4 bg-gray-300 rounded w-1/2" />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="bg-gray-800 px-4 py-3">
+                          <div className="flex items-center justify-between">
+                            <div className="h-6 bg-gray-300 rounded-full w-16" />
+                            <div className="flex gap-2">
+                              <div className="w-7 h-7 bg-gray-300 rounded" />
+                              <div className="w-7 h-7 bg-gray-300 rounded" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              ) : filteredUsers.length === 0 ? (
+                /* Empty State Melhorado */
+                <div className="bg-gray-50 border border-gray-200 rounded-xl shadow-sm p-12 text-center">
+                  <div className="w-20 h-20 mx-auto mb-6 text-gray-300">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                    {searchTerm || selectedCargo || selectedEclusa 
+                      ? 'Nenhum usuário encontrado' 
+                      : 'Nenhum usuário cadastrado'
+                    }
+                  </h3>
+                  <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                    {searchTerm || selectedCargo || selectedEclusa
+                      ? 'Tente ajustar os filtros para encontrar o que você procura.'
+                      : 'Comece criando o primeiro usuário do sistema EDP.'
+                    }
+                  </p>
+                  {permissions?.can_create_users && (
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                      {(searchTerm || selectedCargo || selectedEclusa) && (
+                        <button
+                          onClick={handleClearFilters}
+                          className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          Limpar Filtros
+                        </button>
+                      )}
+                      <button
+                        onClick={openCreateModal}
+                        className="px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-all duration-200 flex items-center gap-2 justify-center"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        Criar Primeiro Usuário
+                      </button>
                     </div>
-                  ) : (
-                    filteredUsers.slice(0, itemsPerPage).map((user) => (
-                      <UserMobileCard
+                  )}
+                </div>
+              ) : isMobile ? (
+                /* Mobile Cards List */
+                <div className="space-y-3 px-1">
+                  {paginatedUsers.map((user) => (
+                    <UserCard
+                      key={user.id}
+                      user={user}
+                      onEdit={openEditModal}
+                      onDelete={openDeleteModal}
+                      onBlock={handleBlock}
+                      canEdit={permissions?.can_update_users && canManageUser(user.cargo)}
+                      canBlock={permissions?.can_block_users && canManageUser(user.cargo)}
+                      canDelete={permissions?.can_delete_users && canManageUser(user.cargo)}
+                      currentUserId={currentUser?.id ? Number(currentUser.id) : undefined}
+                      isMobile={true}
+                    />
+                  ))}
+                  
+                  {/* Mobile Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between pt-4">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        Anterior
+                      </button>
+                      
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">
+                          {currentPage} de {totalPages}
+                        </span>
+                      </div>
+                      
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        Próximo
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Desktop Cards Grid - Sistema responsivo inteligente */
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {paginatedUsers.map((user) => (
+                      <UserCard
                         key={user.id}
                         user={user}
                         onEdit={openEditModal}
@@ -634,37 +591,77 @@ const UsersPage: React.FC = () => {
                         canBlock={permissions?.can_block_users && canManageUser(user.cargo)}
                         canDelete={permissions?.can_delete_users && canManageUser(user.cargo)}
                         currentUserId={currentUser?.id ? Number(currentUser.id) : undefined}
+                        isMobile={false}
                       />
-                    ))
-                  )}
+                    ))}
+                  </div>
                   
-                  {/* Mobile Pagination */}
-                  {filteredUsers.length > itemsPerPage && (
-                    <div className="flex justify-center mt-4">
-                      <div className="bg-white border border-edp-neutral-lighter rounded-lg px-4 py-2">
-                        <span className="text-sm text-edp-neutral-medium">
-                          Mostrando {Math.min(itemsPerPage, filteredUsers.length)} de {filteredUsers.length} usuários
-                        </span>
+                  {/* Desktop Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center pt-6">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                          disabled={currentPage === 1}
+                          className="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </button>
+                        
+                        {/* Números das páginas */}
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                            let pageNum;
+                            if (totalPages <= 5) {
+                              pageNum = i + 1;
+                            } else if (currentPage <= 3) {
+                              pageNum = i + 1;
+                            } else if (currentPage >= totalPages - 2) {
+                              pageNum = totalPages - 4 + i;
+                            } else {
+                              pageNum = currentPage - 2 + i;
+                            }
+                            
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => setCurrentPage(pageNum)}
+                                className={`w-10 h-10 text-sm rounded-lg transition-colors ${
+                                  currentPage === pageNum
+                                    ? 'bg-[#7C9599] text-white'
+                                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                          disabled={currentPage === totalPages}
+                          className="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </div>
+                      
+                      <div className="ml-6 text-sm text-gray-500">
+                        Mostrando {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredUsers.length)} de {filteredUsers.length} usuários
                       </div>
                     </div>
                   )}
-                </div>
-              ) : (
-                /* Desktop Table */
-                <div className="bg-white border border-edp-neutral-lighter rounded-lg shadow-sm h-full flex flex-col">
-                  <TableWithPagination
-                    data={filteredUsers}
-                    columns={columns}
-                    loading={loading}
-                    emptyMessage="Nenhum usuário encontrado"
-                    itemsPerPage={itemsPerPage}
-                    showPagination={true}
-                  />
                 </div>
               )}
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* Modals */}
@@ -723,12 +720,62 @@ const UsersPage: React.FC = () => {
           />
         </div>
         
-        <Input
-          label="URL do Avatar (opcional)"
-          value={formData.url_avatar}
-          onChange={(e) => handleFormChange('url_avatar', e.target.value)}
-          className="mt-4"
-        />
+        {/* Avatar Preview e Controles */}
+        <div className="mt-6 p-4 bg-gray-50 rounded-xl border">
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Avatar do Usuário
+          </label>
+          
+          <div className="flex items-center gap-4">
+            {/* Preview do Avatar */}
+            <div className="flex-shrink-0">
+              <div className="w-16 h-16 rounded-full bg-[#7C9599] flex items-center justify-center overflow-hidden shadow-md">
+                {formData.url_avatar ? (
+                  <img 
+                    src={formData.url_avatar} 
+                    alt="Preview" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                )}
+              </div>
+            </div>
+            
+            {/* Controles */}
+            <div className="flex-1">
+              <div className="flex gap-2 mb-3">
+                <button
+                  type="button"
+                  onClick={() => handleFormChange('url_avatar', generateRandomAvatarUrl())}
+                  className="px-3 py-2 text-sm bg-[#7C9599] text-white rounded-lg hover:bg-[#6B8489] transition-colors"
+                >
+                  🎲 Aleatório
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleFormChange('url_avatar', formData.nome ? generateAvatarUrl(formData.nome) : generateRandomAvatarUrl())}
+                  className="px-3 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  🔄 Baseado no Nome
+                </button>
+              </div>
+              
+              <Input
+                label="URL Personalizada (opcional)"
+                value={formData.url_avatar}
+                onChange={(e) => handleFormChange('url_avatar', e.target.value)}
+                placeholder="/Avatar/Avatar_0.svg"
+                className="text-sm"
+              />
+            </div>
+          </div>
+        </div>
 
         {apiError && (
           <div className="mt-4 p-3 bg-edp-semantic-red/10 border border-edp-semantic-red/20 rounded-lg">
@@ -810,12 +857,62 @@ const UsersPage: React.FC = () => {
           />
         </div>
         
-        <Input
-          label="URL do Avatar (opcional)"
-          value={formData.url_avatar}
-          onChange={(e) => handleFormChange('url_avatar', e.target.value)}
-          className="mt-4"
-        />
+        {/* Avatar Preview e Controles - Modal Edição */}
+        <div className="mt-6 p-4 bg-gray-50 rounded-xl border">
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Avatar do Usuário
+          </label>
+          
+          <div className="flex items-center gap-4">
+            {/* Preview do Avatar */}
+            <div className="flex-shrink-0">
+              <div className="w-16 h-16 rounded-full bg-[#7C9599] flex items-center justify-center overflow-hidden shadow-md">
+                {formData.url_avatar ? (
+                  <img 
+                    src={formData.url_avatar} 
+                    alt="Preview" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                )}
+              </div>
+            </div>
+            
+            {/* Controles */}
+            <div className="flex-1">
+              <div className="flex gap-2 mb-3">
+                <button
+                  type="button"
+                  onClick={() => handleFormChange('url_avatar', generateRandomAvatarUrl())}
+                  className="px-3 py-2 text-sm bg-[#7C9599] text-white rounded-lg hover:bg-[#6B8489] transition-colors"
+                >
+                  🎲 Aleatório
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleFormChange('url_avatar', formData.nome ? generateAvatarUrl(formData.nome) : generateRandomAvatarUrl())}
+                  className="px-3 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  🔄 Baseado no Nome
+                </button>
+              </div>
+              
+              <Input
+                label="URL Personalizada (opcional)"
+                value={formData.url_avatar}
+                onChange={(e) => handleFormChange('url_avatar', e.target.value)}
+                placeholder="/Avatar/Avatar_0.svg"
+                className="text-sm"
+              />
+            </div>
+          </div>
+        </div>
 
         <div className="flex gap-3 mt-6 justify-end">
           <Button

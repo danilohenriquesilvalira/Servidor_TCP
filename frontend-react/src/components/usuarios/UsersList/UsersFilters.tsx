@@ -3,8 +3,7 @@ import {
   PlusIcon, 
   MagnifyingGlassIcon,
   FunnelIcon,
-  XMarkIcon,
-  ChevronDownIcon 
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -58,235 +57,140 @@ export const UsersFilters: React.FC<UsersFiltersProps> = ({
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
 
-  // Mobile Filter Component
+  // Mobile Filter Component  
   const MobileFilters = () => (
-    <div className="bg-white border border-edp-neutral-lighter rounded-lg shadow-sm">
-      {/* Compact Mobile Header */}
-      <div className="flex items-center justify-between p-3">
-        <div className="flex items-center gap-3 flex-1">
-          {/* Search */}
-          <div className="flex-1">
-            <Input
-              value={searchTerm}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Buscar usuário..."
-              icon={<MagnifyingGlassIcon className="w-4 h-4" />}
-              className="text-sm"
-            />
-          </div>
-          
-          {/* Filter Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowMobileFilters(true)}
-            className={`flex items-center gap-2 px-3 py-2 ${hasAdvancedFilters ? 'border-[#7C9599] bg-[#7C9599] text-white' : ''}`}
+    <div className="flex items-center gap-2">
+      {/* Input de busca fixo móvel */}
+      {showAdvanced ? (
+        <div className="flex items-center flex-1 gap-2">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Buscar usuário..."
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7C9599] focus:border-[#7C9599]"
+            autoFocus
+          />
+          <button
+            onClick={() => {
+              if (searchTerm) {
+                onSearchChange('');
+              }
+              setShowAdvanced(false);
+            }}
+            className="w-10 h-10 rounded-lg border-2 border-gray-300 text-gray-500 hover:border-red-500 hover:text-red-500 flex items-center justify-center transition-all"
+            title="Fechar"
           >
-            <FunnelIcon className="w-4 h-4" />
-            {hasAdvancedFilters && <span className="w-2 h-2 bg-white rounded-full"></span>}
-          </Button>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-        
-        {canCreateUsers && (
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={onCreateUser}
-            className="ml-2 flex items-center gap-1.5 px-3 py-2"
+      ) : (
+        <>
+          {/* Lupa */}
+          <button
+            onClick={() => setShowAdvanced(true)}
+            className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center transition-all flex-shrink-0 ${
+              searchTerm
+                ? 'border-[#7C9599] bg-[#7C9599]/10 text-[#7C9599]' 
+                : 'border-gray-300 text-gray-500 hover:border-[#7C9599] hover:text-[#7C9599]'
+            }`}
+            title="Buscar"
           >
-            <PlusIcon className="w-4 h-4" />
-            <span className="text-sm">Novo</span>
-          </Button>
-        )}
-      </div>
-
-      {/* Results count */}
-      <div className="px-3 pb-3">
-        <span className="text-xs text-edp-neutral-medium">
-          {totalResults} usuário{totalResults !== 1 ? 's' : ''} encontrado{totalResults !== 1 ? 's' : ''}
-        </span>
-      </div>
-
-      {/* Filter Modal */}
-      <Modal
-        isOpen={showMobileFilters}
-        onClose={() => setShowMobileFilters(false)}
-        title="Filtros de Busca"
-        size="sm"
-      >
-        <div className="space-y-6">
-          {/* Cargo Filter */}
-          <div>
-            <div className="text-sm font-medium text-edp-neutral-darkest mb-3">Cargo</div>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => onCargoChange('')}
-                className={`p-3 text-sm font-medium rounded-lg border transition-all text-center ${
-                  !selectedCargo 
-                    ? 'bg-[#7C9599] text-white border-[#7C9599]' 
-                    : 'bg-white text-edp-neutral-darkest border-edp-neutral-lighter hover:border-[#7C9599]'
-                }`}
-              >
-                Todos
-              </button>
-              {cargoOptions.map((cargo) => (
-                <button
-                  key={cargo}
-                  onClick={() => onCargoChange(cargo)}
-                  className={`p-3 text-sm font-medium rounded-lg border transition-all text-center ${
-                    selectedCargo === cargo 
-                      ? 'bg-[#7C9599] text-white border-[#7C9599]' 
-                      : 'bg-white text-edp-neutral-darkest border-edp-neutral-lighter hover:border-[#7C9599]'
-                  }`}
-                >
-                  {cargo}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Eclusa Filter */}
-          <div>
-            <div className="text-sm font-medium text-edp-neutral-darkest mb-3">Eclusa</div>
-            <div className="grid grid-cols-1 gap-2">
-              <button
-                onClick={() => onEclusaChange('')}
-                className={`p-3 text-sm font-medium rounded-lg border transition-all text-left ${
-                  !selectedEclusa 
-                    ? 'bg-[#7C9599] text-white border-[#7C9599]' 
-                    : 'bg-white text-edp-neutral-darkest border-edp-neutral-lighter hover:border-[#7C9599]'
-                }`}
-              >
-                Todas as Eclusas
-              </button>
-              {eclusaOptions.map((eclusa) => (
-                <button
-                  key={eclusa}
-                  onClick={() => onEclusaChange(eclusa)}
-                  className={`p-3 text-sm font-medium rounded-lg border transition-all text-left ${
-                    selectedEclusa === eclusa 
-                      ? 'bg-[#7C9599] text-white border-[#7C9599]' 
-                      : 'bg-white text-edp-neutral-darkest border-edp-neutral-lighter hover:border-[#7C9599]'
-                  }`}
-                >
-                  {eclusa}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t border-edp-neutral-lighter">
-            {hasActiveFilters && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  onClearFilters();
-                  setShowMobileFilters(false);
-                }}
-                className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
-              >
-                Limpar
-              </Button>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            {searchTerm && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-[#7C9599] rounded-full"></span>
             )}
+          </button>
+
+          {/* Botão Novo Usuário */}
+          {canCreateUsers && (
             <Button
               variant="primary"
-              onClick={() => setShowMobileFilters(false)}
-              className="flex-1"
+              onClick={onCreateUser}
+              className="bg-green-600 hover:bg-green-700 flex items-center gap-2 px-3 py-2 text-sm flex-shrink-0"
             >
-              Aplicar
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Novo</span>
             </Button>
-          </div>
-        </div>
-      </Modal>
+          )}
+        </>
+      )}
     </div>
   );
 
   // Desktop Filter Component  
   const DesktopFilters = () => (
-    <div className="bg-white border border-edp-neutral-lighter rounded-lg shadow-sm p-4">
-      {/* Linha compacta principal */}
-      <div className="flex items-center gap-4">
-        {/* Busca compacta */}
-        <div className="flex-1 max-w-md">
-          <Input
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Buscar usuário..."
-            icon={<MagnifyingGlassIcon className="w-4 h-4" />}
-          />
-        </div>
+    <div className="flex items-center gap-3">
+      {/* Input de busca expansível */}
+      <div className="relative flex items-center">
+        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+          showAdvanced ? 'w-64' : 'w-10'
+        }`}>
+          <div className="flex items-center">
+            {/* Lupa */}
+            <button
+              onClick={() => {
+                if (showAdvanced && searchTerm) {
+                  // Se está aberto e tem texto, limpa e fecha
+                  onSearchChange('');
+                  setShowAdvanced(false);
+                } else if (showAdvanced) {
+                  // Se está aberto mas vazio, só fecha
+                  setShowAdvanced(false);
+                } else {
+                  // Se está fechado, abre
+                  setShowAdvanced(true);
+                }
+              }}
+              className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center transition-all flex-shrink-0 ${
+                showAdvanced || searchTerm
+                  ? 'border-[#7C9599] bg-[#7C9599]/10 text-[#7C9599]' 
+                  : 'border-gray-300 text-gray-500 hover:border-[#7C9599] hover:text-[#7C9599]'
+              }`}
+              title={searchTerm ? "Limpar busca" : "Buscar"}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              {searchTerm && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-[#7C9599] rounded-full"></span>
+              )}
+            </button>
 
-        {/* Indicador de resultados */}
-        <div className="text-sm text-edp-neutral-medium whitespace-nowrap">
-          {totalResults} resultado{totalResults !== 1 ? 's' : ''}
-        </div>
-
-        {/* Botão de filtros avançados */}
-        <Button
-          variant="outline"
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className={`relative ${hasAdvancedFilters ? 'border-edp-electric text-edp-electric' : ''}`}
-        >
-          <FunnelIcon className="w-4 h-4" />
-          {hasAdvancedFilters && (
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-edp-electric rounded-full"></span>
-          )}
-        </Button>
-
-        {/* Botão Novo Usuário */}
-        {canCreateUsers && (
-          <Button
-            variant="primary"
-            onClick={onCreateUser}
-            className="flex items-center gap-2"
-          >
-            <PlusIcon className="w-4 h-4" />
-            <span className="hidden sm:inline">Novo Usuário</span>
-          </Button>
-        )}
-      </div>
-
-      {/* Filtros avançados (colapsáveis) */}
-      {showAdvanced && (
-        <div className="mt-4 pt-4 border-t border-edp-neutral-lighter">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Cargo */}
-            <Select
-              label="Cargo"
-              value={selectedCargo}
-              onChange={onCargoChange}
-              options={[
-                { value: '', label: 'Todos os cargos' },
-                ...cargoOptions.map(cargo => ({ value: cargo, label: cargo }))
-              ]}
+            {/* Input que expande */}
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="Buscar usuário..."
+              className={`ml-2 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7C9599] focus:border-[#7C9599] transition-all duration-300 ${
+                showAdvanced ? 'w-52 opacity-100' : 'w-0 opacity-0 border-0 px-0'
+              }`}
+              onBlur={() => !searchTerm && setShowAdvanced(false)}
+              autoFocus={showAdvanced}
             />
-
-            {/* Eclusa */}
-            <Select
-              label="Eclusa"
-              value={selectedEclusa}
-              onChange={onEclusaChange}
-              options={[
-                { value: '', label: 'Todas as eclusas' },
-                ...eclusaOptions.map(eclusa => ({ value: eclusa, label: eclusa }))
-              ]}
-            />
-
-            {/* Botão Limpar */}
-            <div className="flex items-end">
-              <Button
-                variant="outline"
-                onClick={onClearFilters}
-                disabled={!hasActiveFilters}
-                className="w-full sm:w-auto flex items-center gap-2"
-              >
-                <XMarkIcon className="w-4 h-4" />
-                Limpar Filtros
-              </Button>
-            </div>
           </div>
         </div>
+      </div>
+
+      {/* Botão Novo Usuário */}
+      {canCreateUsers && (
+        <Button
+          variant="primary"
+          onClick={onCreateUser}
+          className="bg-green-600 hover:bg-green-700 flex items-center gap-2 px-4 py-2 text-sm"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Novo Usuário</span>
+        </Button>
       )}
     </div>
   );

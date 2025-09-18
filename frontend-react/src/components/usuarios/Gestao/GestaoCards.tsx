@@ -3,9 +3,7 @@ import {
   UserGroupIcon,
   BuildingOfficeIcon,
   ChartBarIcon,
-  UsersIcon,
-  ShieldCheckIcon,
-  ClockIcon
+  ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import { User } from '@/types/auth';
 
@@ -24,22 +22,8 @@ export const GestaoCards: React.FC<GestaoCardsProps> = ({
   );
 
   const totalEclusas = Array.from(new Set(users.map(u => u.eclusa))).length;
-  
-  const cargoMaisFrequente = manageableCargos.reduce((prev, current) => {
-    const prevCount = users.filter(u => u.cargo === prev).length;
-    const currentCount = users.filter(u => u.cargo === current).length;
-    return currentCount > prevCount ? current : prev;
-  }, manageableCargos[0]);
-
-  const eclusaMaisFrequente = Array.from(new Set(users.map(u => u.eclusa))).reduce((prev, current) => {
-    const prevCount = users.filter(u => u.eclusa === prev).length;
-    const currentCount = users.filter(u => u.eclusa === current).length;
-    return currentCount > prevCount ? current : prev;
-  });
-
-  // Estatísticas adicionais
+    
   const usuariosAtivos = users.filter(u => u.status === 'Ativo').length;
-  const usuariosBloqueados = users.filter(u => u.status === 'Bloqueado').length;
   const taxaAtivos = users.length > 0 ? Math.round((usuariosAtivos / users.length) * 100) : 0;
 
   const cards = [
@@ -48,94 +32,63 @@ export const GestaoCards: React.FC<GestaoCardsProps> = ({
       value: totalSobGestao,
       description: 'Usuários que você pode gerenciar',
       icon: UserGroupIcon,
-      color: 'bg-[#7C9599]',
-      iconColor: 'text-white'
-    },
-    {
-      title: 'Cargos Diferentes',
-      value: manageableCargos.length,
-      description: `Mais comum: ${cargoMaisFrequente}`,
-      icon: ChartBarIcon,
-      color: 'bg-[#7C9599]',
-      iconColor: 'text-white'
-    },
-    {
-      title: 'Eclusas Ativas',
-      value: totalEclusas,
-      description: `Mais comum: ${eclusaMaisFrequente}`,
-      icon: BuildingOfficeIcon,
-      color: 'bg-[#7C9599]',
-      iconColor: 'text-white'
-    },
-    {
-      title: 'Taxa de Ocupação',
-      value: Math.round((totalSobGestao / users.length) * 100),
-      suffix: '%',
-      description: 'Do total de usuários no sistema',
-      icon: UsersIcon,
-      color: 'bg-[#7C9599]',
-      iconColor: 'text-white'
+      color: 'bg-gray-600'
     },
     {
       title: 'Usuários Ativos',
       value: usuariosAtivos,
       description: `Taxa de ${taxaAtivos}% do total`,
       icon: ShieldCheckIcon,
-      color: 'bg-[#7C9599]',
-      iconColor: 'text-white'
+      color: 'bg-gray-700'
     },
     {
-      title: 'Usuários Bloqueados',
-      value: usuariosBloqueados,
-      description: `${Math.round((usuariosBloqueados / users.length) * 100)}% do total`,
-      icon: ClockIcon,
-      color: 'bg-[#7C9599]',
-      iconColor: 'text-white'
+      title: 'Cargos Diferentes',
+      value: manageableCargos.length,
+      description: 'Níveis de hierarquia',
+      icon: ChartBarIcon,
+      color: 'bg-gray-600'
+    },
+    {
+      title: 'Eclusas Ativas',
+      value: totalEclusas,
+      description: 'Localizações em operação',
+      icon: BuildingOfficeIcon,
+      color: 'bg-gray-700'
     }
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-6 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {cards.map((card, index) => {
         const Icon = card.icon;
         
         return (
           <div
             key={index}
-            className="bg-white border border-edp-neutral-lighter rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow duration-200"
+            className="bg-gray-200 rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200"
           >
-            <div className="flex items-center justify-between mb-3">
-              <div className="min-w-0 flex-1">
-                <h4 className="text-sm font-edp font-medium text-edp-neutral-medium truncate">
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Icon className="w-4 h-4 text-gray-600" />
+                <h4 className="text-sm font-medium text-gray-600">
                   {card.title}
                 </h4>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-edp font-bold text-edp-neutral-darkest">
-                    {card.value}
-                  </span>
-                  {card.suffix && (
-                    <span className="text-lg font-edp font-semibold text-edp-neutral-medium">
-                      {card.suffix}
-                    </span>
-                  )}
-                </div>
               </div>
-              
-              <div className={`w-8 h-8 ${card.color} rounded-md flex items-center justify-center flex-shrink-0`}>
-                <Icon className={`w-4 h-4 ${card.iconColor}`} />
+              <div className="text-3xl font-bold text-gray-800 mb-1">
+                {card.value}
               </div>
             </div>
             
-            <p className="text-xs font-edp text-edp-neutral-medium line-clamp-2">
+            <p className="text-sm text-gray-600">
               {card.description}
             </p>
             
             {/* Indicador visual simples */}
-            <div className="mt-3 w-full bg-edp-neutral-white-wash rounded-full h-1">
+            <div className="mt-4 w-full bg-gray-200 rounded-full h-1">
               <div 
-                className={`h-1 rounded-full ${card.color} transition-all duration-1000`}
-                style={{ 
-                  width: `${Math.min(100, (card.value || 0) * (index === 3 ? 1 : 10))}%` 
+                className={`h-1 rounded-full ${card.color} transition-all duration-1000 ease-out`}
+                style={{
+                  width: `${Math.min(100, (card.value || 0) * (index === 2 || index === 3 ? 10 : 5))}%`
                 }}
               />
             </div>
