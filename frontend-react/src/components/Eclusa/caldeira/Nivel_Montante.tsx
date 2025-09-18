@@ -56,10 +56,6 @@ export default function NivelMontante({
         />
       </svg>
       
-      {/* Label para debug */}
-      <div className="absolute -top-4 left-0 text-xs text-white bg-black/50 px-1 rounded">
-        Montante: {displayNivel.toFixed(1)}%
-      </div>
     </div>
   );
 }

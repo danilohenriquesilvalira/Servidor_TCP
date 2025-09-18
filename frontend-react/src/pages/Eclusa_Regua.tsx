@@ -2,27 +2,45 @@ import React from 'react';
 import NivelCaldeira from '../components/Eclusa/caldeira/Nivel_Caldeira';
 import NivelJusante from '../components/Eclusa/caldeira/Nivel_Jusante';
 import NivelMontante from '../components/Eclusa/caldeira/Nivel_Montante';
+import PortaJusante from '../components/Eclusa/caldeira/PortaJusante';
+import PortaMontante from '../components/Eclusa/caldeira/PortaMontante';
 import { usePLC } from '../contexts/PLCContext';
 
 // 🎯 CONFIGURAÇÕES DOS COMPONENTES DE NÍVEL - Edite aqui para salvar permanentemente
 const NIVEL_CONFIG = {
   caldeira: {
-    verticalPercent: 35,    // % da altura da caldeira (posição Y)
-    horizontalPercent: 25,  // % da largura da caldeira (posição X)
-    widthPercent: 64.9,     // % da largura da caldeira (tamanho)
-    heightPercent: 60,      // % da altura da caldeira (tamanho)
+    verticalPercent: 36.2,  // % da altura da caldeira (posição Y)
+    horizontalPercent: 25.6, // % da largura da caldeira (posição X)
+    widthPercent: 64.6,     // % da largura da caldeira (tamanho)
+    heightPercent: 61.7,    // % da altura da caldeira (tamanho)
   },
   jusante: {
-    verticalPercent: 30,    // % da altura total
-    horizontalPercent: 88,  // % da largura total
-    widthPercent: 12,       // % da largura total
+    verticalPercent: 29.4,  // % da altura total
+    horizontalPercent: 89.4, // % da largura total
+    widthPercent: 10.2,     // % da largura total
     heightPercent: 15,      // % da altura total
   },
   montante: {
-    verticalPercent: 15,    // % da altura total
-    horizontalPercent: 0,   // % da largura total
-    widthPercent: 25.5,     // % da largura total
-    heightPercent: 30,      // % da altura total
+    verticalPercent: 15.5,  // % da altura total
+    horizontalPercent: 0.5, // % da largura total
+    widthPercent: 25,       // % da largura total
+    heightPercent: 28,      // % da altura total
+  }
+};
+
+// 🚪 CONFIGURAÇÕES DOS COMPONENTES DE PORTA - Edite aqui para salvar permanentemente
+const PORTA_CONFIG = {
+  jusante: {
+    verticalPercent: 26.5,    // % da altura total (posição Y)
+    horizontalPercent: 78.1,  // % da largura total (posição X)
+    widthPercent: 8,        // % da largura total (tamanho)
+    heightPercent: 20,      // % da altura total (tamanho)
+  },
+  montante: {
+    verticalPercent: 14.6,  // % da altura total (posição Y)
+    horizontalPercent: 25.5, // % da largura total (posição X)
+    widthPercent: 1.5,      // % da largura total (tamanho)
+    heightPercent: 18,      // % da altura total (tamanho)
   }
 };
 
@@ -32,12 +50,16 @@ const EclusaRegua: React.FC = () => {
   const [paredeOffsetPercent, setParedeOffsetPercent] = React.useState(-50.5); // Posição ajustada para encaixe perfeito
   
   // Estados para ajustar a caldeira
-  const [caldeiraScale, setCaldeiraScale] = React.useState(100); // Escala da caldeira em %
+  const [caldeiraScale, setCaldeiraScale] = React.useState(99.3); // Escala da caldeira em %
   
   // Estados para posicionamento dos componentes de nível
   const [caldeiraConfig, setCaldeiraConfig] = React.useState(NIVEL_CONFIG.caldeira);
   const [jusanteConfig, setJusanteConfig] = React.useState(NIVEL_CONFIG.jusante);
   const [montanteConfig, setMontanteConfig] = React.useState(NIVEL_CONFIG.montante);
+  
+  // Estados para posicionamento dos componentes de porta
+  const [portaJusanteConfig, setPortaJusanteConfig] = React.useState(PORTA_CONFIG.jusante);
+  const [portaMontanteConfig, setPortaMontanteConfig] = React.useState(PORTA_CONFIG.montante);
   
   // 📡 USAR O SISTEMA PLC EXISTENTE (sem criar nova conexão!)
   const { data: plcData, connectionStatus, connect } = usePLC();
@@ -54,15 +76,10 @@ const EclusaRegua: React.FC = () => {
   const nivelCaldeira = plcData?.reals?.[108] || 0;  // NIV.NIV_CALD_COTA (índice 108)  
   const nivelMontante = plcData?.reals?.[109] || 0;  // NIV.NIV_MONT_COTA (índice 109)
   
-  // Debug temporário para verificar dados
-  React.useEffect(() => {
-    console.log('🔍 DADOS WEBSOCKET:');
-    console.log('  - Conexão:', connectionStatus.connected);
-    console.log('  - nivelCaldeira:', nivelCaldeira);
-    console.log('  - nivelJusante:', nivelJusante);
-    console.log('  - nivelMontante:', nivelMontante);
-    console.log('  - plcData?.reals?.length:', plcData?.reals?.length);
-  }, [nivelJusante, nivelCaldeira, nivelMontante, connectionStatus.connected, plcData]);
+  // Extrair dados das portas do PLC (do sistema existente)
+  const portaJusanteValue = plcData?.ints?.[42] || 0;  // MOVIMENTO_PORTA_JUSANTE_CALDEIRA (índice 42)
+  const portaMontanteValue = plcData?.ints?.[59] || 0; // MOVIMENTAR_PORTA_MONTANTE_CALDEIRA (índice 59)
+  
   
   
   React.useEffect(() => {
@@ -188,142 +205,86 @@ const EclusaRegua: React.FC = () => {
               <span className="text-xs text-white/80 ml-2">{paredeOffsetPercent.toFixed(1)}%</span>
             </div>
 
-            {/* Controles da Caldeira */}
-            <div className="flex gap-1 items-center bg-blue/20 backdrop-blur-sm rounded-lg px-2 py-1 border border-blue-300/30">
-              <span className="text-xs text-blue-900 font-bold w-16">Caldeira:</span>
-              <div className="flex gap-1 items-center">
-                <span className="text-xs text-blue-900">Escala:</span>
-                <input 
-                  type="number" 
-                  value={caldeiraScale} 
-                  onChange={(e) => setCaldeiraScale(Number(e.target.value))}
-                  className="w-16 h-6 text-xs border rounded px-1 text-center"
-                  step="0.1"
-                  min="50"
-                  max="150"
-                />
-                <span className="text-xs text-blue-900">%</span>
-              </div>
-            </div>
 
-            {/* Controles de Tamanho - Caldeira */}
-            <div className="flex gap-1 items-center bg-red/20 backdrop-blur-sm rounded-lg px-2 py-1 border border-red-300/30">
-              <span className="text-xs text-blue-900 font-bold w-12">Cald:</span>
+            {/* Controles de Tamanho - Porta Jusante */}
+            <div className="flex gap-1 items-center bg-orange/20 backdrop-blur-sm rounded-lg px-2 py-1 border border-orange-300/30">
+              <span className="text-xs text-blue-900 font-bold w-12">PJ:</span>
               <div className="flex gap-1 items-center">
                 <span className="text-xs text-blue-900">X:</span>
                 <input 
                   type="number" 
-                  value={caldeiraConfig.horizontalPercent} 
-                  onChange={(e) => setCaldeiraConfig(prev => ({...prev, horizontalPercent: Number(e.target.value)}))}
+                  value={portaJusanteConfig.horizontalPercent} 
+                  onChange={(e) => setPortaJusanteConfig(prev => ({...prev, horizontalPercent: Number(e.target.value)}))}
                   className="w-12 h-6 text-xs border rounded px-1 text-center"
                   step="0.1"
                 />
                 <span className="text-xs text-blue-900">Y:</span>
                 <input 
                   type="number" 
-                  value={caldeiraConfig.verticalPercent} 
-                  onChange={(e) => setCaldeiraConfig(prev => ({...prev, verticalPercent: Number(e.target.value)}))}
+                  value={portaJusanteConfig.verticalPercent} 
+                  onChange={(e) => setPortaJusanteConfig(prev => ({...prev, verticalPercent: Number(e.target.value)}))}
                   className="w-12 h-6 text-xs border rounded px-1 text-center"
                   step="0.1"
                 />
                 <span className="text-xs text-blue-900">W:</span>
                 <input 
                   type="number" 
-                  value={caldeiraConfig.widthPercent} 
-                  onChange={(e) => setCaldeiraConfig(prev => ({...prev, widthPercent: Number(e.target.value)}))}
+                  value={portaJusanteConfig.widthPercent} 
+                  onChange={(e) => setPortaJusanteConfig(prev => ({...prev, widthPercent: Number(e.target.value)}))}
                   className="w-12 h-6 text-xs border rounded px-1 text-center"
                   step="0.1"
                 />
                 <span className="text-xs text-blue-900">H:</span>
                 <input 
                   type="number" 
-                  value={caldeiraConfig.heightPercent} 
-                  onChange={(e) => setCaldeiraConfig(prev => ({...prev, heightPercent: Number(e.target.value)}))}
+                  value={portaJusanteConfig.heightPercent} 
+                  onChange={(e) => setPortaJusanteConfig(prev => ({...prev, heightPercent: Number(e.target.value)}))}
                   className="w-12 h-6 text-xs border rounded px-1 text-center"
                   step="0.1"
                 />
               </div>
             </div>
 
-            {/* Controles de Tamanho - Jusante */}
-            <div className="flex gap-1 items-center bg-green/20 backdrop-blur-sm rounded-lg px-2 py-1 border border-green-300/30">
-              <span className="text-xs text-blue-900 font-bold w-12">Just:</span>
+            {/* Controles de Tamanho - Porta Montante */}
+            <div className="flex gap-1 items-center bg-cyan/20 backdrop-blur-sm rounded-lg px-2 py-1 border border-cyan-300/30">
+              <span className="text-xs text-blue-900 font-bold w-12">PM:</span>
               <div className="flex gap-1 items-center">
                 <span className="text-xs text-blue-900">X:</span>
                 <input 
                   type="number" 
-                  value={jusanteConfig.horizontalPercent} 
-                  onChange={(e) => setJusanteConfig(prev => ({...prev, horizontalPercent: Number(e.target.value)}))}
+                  value={portaMontanteConfig.horizontalPercent} 
+                  onChange={(e) => setPortaMontanteConfig(prev => ({...prev, horizontalPercent: Number(e.target.value)}))}
                   className="w-12 h-6 text-xs border rounded px-1 text-center"
                   step="0.1"
                 />
                 <span className="text-xs text-blue-900">Y:</span>
                 <input 
                   type="number" 
-                  value={jusanteConfig.verticalPercent} 
-                  onChange={(e) => setJusanteConfig(prev => ({...prev, verticalPercent: Number(e.target.value)}))}
+                  value={portaMontanteConfig.verticalPercent} 
+                  onChange={(e) => setPortaMontanteConfig(prev => ({...prev, verticalPercent: Number(e.target.value)}))}
                   className="w-12 h-6 text-xs border rounded px-1 text-center"
                   step="0.1"
                 />
                 <span className="text-xs text-blue-900">W:</span>
                 <input 
                   type="number" 
-                  value={jusanteConfig.widthPercent} 
-                  onChange={(e) => setJusanteConfig(prev => ({...prev, widthPercent: Number(e.target.value)}))}
+                  value={portaMontanteConfig.widthPercent} 
+                  onChange={(e) => setPortaMontanteConfig(prev => ({...prev, widthPercent: Number(e.target.value)}))}
                   className="w-12 h-6 text-xs border rounded px-1 text-center"
                   step="0.1"
                 />
                 <span className="text-xs text-blue-900">H:</span>
                 <input 
                   type="number" 
-                  value={jusanteConfig.heightPercent} 
-                  onChange={(e) => setJusanteConfig(prev => ({...prev, heightPercent: Number(e.target.value)}))}
+                  value={portaMontanteConfig.heightPercent} 
+                  onChange={(e) => setPortaMontanteConfig(prev => ({...prev, heightPercent: Number(e.target.value)}))}
                   className="w-12 h-6 text-xs border rounded px-1 text-center"
                   step="0.1"
                 />
               </div>
             </div>
 
-            {/* Controles de Tamanho - Montante */}
-            <div className="flex gap-1 items-center bg-yellow/20 backdrop-blur-sm rounded-lg px-2 py-1 border border-yellow-300/30">
-              <span className="text-xs text-blue-900 font-bold w-12">Mont:</span>
-              <div className="flex gap-1 items-center">
-                <span className="text-xs text-blue-900">X:</span>
-                <input 
-                  type="number" 
-                  value={montanteConfig.horizontalPercent} 
-                  onChange={(e) => setMontanteConfig(prev => ({...prev, horizontalPercent: Number(e.target.value)}))}
-                  className="w-12 h-6 text-xs border rounded px-1 text-center"
-                  step="0.1"
-                />
-                <span className="text-xs text-blue-900">Y:</span>
-                <input 
-                  type="number" 
-                  value={montanteConfig.verticalPercent} 
-                  onChange={(e) => setMontanteConfig(prev => ({...prev, verticalPercent: Number(e.target.value)}))}
-                  className="w-12 h-6 text-xs border rounded px-1 text-center"
-                  step="0.1"
-                />
-                <span className="text-xs text-blue-900">W:</span>
-                <input 
-                  type="number" 
-                  value={montanteConfig.widthPercent} 
-                  onChange={(e) => setMontanteConfig(prev => ({...prev, widthPercent: Number(e.target.value)}))}
-                  className="w-12 h-6 text-xs border rounded px-1 text-center"
-                  step="0.1"
-                />
-                <span className="text-xs text-blue-900">H:</span>
-                <input 
-                  type="number" 
-                  value={montanteConfig.heightPercent} 
-                  onChange={(e) => setMontanteConfig(prev => ({...prev, heightPercent: Number(e.target.value)}))}
-                  className="w-12 h-6 text-xs border rounded px-1 text-center"
-                  step="0.1"
-                />
-              </div>
-            </div>
-
-            {/* Status WebSocket e Dados dos Níveis */}
+            {/* Status WebSocket e Dados dos Níveis e Portas */}
             <div className="flex gap-2 items-center bg-green/20 backdrop-blur-sm rounded-lg px-3 py-2 border border-green-300/30">
               <span className="text-sm text-blue-900 font-bold w-16">PLC:</span>
               <div className={`w-2 h-2 rounded-full ${connectionStatus.connected ? 'bg-green-400' : 'bg-red-400'}`} />
@@ -331,7 +292,7 @@ const EclusaRegua: React.FC = () => {
                 C:{nivelCaldeira.toFixed(1)}% | J:{nivelJusante.toFixed(1)}% | M:{nivelMontante.toFixed(1)}%
               </span>
               <span className="text-xs text-blue-900/70">
-                (Real[107,108,109])
+                PJ:{portaJusanteValue} | PM:{portaMontanteValue}
               </span>
             </div>
 
@@ -466,6 +427,40 @@ const EclusaRegua: React.FC = () => {
               >
                 <NivelMontante 
                   websocketValue={nivelMontante}
+                  editMode={false}
+                />
+              </div>
+
+              {/* Componente Porta Jusante - Dados reais do PLC */}
+              <div 
+                className="absolute transition-all duration-200 ease-in-out"
+                style={{
+                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * portaJusanteConfig.verticalPercent) / 100}px`,
+                  left: `${(maxWidth * portaJusanteConfig.horizontalPercent) / 100}px`,
+                  width: `${(maxWidth * portaJusanteConfig.widthPercent) / 100}px`,
+                  height: `${((caldeiraHeight + paredeHeight) * portaJusanteConfig.heightPercent) / 100}px`,
+                  zIndex: 8 // Acima de tudo para animação
+                }}
+              >
+                <PortaJusante 
+                  websocketValue={portaJusanteValue}
+                  editMode={false}
+                />
+              </div>
+
+              {/* Componente Porta Montante - Dados reais do PLC */}
+              <div 
+                className="absolute transition-all duration-200 ease-in-out"
+                style={{
+                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * portaMontanteConfig.verticalPercent) / 100}px`,
+                  left: `${(maxWidth * portaMontanteConfig.horizontalPercent) / 100}px`,
+                  width: `${(maxWidth * portaMontanteConfig.widthPercent) / 100}px`,
+                  height: `${((caldeiraHeight + paredeHeight) * portaMontanteConfig.heightPercent) / 100}px`,
+                  zIndex: 9 // Mais alto para animação vertical
+                }}
+              >
+                <PortaMontante 
+                  websocketValue={portaMontanteValue}
                   editMode={false}
                 />
               </div>
