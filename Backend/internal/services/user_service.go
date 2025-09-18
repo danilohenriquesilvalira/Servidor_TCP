@@ -243,9 +243,8 @@ func (s *UserService) UpdateUser(userID uuid.UUID, req *models.UserUpdateRequest
 		user.Eclusa = req.Eclusa
 	}
 
-	if req.URLAvatar != "" {
-		user.URLAvatar = req.URLAvatar
-	}
+	// Permitir atualizar URLAvatar mesmo se estiver vazio (para remover avatar)
+	user.URLAvatar = req.URLAvatar
 
 	if req.Cargo != "" && req.Cargo != user.Cargo {
 		if !s.isValidCargo(req.Cargo) {

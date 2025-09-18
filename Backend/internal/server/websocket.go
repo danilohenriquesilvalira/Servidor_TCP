@@ -181,6 +181,7 @@ func (s *Server) handleStatusAPI(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(status)
 }
 
+
 // setupAuthentication configura todos os handlers e middlewares de autenticação
 func (s *Server) setupAuthentication() {
 	// Configuração do banco de dados
@@ -228,8 +229,9 @@ func (s *Server) setupAuthentication() {
 			log.Printf("🔐 Login (modo fallback): %s", r.RemoteAddr)
 			
 			var loginReq struct {
-				Email string `json:"email"`
-				Senha string `json:"senha"`
+				Username string `json:"username"`
+				Email    string `json:"email"`
+				Senha    string `json:"senha"`
 			}
 			
 			if err := json.NewDecoder(r.Body).Decode(&loginReq); err != nil {
@@ -239,8 +241,8 @@ func (s *Server) setupAuthentication() {
 				return
 			}
 			
-			// Usuário de teste hardcoded
-			if loginReq.Email == "admin@edp.com" && loginReq.Senha == "123456" {
+			// Usuário de teste hardcoded - aceitar username ou email
+			if (loginReq.Username == "admin@edp.com" || loginReq.Email == "admin@edp.com") && loginReq.Senha == "123456" {
 				token := "test-token-123"
 				response := map[string]interface{}{
 					"token": token,
@@ -256,12 +258,12 @@ func (s *Server) setupAuthentication() {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
 				json.NewEncoder(w).Encode(response)
-				log.Printf("✅ Login bem-sucedido (teste): %s", loginReq.Email)
+				log.Printf("✅ Login bem-sucedido (teste): %s", loginReq.Username)
 			} else {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusUnauthorized)
 				w.Write([]byte(`{"error":"Email ou senha inválidos"}`))
-				log.Printf("❌ Login falhado (teste): %s", loginReq.Email)
+				log.Printf("❌ Login falhado (teste): %s", loginReq.Username)
 			}
 		}).Methods("POST", "OPTIONS")
 		

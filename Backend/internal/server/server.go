@@ -52,6 +52,8 @@ type WSClient struct {
 	readTimeout    time.Duration
 	pingInterval   time.Duration
 	lastPong       time.Time
+	closed         bool
+	closeMutex     sync.Mutex
 }
 
 // NewWSClient cria um novo cliente WebSocket com configurações de segurança
@@ -66,6 +68,7 @@ func NewWSClient(conn *websocket.Conn) *WSClient {
 		readTimeout:    60 * time.Second,
 		pingInterval:   30 * time.Second,
 		lastPong:       time.Now(),
+		closed:         false,
 	}
 }
 
@@ -199,7 +202,14 @@ func (s *Server) RemoveClient(client *WSClient) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	delete(s.clients, client)
-	close(client.send)
+	
+	// Evitar fechar canal duas vezes
+	client.closeMutex.Lock()
+	defer client.closeMutex.Unlock()
+	if !client.closed {
+		close(client.send)
+		client.closed = true
+	}
 }
 
 // AddPLCConnection adiciona uma conexão PLC
@@ -299,6 +309,14 @@ func (s *Server) handleClientWrites(client *WSClient) {
 	}()
 	
 	for {
+		// Verificar se cliente já foi fechado
+		client.closeMutex.Lock()
+		if client.closed {
+			client.closeMutex.Unlock()
+			return
+		}
+		client.closeMutex.Unlock()
+		
 		select {
 		case message, ok := <-client.send:
 			if !ok {

@@ -57,140 +57,78 @@ export const UsersFilters: React.FC<UsersFiltersProps> = ({
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
 
-  // Mobile Filter Component  
+  // Mobile Filter Component - Moderno
   const MobileFilters = () => (
-    <div className="flex items-center gap-2">
-      {/* Input de busca fixo móvel */}
-      {showAdvanced ? (
-        <div className="flex items-center flex-1 gap-2">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Buscar usuário..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7C9599] focus:border-[#7C9599]"
-            autoFocus
-          />
+    <div className="w-full">
+      {/* Barra de busca moderna sempre visível */}
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="Buscar por nome, email ou ID..."
+          className="w-full pl-10 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-edp-marine focus:border-edp-marine transition-all duration-200 shadow-sm"
+        />
+        {searchTerm && (
           <button
-            onClick={() => {
-              if (searchTerm) {
-                onSearchChange('');
-              }
-              setShowAdvanced(false);
-            }}
-            className="w-10 h-10 rounded-lg border-2 border-gray-300 text-gray-500 hover:border-red-500 hover:text-red-500 flex items-center justify-center transition-all"
-            title="Fechar"
+            onClick={() => onSearchChange('')}
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
+        )}
+      </div>
+      
+      {/* Indicador de resultados */}
+      {searchTerm && (
+        <div className="mt-2 text-xs text-gray-500 text-center">
+          {totalResults} {totalResults === 1 ? 'usuário encontrado' : 'usuários encontrados'}
         </div>
-      ) : (
-        <>
-          {/* Lupa */}
-          <button
-            onClick={() => setShowAdvanced(true)}
-            className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center transition-all flex-shrink-0 ${
-              searchTerm
-                ? 'border-[#7C9599] bg-[#7C9599]/10 text-[#7C9599]' 
-                : 'border-gray-300 text-gray-500 hover:border-[#7C9599] hover:text-[#7C9599]'
-            }`}
-            title="Buscar"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            {searchTerm && (
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-[#7C9599] rounded-full"></span>
-            )}
-          </button>
-
-          {/* Botão Novo Usuário */}
-          {canCreateUsers && (
-            <Button
-              variant="primary"
-              onClick={onCreateUser}
-              className="bg-green-600 hover:bg-green-700 flex items-center gap-2 px-3 py-2 text-sm flex-shrink-0"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              <span>Novo</span>
-            </Button>
-          )}
-        </>
       )}
     </div>
   );
 
-  // Desktop Filter Component  
+  // Desktop Filter Component - Moderno  
   const DesktopFilters = () => (
-    <div className="flex items-center gap-3">
-      {/* Input de busca expansível */}
-      <div className="relative flex items-center">
-        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          showAdvanced ? 'w-64' : 'w-10'
-        }`}>
-          <div className="flex items-center">
-            {/* Lupa */}
-            <button
-              onClick={() => {
-                if (showAdvanced && searchTerm) {
-                  // Se está aberto e tem texto, limpa e fecha
-                  onSearchChange('');
-                  setShowAdvanced(false);
-                } else if (showAdvanced) {
-                  // Se está aberto mas vazio, só fecha
-                  setShowAdvanced(false);
-                } else {
-                  // Se está fechado, abre
-                  setShowAdvanced(true);
-                }
-              }}
-              className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center transition-all flex-shrink-0 ${
-                showAdvanced || searchTerm
-                  ? 'border-[#7C9599] bg-[#7C9599]/10 text-[#7C9599]' 
-                  : 'border-gray-300 text-gray-500 hover:border-[#7C9599] hover:text-[#7C9599]'
-              }`}
-              title={searchTerm ? "Limpar busca" : "Buscar"}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              {searchTerm && (
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-[#7C9599] rounded-full"></span>
-              )}
-            </button>
-
-            {/* Input que expande */}
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Buscar usuário..."
-              className={`ml-2 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7C9599] focus:border-[#7C9599] transition-all duration-300 ${
-                showAdvanced ? 'w-52 opacity-100' : 'w-0 opacity-0 border-0 px-0'
-              }`}
-              onBlur={() => !searchTerm && setShowAdvanced(false)}
-              autoFocus={showAdvanced}
-            />
-          </div>
+    <div className="flex items-center gap-4">
+      {/* Barra de busca moderna sempre visível */}
+      <div className="relative flex-1 max-w-md">
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
         </div>
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="Buscar por nome, email ou ID..."
+          className="w-full pl-12 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-edp-marine focus:border-edp-marine transition-all duration-200 shadow-sm hover:shadow-md"
+        />
+        {searchTerm && (
+          <button
+            onClick={() => onSearchChange('')}
+            className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
       </div>
 
-      {/* Botão Novo Usuário */}
-      {canCreateUsers && (
-        <Button
-          variant="primary"
-          onClick={onCreateUser}
-          className="bg-green-600 hover:bg-green-700 flex items-center gap-2 px-4 py-2 text-sm"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span>Novo Usuário</span>
-        </Button>
+      {/* Indicador de resultados */}
+      {searchTerm && (
+        <div className="text-sm text-gray-600 whitespace-nowrap">
+          <span className="font-medium">{totalResults}</span> {totalResults === 1 ? 'usuário' : 'usuários'}
+        </div>
       )}
     </div>
   );

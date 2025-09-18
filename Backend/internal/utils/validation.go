@@ -187,7 +187,10 @@ func ValidateURL(url string) bool {
 		return true
 	}
 	
-	return strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://")
+	// Aceitar URLs completas (http/https) ou caminhos relativos de avatar
+	return strings.HasPrefix(url, "http://") || 
+		   strings.HasPrefix(url, "https://") || 
+		   strings.HasPrefix(url, "/Avatar/")
 }
 
 func SanitizeString(input string) string {

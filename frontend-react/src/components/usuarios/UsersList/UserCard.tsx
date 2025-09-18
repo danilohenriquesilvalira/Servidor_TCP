@@ -40,6 +40,7 @@ export const UserCard: React.FC<UserCardProps> = ({
 }) => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
+
   const isCurrentUser = Number(user.id) === currentUserId;
   const isActive = user.status === VALID_STATUS[0];
 
@@ -51,10 +52,17 @@ export const UserCard: React.FC<UserCardProps> = ({
           {/* Top Section - Info Principal - Alinhamento Corrigido */}
           <div className="bg-gray-200 p-4">
             <div className="flex items-center gap-3">
-              {/* Avatar - Círculo corrigido */}
-              <div className="w-12 h-12 rounded-full bg-[#7C9599] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
+              {/* Avatar - Simples e limpo */}
+              <div className="w-14 h-14 rounded-full bg-[#7C9599] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
                 {user.url_avatar ? (
-                  <img src={user.url_avatar} alt={user.nome} className="w-full h-full object-cover" />
+                  <img 
+                    src={user.url_avatar} 
+                    alt={user.nome} 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
                 ) : (
                   <UserIcon className="w-6 h-6 text-white" />
                 )}
@@ -151,8 +159,8 @@ export const UserCard: React.FC<UserCardProps> = ({
         {/* Top Section - Alinhamento corrigido */}
         <div className="bg-gray-200 p-5">
           <div className="flex items-center gap-4">
-            {/* Avatar */}
-            <div className="w-14 h-14 rounded-full bg-[#7C9599] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md">
+            {/* Avatar Desktop - Limpo */}
+            <div className="w-16 h-16 rounded-full bg-[#7C9599] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
               {user.url_avatar ? (
                 <img src={user.url_avatar} alt={user.nome} className="w-full h-full object-cover" />
               ) : (
@@ -234,7 +242,7 @@ export const UserCard: React.FC<UserCardProps> = ({
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-16 h-16 rounded-full bg-edp-neutral-lighter flex items-center justify-center overflow-hidden">
+              <div className="w-16 h-16 rounded-full bg-[#7C9599] flex items-center justify-center overflow-hidden shadow-sm">
                 {user.url_avatar ? (
                   <img src={user.url_avatar} alt={user.nome} className="w-full h-full object-cover" />
                 ) : (

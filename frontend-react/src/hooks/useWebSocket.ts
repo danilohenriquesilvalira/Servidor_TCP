@@ -151,14 +151,9 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
     return () => clearInterval(statusInterval);
   }, []);
 
-  // Conectar automaticamente na inicialização
-  useEffect(() => {
-    connect();
-    
-    return () => {
-      disconnect();
-    };
-  }, [connect, disconnect]);
+  // Conectar apenas quando solicitado manualmente
+  // Removido auto-connect para evitar conexões desnecessárias
+  // As páginas que precisam do PLC devem chamar connect() manualmente
 
   // Cleanup no unmount
   useEffect(() => {

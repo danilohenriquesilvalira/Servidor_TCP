@@ -54,10 +54,10 @@ export const Modal: React.FC<ModalProps> = ({
   if (!isVisible) return null;
 
   const sizeClasses = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-2xl',
+    sm: 'max-w-sm mx-2',
+    md: 'max-w-md mx-2',
+    lg: 'max-w-lg mx-2 sm:max-w-lg',
+    xl: 'max-w-2xl mx-2 sm:max-w-2xl',
   };
 
   return (
@@ -73,39 +73,40 @@ export const Modal: React.FC<ModalProps> = ({
       {/* Modal Container Responsivo */}
       <div className="flex min-h-full items-start sm:items-center justify-center p-2 sm:p-4">
         <div 
-          className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizeClasses[size]} transform transition-all duration-300 ease-out ${
+          className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizeClasses[size]} transform transition-all duration-300 ease-out font-edp ${
             isAnimating 
               ? 'opacity-0 scale-95 translate-y-4' 
               : 'opacity-100 scale-100 translate-y-0'
-          } max-h-[95vh] sm:max-h-[90vh] flex flex-col`}
+          } max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden`}
         >
           
-          {/* Header Moderno */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 rounded-t-2xl">
-            <div className="flex items-center gap-3">
-              <div className="w-1 h-6 bg-gradient-to-b from-[#7C9599] to-[#212E3E] rounded-full"></div>
-              <h3 className="text-lg font-semibold text-gray-800 tracking-tight">
+          {/* Header EDP Compacto */}
+          <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 bg-edp-marine border-b border-edp-neutral-lighter rounded-t-2xl">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-edp-electric rounded-lg flex items-center justify-center">
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-edp-marine" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <h3 className="text-base sm:text-lg font-medium text-white tracking-wide font-edp">
                 {title}
               </h3>
             </div>
             <button
               onClick={handleClose}
-              className="group w-9 h-9 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200 hover:scale-105"
+              className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-edp-ice hover:text-white hover:bg-edp-marine-100 rounded-lg transition-all duration-200"
               aria-label="Fechar modal"
             >
-              <XMarkIcon className="w-5 h-5 group-hover:rotate-90 transition-transform duration-200" />
+              <XMarkIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
 
-          {/* Content Scrollável */}
+          {/* Content Compacto */}
           <div className="flex-1 overflow-y-auto">
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {children}
             </div>
           </div>
-
-          {/* Footer com Gradient Sutil */}
-          <div className="h-2 bg-gradient-to-r from-[#7C9599]/10 via-transparent to-[#212E3E]/10 rounded-b-2xl"></div>
         </div>
       </div>
     </div>

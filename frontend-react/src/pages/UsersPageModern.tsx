@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { User, VALID_ECLUSAS, VALID_STATUS } from '@/types/auth';
 import { usersAPI } from '@/services/api';
-import ProfilePage from './ProfilePage';
-import { generateAvatarUrl, generateRandomAvatarUrl } from '@/utils/avatarUtils';
+import { generateAvatarUrl, generateRandomAvatarUrl, getAllAvatars } from '@/utils/avatarUtils';
 
 // Importar componentes organizados
 import { 
@@ -24,9 +23,22 @@ import { TrashIcon } from '@heroicons/react/24/outline';
 const UsersPage: React.FC = () => {
   const { user: currentUser, permissions } = useAuth();
 
-  // Redireciona Técnicos e Operadores para página de perfil
+  // Técnicos e Operadores não têm acesso à gestão de usuários
   if (currentUser?.cargo === 'Técnico' || currentUser?.cargo === 'Operador') {
-    return <ProfilePage />;
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-edp-marine rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-edp-neutral-darkest mb-2 font-edp">Acesso Restrito</h2>
+          <p className="text-edp-neutral-medium">Esta seção é disponível apenas para Administradores e Supervisores.</p>
+          <p className="text-sm text-edp-neutral-medium mt-2">Acesse seu perfil através do menu do usuário no header.</p>
+        </div>
+      </div>
+    );
   }
 
   // Estado principal
@@ -134,6 +146,7 @@ const UsersPage: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   
   // Estados do formulário
   const [formData, setFormData] = useState({
@@ -211,10 +224,12 @@ const UsersPage: React.FC = () => {
     return a.nome.localeCompare(b.nome);
   });
 
-  // Paginação
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
+  // Paginação - Ajustada para considerar o card "Criar usuário"
+  const hasCreateCard = permissions?.can_create_users;
+  const usersPerPage = hasCreateCard ? itemsPerPage - 1 : itemsPerPage; // Reserva 1 slot para o card criar
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+  const startIndex = (currentPage - 1) * usersPerPage;
+  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + usersPerPage);
 
   // Reset página quando filtros mudam
   useEffect(() => {
@@ -465,7 +480,7 @@ const UsersPage: React.FC = () => {
                 ) : (
                   /* Desktop Loading Skeletons */
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {Array.from({ length: itemsPerPage }).map((_, i) => (
+                    {Array.from({ length: usersPerPage }).map((_, i) => (
                       <div key={i} className="bg-gray-50 rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-pulse">
                         <div className="bg-gray-200 p-5">
                           <div className="flex items-center gap-4">
@@ -509,24 +524,13 @@ const UsersPage: React.FC = () => {
                       : 'Comece criando o primeiro usuário do sistema EDP.'
                     }
                   </p>
-                  {permissions?.can_create_users && (
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                      {(searchTerm || selectedCargo || selectedEclusa) && (
-                        <button
-                          onClick={handleClearFilters}
-                          className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                          Limpar Filtros
-                        </button>
-                      )}
+                  {(searchTerm || selectedCargo || selectedEclusa) && (
+                    <div className="flex justify-center">
                       <button
-                        onClick={openCreateModal}
-                        className="px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-all duration-200 flex items-center gap-2 justify-center"
+                        onClick={handleClearFilters}
+                        className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
-                        Criar Primeiro Usuário
+                        Limpar Filtros
                       </button>
                     </div>
                   )}
@@ -534,6 +538,20 @@ const UsersPage: React.FC = () => {
               ) : isMobile ? (
                 /* Mobile Cards List */
                 <div className="space-y-3 px-1">
+                  {/* Botão Criar Usuário - Mobile Simples */}
+                  {permissions?.can_create_users && (
+                    <div className="flex justify-center py-4">
+                      <button 
+                        onClick={openCreateModal}
+                        className="w-14 h-14 bg-edp-marine rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
+                      >
+                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  
                   {paginatedUsers.map((user) => (
                     <UserCard
                       key={user.id}
@@ -549,30 +567,34 @@ const UsersPage: React.FC = () => {
                     />
                   ))}
                   
-                  {/* Mobile Pagination */}
+                  {/* Mobile Pagination - Melhorada */}
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-between pt-4">
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                        disabled={currentPage === 1}
-                        className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                      >
-                        Anterior
-                      </button>
-                      
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">
+                    <div className="flex flex-col items-center gap-3 pt-4">
+                      <div className="flex items-center justify-center gap-2 w-full">
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                          disabled={currentPage === 1}
+                          className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 font-edp"
+                        >
+                          Anterior
+                        </button>
+                        
+                        <span className="text-sm text-edp-neutral-medium font-edp mx-4">
                           {currentPage} de {totalPages}
                         </span>
+                        
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                          disabled={currentPage === totalPages}
+                          className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 font-edp"
+                        >
+                          Próximo
+                        </button>
                       </div>
                       
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                        disabled={currentPage === totalPages}
-                        className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                      >
-                        Próximo
-                      </button>
+                      <div className="text-xs text-edp-neutral-medium font-edp text-center">
+                        Mostrando {startIndex + 1}-{Math.min(startIndex + usersPerPage, filteredUsers.length)} de {filteredUsers.length} usuários
+                      </div>
                     </div>
                   )}
                 </div>
@@ -580,6 +602,56 @@ const UsersPage: React.FC = () => {
                 /* Desktop Cards Grid - Sistema responsivo inteligente */
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {/* Card Criar Novo Usuário - Desktop */}
+                    {permissions?.can_create_users && (
+                      <div 
+                        onClick={openCreateModal}
+                        className="w-full bg-gray-50 rounded-xl shadow-sm border border-gray-200 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 overflow-hidden group cursor-pointer"
+                      >
+                        {/* Top Section - Seguindo padrão exato */}
+                        <div className="bg-gray-200 p-5">
+                          <div className="flex items-center gap-4">
+                            {/* Ícone + - Seguindo padrão do avatar */}
+                            <div className="w-16 h-16 rounded-full bg-edp-marine flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
+                              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                              </svg>
+                            </div>
+
+                            {/* Info - Seguindo padrão */}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-lg font-semibold text-gray-800 truncate mb-1 group-hover:text-edp-marine transition-colors">
+                                Criar Novo Usuário
+                              </h3>
+                              <p className="text-sm text-gray-600 truncate">Adicionar usuário ao sistema</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Bottom Section - Todo cinza seguindo padrão solicitado */}
+                        <div className="bg-gray-300 px-4 py-3">
+                          <div className="flex items-center justify-between">
+                            {/* Status - Todo cinza */}
+                            <div className="flex items-center gap-2">
+                              <div className="w-2.5 h-2.5 rounded-full bg-gray-500" />
+                              <span className="text-sm font-medium text-gray-700">
+                                Criar Usuário
+                              </span>
+                            </div>
+
+                            {/* Ícone de ação */}
+                            <div className="flex items-center">
+                              <div className="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded transition-all">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
                     {paginatedUsers.map((user) => (
                       <UserCard
                         key={user.id}
@@ -596,14 +668,15 @@ const UsersPage: React.FC = () => {
                     ))}
                   </div>
                   
-                  {/* Desktop Pagination */}
+                  {/* Desktop Pagination - Completamente Centralizada */}
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-center pt-6">
-                      <div className="flex items-center gap-2">
+                    <div className="flex flex-col items-center gap-3 pt-6">
+                      {/* Controles de Paginação */}
+                      <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                           disabled={currentPage === 1}
-                          className="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                          className="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors font-edp"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -628,9 +701,9 @@ const UsersPage: React.FC = () => {
                               <button
                                 key={pageNum}
                                 onClick={() => setCurrentPage(pageNum)}
-                                className={`w-10 h-10 text-sm rounded-lg transition-colors ${
+                                className={`w-10 h-10 text-sm rounded-lg transition-colors font-edp ${
                                   currentPage === pageNum
-                                    ? 'bg-[#7C9599] text-white'
+                                    ? 'bg-edp-marine text-white'
                                     : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
                                 }`}
                               >
@@ -643,7 +716,7 @@ const UsersPage: React.FC = () => {
                         <button
                           onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                           disabled={currentPage === totalPages}
-                          className="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                          className="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors font-edp"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -651,8 +724,9 @@ const UsersPage: React.FC = () => {
                         </button>
                       </div>
                       
-                      <div className="ml-6 text-sm text-gray-500">
-                        Mostrando {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredUsers.length)} de {filteredUsers.length} usuários
+                      {/* Informação de Items - Centralizada */}
+                      <div className="text-sm text-edp-neutral-medium font-edp">
+                        Mostrando {startIndex + 1}-{Math.min(startIndex + usersPerPage, filteredUsers.length)} de {filteredUsers.length} usuários
                       </div>
                     </div>
                   )}
@@ -671,9 +745,9 @@ const UsersPage: React.FC = () => {
         title="Criar Novo Usuário"
         size="lg"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <Input
-            label="Nome Completo"
+            label="Nome"
             value={formData.nome}
             onChange={(e) => handleFormChange('nome', e.target.value)}
             error={formErrors.nome}
@@ -688,7 +762,7 @@ const UsersPage: React.FC = () => {
             required
           />
           <Input
-            label="ID Usuário EDP"
+            label="ID EDP"
             value={formData.id_usuario_edp}
             onChange={(e) => handleFormChange('id_usuario_edp', e.target.value)}
             error={formErrors.id_usuario_edp}
@@ -720,62 +794,82 @@ const UsersPage: React.FC = () => {
           />
         </div>
         
-        {/* Avatar Preview e Controles */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-xl border">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Avatar do Usuário
-          </label>
-          
-          <div className="flex items-center gap-4">
-            {/* Preview do Avatar */}
-            <div className="flex-shrink-0">
-              <div className="w-16 h-16 rounded-full bg-[#7C9599] flex items-center justify-center overflow-hidden shadow-md">
-                {formData.url_avatar ? (
-                  <img 
-                    src={formData.url_avatar} 
-                    alt="Preview" 
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                )}
-              </div>
-            </div>
-            
-            {/* Controles */}
-            <div className="flex-1">
-              <div className="flex gap-2 mb-3">
-                <button
-                  type="button"
-                  onClick={() => handleFormChange('url_avatar', generateRandomAvatarUrl())}
-                  className="px-3 py-2 text-sm bg-[#7C9599] text-white rounded-lg hover:bg-[#6B8489] transition-colors"
-                >
-                  🎲 Aleatório
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleFormChange('url_avatar', formData.nome ? generateAvatarUrl(formData.nome) : generateRandomAvatarUrl())}
-                  className="px-3 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                >
-                  🔄 Baseado no Nome
-                </button>
-              </div>
-              
-              <Input
-                label="URL Personalizada (opcional)"
-                value={formData.url_avatar}
-                onChange={(e) => handleFormChange('url_avatar', e.target.value)}
-                placeholder="/Avatar/Avatar_0.svg"
-                className="text-sm"
+        {/* Avatar Compacto */}
+        <div className="flex items-center gap-3 sm:gap-4 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-edp-neutral-lightest">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-edp-slate flex items-center justify-center overflow-hidden">
+            {formData.url_avatar ? (
+              <img 
+                src={formData.url_avatar} 
+                alt="Avatar" 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
               />
-            </div>
+            ) : (
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            )}
+          </div>
+          
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setShowAvatarSelector(!showAvatarSelector)}
+              className="px-2.5 py-1.5 text-xs sm:text-sm text-edp-marine bg-edp-ice rounded-lg hover:bg-edp-ice/80 transition-colors font-edp"
+            >
+              Avatar
+            </button>
+            <button
+              type="button"
+              onClick={() => handleFormChange('url_avatar', generateRandomAvatarUrl())}
+              className="px-2.5 py-1.5 text-xs sm:text-sm text-white bg-edp-slate rounded-lg hover:bg-edp-slate/80 transition-colors font-edp"
+            >
+              Aleatório
+            </button>
           </div>
         </div>
+        
+        {/* Seletor Visual de Avatares - Compacto */}
+        {showAvatarSelector && (
+          <div className="mt-3 p-3 bg-edp-neutral-white-wash rounded-lg border border-edp-neutral-lighter">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-edp-neutral-dark">Escolha um Avatar:</span>
+              <button
+                type="button"
+                onClick={() => setShowAvatarSelector(false)}
+                className="text-edp-neutral-medium hover:text-edp-neutral-darkest"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-8 gap-2">
+              {getAllAvatars().todos.map((avatarUrl, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => {
+                    handleFormChange('url_avatar', avatarUrl);
+                    setShowAvatarSelector(false);
+                  }}
+                  className={`w-10 h-10 rounded-full border-2 overflow-hidden transition-all hover:scale-105 ${
+                    formData.url_avatar === avatarUrl 
+                      ? 'border-edp-marine ring-2 ring-edp-marine/30' 
+                      : 'border-edp-neutral-lighter hover:border-edp-marine'
+                  }`}
+                >
+                  <img 
+                    src={avatarUrl} 
+                    alt={`Avatar ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {apiError && (
           <div className="mt-4 p-3 bg-edp-semantic-red/10 border border-edp-semantic-red/20 rounded-lg">
@@ -808,7 +902,7 @@ const UsersPage: React.FC = () => {
         title="Editar Usuário"
         size="lg"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <Input
             label="Nome Completo"
             value={formData.nome}
@@ -857,62 +951,82 @@ const UsersPage: React.FC = () => {
           />
         </div>
         
-        {/* Avatar Preview e Controles - Modal Edição */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-xl border">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Avatar do Usuário
-          </label>
-          
-          <div className="flex items-center gap-4">
-            {/* Preview do Avatar */}
-            <div className="flex-shrink-0">
-              <div className="w-16 h-16 rounded-full bg-[#7C9599] flex items-center justify-center overflow-hidden shadow-md">
-                {formData.url_avatar ? (
-                  <img 
-                    src={formData.url_avatar} 
-                    alt="Preview" 
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                )}
-              </div>
-            </div>
-            
-            {/* Controles */}
-            <div className="flex-1">
-              <div className="flex gap-2 mb-3">
-                <button
-                  type="button"
-                  onClick={() => handleFormChange('url_avatar', generateRandomAvatarUrl())}
-                  className="px-3 py-2 text-sm bg-[#7C9599] text-white rounded-lg hover:bg-[#6B8489] transition-colors"
-                >
-                  🎲 Aleatório
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleFormChange('url_avatar', formData.nome ? generateAvatarUrl(formData.nome) : generateRandomAvatarUrl())}
-                  className="px-3 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                >
-                  🔄 Baseado no Nome
-                </button>
-              </div>
-              
-              <Input
-                label="URL Personalizada (opcional)"
-                value={formData.url_avatar}
-                onChange={(e) => handleFormChange('url_avatar', e.target.value)}
-                placeholder="/Avatar/Avatar_0.svg"
-                className="text-sm"
+        {/* Avatar Compacto - Modal Edição */}
+        <div className="flex items-center gap-3 sm:gap-4 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-edp-neutral-lightest">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-edp-slate flex items-center justify-center overflow-hidden">
+            {formData.url_avatar ? (
+              <img 
+                src={formData.url_avatar} 
+                alt="Avatar" 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
               />
-            </div>
+            ) : (
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            )}
+          </div>
+          
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setShowAvatarSelector(!showAvatarSelector)}
+              className="px-2.5 py-1.5 text-xs sm:text-sm text-edp-marine bg-edp-ice rounded-lg hover:bg-edp-ice/80 transition-colors font-edp"
+            >
+              Avatar
+            </button>
+            <button
+              type="button"
+              onClick={() => handleFormChange('url_avatar', generateRandomAvatarUrl())}
+              className="px-2.5 py-1.5 text-xs sm:text-sm text-white bg-edp-slate rounded-lg hover:bg-edp-slate/80 transition-colors font-edp"
+            >
+              Aleatório
+            </button>
           </div>
         </div>
+        
+        {/* Seletor Visual de Avatares - Compacto */}
+        {showAvatarSelector && (
+          <div className="mt-3 p-3 bg-edp-neutral-white-wash rounded-lg border border-edp-neutral-lighter">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-edp-neutral-dark">Escolha um Avatar:</span>
+              <button
+                type="button"
+                onClick={() => setShowAvatarSelector(false)}
+                className="text-edp-neutral-medium hover:text-edp-neutral-darkest"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-8 gap-2">
+              {getAllAvatars().todos.map((avatarUrl, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => {
+                    handleFormChange('url_avatar', avatarUrl);
+                    setShowAvatarSelector(false);
+                  }}
+                  className={`w-10 h-10 rounded-full border-2 overflow-hidden transition-all hover:scale-105 ${
+                    formData.url_avatar === avatarUrl 
+                      ? 'border-edp-marine ring-2 ring-edp-marine/30' 
+                      : 'border-edp-neutral-lighter hover:border-edp-marine'
+                  }`}
+                >
+                  <img 
+                    src={avatarUrl} 
+                    alt={`Avatar ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex gap-3 mt-6 justify-end">
           <Button
