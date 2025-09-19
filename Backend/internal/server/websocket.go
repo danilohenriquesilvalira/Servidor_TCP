@@ -37,6 +37,7 @@ func (s *Server) startHTTP() error {
 	s.router.HandleFunc("/ws", s.handleWebSocket).Methods("GET")
 	s.router.HandleFunc("/api/write", s.handleWriteAPI).Methods("POST", "OPTIONS")
 	s.router.HandleFunc("/api/status", s.handleStatusAPI).Methods("GET", "OPTIONS")
+	s.router.HandleFunc("/api/cleanup", s.handleCleanupAPI).Methods("POST", "OPTIONS")
 	
 	// Rota de teste simples
 	s.router.HandleFunc("/api/test", func(w http.ResponseWriter, r *http.Request) {
@@ -80,14 +81,23 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := s.AddClient(conn)
+	userAgent := r.Header.Get("User-Agent")
+	client := s.AddClient(conn, r.RemoteAddr, userAgent)
 	clientCount := s.GetClientCount()
-	log.Printf("🌐 Cliente WebSocket conectado de %s. Total: %d", r.RemoteAddr, clientCount)
+	
+	// Log detalhado da nova conexão
+	log.Printf("🌐 NOVA CONEXÃO WebSocket:")
+	log.Printf("   📍 IP: %s", r.RemoteAddr)
+	log.Printf("   🌍 Origin: %s", origin)
+	log.Printf("   🖥️ User-Agent: %s", userAgent)
+	log.Printf("   📊 Total conexões: %d", clientCount)
 
 	defer func() {
 		s.RemoveClient(client)
 		clientCount := s.GetClientCount()
-		log.Printf("🌐 Cliente WebSocket desconectado. Total: %d", clientCount)
+		log.Printf("🔌 DESCONEXÃO WebSocket:")
+		log.Printf("   📍 IP: %s", client.remoteAddr)
+		log.Printf("   📊 Total restante: %d", clientCount)
 	}()
 
 	// Configurar timeouts
@@ -180,6 +190,58 @@ func (s *Server) handleStatusAPI(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(status)
+}
+
+// handleCleanupAPI força limpeza de conexões órfãs
+func (s *Server) handleCleanupAPI(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	s.mutex.Lock()
+	var clientsToRemove []*WSClient
+	clientsDetails := make([]map[string]interface{}, 0)
+	
+	for client := range s.clients {
+		// Verificar se a conexão ainda está viva
+		client.writeMutex.Lock()
+		err := client.conn.WriteMessage(websocket.PingMessage, nil)
+		client.writeMutex.Unlock()
+		
+		if err != nil {
+			log.Printf("🧹 Cliente %s não responde a ping - marcado para remoção", client.remoteAddr)
+			clientsToRemove = append(clientsToRemove, client)
+		}
+		
+		clientsDetails = append(clientsDetails, map[string]interface{}{
+			"remote_addr": client.remoteAddr,
+			"user_agent": client.userAgent,
+			"healthy": client.isHealthy,
+			"last_pong": client.lastPong.Format("15:04:05"),
+			"message_count": client.messageCount,
+		})
+	}
+	s.mutex.Unlock()
+
+	// Remover clientes mortos
+	removedCount := 0
+	for _, client := range clientsToRemove {
+		s.RemoveClient(client)
+		client.conn.Close()
+		removedCount++
+	}
+
+	response := map[string]interface{}{
+		"removed_clients": removedCount,
+		"remaining_clients": s.GetClientCount(),
+		"clients_details": clientsDetails,
+		"message": fmt.Sprintf("Limpeza concluída: %d conexões órfãs removidas", removedCount),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+	log.Printf("🧹 Limpeza de conexões: %d removidas, %d restantes", removedCount, s.GetClientCount())
 }
 
 

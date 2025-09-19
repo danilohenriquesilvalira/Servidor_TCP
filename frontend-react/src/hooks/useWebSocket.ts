@@ -26,10 +26,17 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
+      console.log('WebSocket já conectado, ignorando nova tentativa');
+      return;
+    }
+
+    if (wsRef.current?.readyState === WebSocket.CONNECTING) {
+      console.log('WebSocket já tentando conectar, aguardando...');
       return;
     }
 
     try {
+      console.log('Iniciando conexão WebSocket para:', url);
       const ws = new WebSocket(url);
       wsRef.current = ws;
 
@@ -46,6 +53,9 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
           reconnectTimeoutRef.current = null;
         }
       };
+
+      // O navegador responde automaticamente a pings do servidor
+      // Não precisamos implementar pong manualmente no WebSocket do browser
 
       ws.onmessage = (event) => {
         try {
@@ -151,9 +161,25 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
     return () => clearInterval(statusInterval);
   }, []);
 
-  // Conectar apenas quando solicitado manualmente
-  // Removido auto-connect para evitar conexões desnecessárias
-  // As páginas que precisam do PLC devem chamar connect() manualmente
+  // Auto-connect inteligente - conecta apenas uma vez
+  useEffect(() => {
+    let isActive = true;
+    
+    const autoConnect = () => {
+      if (isActive && !wsRef.current) {
+        console.log('Auto-conectando WebSocket...');
+        connect();
+      }
+    };
+
+    // Conectar após um pequeno delay para evitar conexões simultâneas
+    const timer = setTimeout(autoConnect, 100);
+    
+    return () => {
+      isActive = false;
+      clearTimeout(timer);
+    };
+  }, [connect]);
 
   // Cleanup no unmount
   useEffect(() => {

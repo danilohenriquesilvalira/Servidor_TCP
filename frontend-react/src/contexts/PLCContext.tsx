@@ -19,9 +19,11 @@ interface PLCProviderProps {
 
 export const PLCProvider: React.FC<PLCProviderProps> = ({ 
   children, 
-  websocketUrl = 'ws://localhost:8081/ws' 
+  websocketUrl 
 }) => {
-  const websocket = useWebSocket(websocketUrl);
+  // URL dinâmica baseada no host atual
+  const dynamicUrl = websocketUrl || `ws://${window.location.hostname}:8081/ws`;
+  const websocket = useWebSocket(dynamicUrl);
 
   return (
     <PLCContext.Provider value={websocket}>

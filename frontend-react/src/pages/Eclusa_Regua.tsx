@@ -4,6 +4,7 @@ import NivelJusante from '../components/Eclusa/caldeira/Nivel_Jusante';
 import NivelMontante from '../components/Eclusa/caldeira/Nivel_Montante';
 import PortaJusante from '../components/Eclusa/caldeira/PortaJusante';
 import PortaMontante from '../components/Eclusa/caldeira/PortaMontante';
+import SemaforoSimples from '../components/Eclusa/caldeira/SemaforoSimples';
 import { usePLC } from '../contexts/PLCContext';
 
 // 🎯 CONFIGURAÇÕES DOS COMPONENTES DE NÍVEL - Edite aqui para salvar permanentemente
@@ -44,13 +45,41 @@ const PORTA_CONFIG = {
   }
 };
 
+// 🚦 CONFIGURAÇÕES DOS SEMÁFOROS - Posições finais ajustadas
+const SEMAFORO_CONFIG = {
+  semaforo1: {
+    verticalPercent: 5.7,   // % da altura total (posição Y)
+    horizontalPercent: 22.4, // % da largura total (posição X)
+    widthPercent: 3,        // % da largura total (tamanho)
+    heightPercent: 8,       // % da altura total (tamanho)
+  },
+  semaforo2: {
+    verticalPercent: 7.5,   // % da altura total (posição Y)
+    horizontalPercent: 37.9, // % da largura total (posição X)
+    widthPercent: 3,        // % da largura total (tamanho)
+    heightPercent: 8,       // % da altura total (tamanho)
+  },
+  semaforo3: {
+    verticalPercent: 7.5,   // % da altura total (posição Y)
+    horizontalPercent: 67.3, // % da largura total (posição X)
+    widthPercent: 3,        // % da largura total (tamanho)
+    heightPercent: 8,       // % da altura total (tamanho)
+  },
+  semaforo4: {
+    verticalPercent: 6.6,   // % da altura total (posição Y)
+    horizontalPercent: 86.3, // % da largura total (posição X)
+    widthPercent: 3,        // % da largura total (tamanho)
+    heightPercent: 8,       // % da altura total (tamanho)
+  }
+};
+
 const EclusaRegua: React.FC = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [containerDimensions, setContainerDimensions] = React.useState({ width: 0, height: 0 });
   const [paredeOffsetPercent, setParedeOffsetPercent] = React.useState(-50.5); // Posição ajustada para encaixe perfeito
   
   // Estados para ajustar a caldeira
-  const [caldeiraScale, setCaldeiraScale] = React.useState(99.3); // Escala da caldeira em %
+  const [caldeiraScale] = React.useState(99.3); // Escala da caldeira em %
   
   // Estados para posicionamento dos componentes de nível
   const [caldeiraConfig, setCaldeiraConfig] = React.useState(NIVEL_CONFIG.caldeira);
@@ -61,15 +90,16 @@ const EclusaRegua: React.FC = () => {
   const [portaJusanteConfig, setPortaJusanteConfig] = React.useState(PORTA_CONFIG.jusante);
   const [portaMontanteConfig, setPortaMontanteConfig] = React.useState(PORTA_CONFIG.montante);
   
-  // 📡 USAR O SISTEMA PLC EXISTENTE (sem criar nova conexão!)
-  const { data: plcData, connectionStatus, connect } = usePLC();
+  // Estados para posicionamento dos semáforos
+  const [semaforo1Config, setSemaforo1Config] = React.useState(SEMAFORO_CONFIG.semaforo1);
+  const [semaforo2Config, setSemaforo2Config] = React.useState(SEMAFORO_CONFIG.semaforo2);
+  const [semaforo3Config, setSemaforo3Config] = React.useState(SEMAFORO_CONFIG.semaforo3);
+  const [semaforo4Config, setSemaforo4Config] = React.useState(SEMAFORO_CONFIG.semaforo4);
   
-  // Conectar automaticamente quando necessário
-  React.useEffect(() => {
-    if (!connectionStatus.connected) {
-      connect();
-    }
-  }, [connectionStatus.connected, connect]);
+  // 📡 USAR O SISTEMA PLC EXISTENTE (sem criar nova conexão!)
+  const { data: plcData, connectionStatus } = usePLC();
+  
+  // Removido auto-connect daqui - agora é gerenciado pelo useWebSocket
   
   // Extrair dados reais dos níveis do PLC (do sistema existente)
   const nivelJusante = plcData?.reals?.[107] || 0;   // NIV.NIV_JUSANTE_COTA (índice 107)
@@ -79,6 +109,55 @@ const EclusaRegua: React.FC = () => {
   // Extrair dados das portas do PLC (do sistema existente)
   const portaJusanteValue = plcData?.ints?.[42] || 0;  // MOVIMENTO_PORTA_JUSANTE_CALDEIRA (índice 42)
   const portaMontanteValue = plcData?.ints?.[59] || 0; // MOVIMENTAR_PORTA_MONTANTE_CALDEIRA (índice 59)
+  
+  // Extrair dados dos semáforos do PLC (bit_data.status_bits)
+  const statusBits = plcData?.bit_data?.status_bits || [];
+  
+  // Função para obter o estado dos LEDs de cada semáforo
+  const getSemaforoLeds = (semaforoNum: number) => {
+    // Função para calcular word e bit de uma posição
+    const getBitFromPosition = (position: number) => {
+      const wordIndex = Math.floor(position / 16);  // posição ÷ 16
+      const bitIndex = position % 16;               // posição % 16
+      const wordData = statusBits[wordIndex] || [];
+      return wordData[bitIndex] || false;
+    };
+    
+    // Mapeamento individual de cada LED:
+    // Semafaro_verde_1: 151, Semafaro_vermelho_1: 152
+    // Semafaro_verde_2: 153, Semafaro_vermelho_2: 154  
+    // Semafaro_verde_3: 155, Semafaro_vermelho_3: 156
+    // Semafaro_verde_4: 157, Semafaro_vermelho_4: 158
+    
+    switch (semaforoNum) {
+      case 1:
+        const verde1 = getBitFromPosition(151); // Word[9] Bit[7]
+        const vermelho1 = getBitFromPosition(152); // Word[9] Bit[8]
+        console.log(`Semáforo 1 - Verde(151): ${verde1}, Vermelho(152): ${vermelho1}`);
+        return { verde: verde1, vermelho: vermelho1 };
+        
+      case 2:
+        const verde2 = getBitFromPosition(153); // Word[9] Bit[9]
+        const vermelho2 = getBitFromPosition(154); // Word[9] Bit[10]
+        console.log(`Semáforo 2 - Verde(153): ${verde2}, Vermelho(154): ${vermelho2}`);
+        return { verde: verde2, vermelho: vermelho2 };
+        
+      case 3:
+        const verde3 = getBitFromPosition(155); // Word[9] Bit[11]
+        const vermelho3 = getBitFromPosition(156); // Word[9] Bit[12]
+        console.log(`Semáforo 3 - Verde(155): ${verde3}, Vermelho(156): ${vermelho3}`);
+        return { verde: verde3, vermelho: vermelho3 };
+        
+      case 4:
+        const verde4 = getBitFromPosition(157); // Word[9] Bit[13]
+        const vermelho4 = getBitFromPosition(158); // Word[9] Bit[14]
+        console.log(`Semáforo 4 - Verde(157): ${verde4}, Vermelho(158): ${vermelho4}`);
+        return { verde: verde4, vermelho: vermelho4 };
+        
+      default:
+        return { verde: false, vermelho: false };
+    }
+  };
   
   
   
@@ -122,21 +201,6 @@ const EclusaRegua: React.FC = () => {
     });
   };
 
-  // Funções para ajustar posicionamento dos componentes de nível
-  const adjustNivelComponent = (
-    component: 'caldeira' | 'jusante' | 'montante', 
-    property: 'verticalPercent' | 'horizontalPercent' | 'widthPercent' | 'heightPercent',
-    direction: 'increase' | 'decrease'
-  ) => {
-    const step = 1; // 1% por ajuste
-    const setter = component === 'caldeira' ? setCaldeiraConfig : 
-                   component === 'jusante' ? setJusanteConfig : setMontanteConfig;
-    
-    setter(prev => ({
-      ...prev,
-      [property]: direction === 'increase' ? prev[property] + step : prev[property] - step
-    }));
-  };
 
   // Função para resetar todas as configurações
   const resetAllConfigs = () => {
@@ -206,82 +270,72 @@ const EclusaRegua: React.FC = () => {
             </div>
 
 
-            {/* Controles de Tamanho - Porta Jusante */}
-            <div className="flex gap-1 items-center bg-orange/20 backdrop-blur-sm rounded-lg px-2 py-1 border border-orange-300/30">
-              <span className="text-xs text-blue-900 font-bold w-12">PJ:</span>
-              <div className="flex gap-1 items-center">
-                <span className="text-xs text-blue-900">X:</span>
-                <input 
-                  type="number" 
-                  value={portaJusanteConfig.horizontalPercent} 
-                  onChange={(e) => setPortaJusanteConfig(prev => ({...prev, horizontalPercent: Number(e.target.value)}))}
-                  className="w-12 h-6 text-xs border rounded px-1 text-center"
-                  step="0.1"
-                />
-                <span className="text-xs text-blue-900">Y:</span>
-                <input 
-                  type="number" 
-                  value={portaJusanteConfig.verticalPercent} 
-                  onChange={(e) => setPortaJusanteConfig(prev => ({...prev, verticalPercent: Number(e.target.value)}))}
-                  className="w-12 h-6 text-xs border rounded px-1 text-center"
-                  step="0.1"
-                />
-                <span className="text-xs text-blue-900">W:</span>
-                <input 
-                  type="number" 
-                  value={portaJusanteConfig.widthPercent} 
-                  onChange={(e) => setPortaJusanteConfig(prev => ({...prev, widthPercent: Number(e.target.value)}))}
-                  className="w-12 h-6 text-xs border rounded px-1 text-center"
-                  step="0.1"
-                />
-                <span className="text-xs text-blue-900">H:</span>
-                <input 
-                  type="number" 
-                  value={portaJusanteConfig.heightPercent} 
-                  onChange={(e) => setPortaJusanteConfig(prev => ({...prev, heightPercent: Number(e.target.value)}))}
-                  className="w-12 h-6 text-xs border rounded px-1 text-center"
-                  step="0.1"
-                />
-              </div>
+
+            {/* Controles dos Semáforos */}
+            <div className="flex gap-1 items-center bg-yellow/20 backdrop-blur-sm rounded-lg px-2 py-1 border border-yellow-300/30">
+              <span className="text-xs text-blue-900 font-bold w-8">🚦</span>
+              <input 
+                type="number" 
+                value={semaforo1Config.horizontalPercent} 
+                onChange={(e) => setSemaforo1Config(prev => ({...prev, horizontalPercent: Number(e.target.value)}))}
+                className="w-10 h-6 text-xs border rounded px-1 text-center"
+                step="0.1"
+              />
+              <input 
+                type="number" 
+                value={semaforo1Config.verticalPercent} 
+                onChange={(e) => setSemaforo1Config(prev => ({...prev, verticalPercent: Number(e.target.value)}))}
+                className="w-10 h-6 text-xs border rounded px-1 text-center"
+                step="0.1"
+              />
+              <span className="text-xs text-blue-900 font-bold w-8">🚦</span>
+              <input 
+                type="number" 
+                value={semaforo2Config.horizontalPercent} 
+                onChange={(e) => setSemaforo2Config(prev => ({...prev, horizontalPercent: Number(e.target.value)}))}
+                className="w-10 h-6 text-xs border rounded px-1 text-center"
+                step="0.1"
+              />
+              <input 
+                type="number" 
+                value={semaforo2Config.verticalPercent} 
+                onChange={(e) => setSemaforo2Config(prev => ({...prev, verticalPercent: Number(e.target.value)}))}
+                className="w-10 h-6 text-xs border rounded px-1 text-center"
+                step="0.1"
+              />
             </div>
 
-            {/* Controles de Tamanho - Porta Montante */}
-            <div className="flex gap-1 items-center bg-cyan/20 backdrop-blur-sm rounded-lg px-2 py-1 border border-cyan-300/30">
-              <span className="text-xs text-blue-900 font-bold w-12">PM:</span>
-              <div className="flex gap-1 items-center">
-                <span className="text-xs text-blue-900">X:</span>
-                <input 
-                  type="number" 
-                  value={portaMontanteConfig.horizontalPercent} 
-                  onChange={(e) => setPortaMontanteConfig(prev => ({...prev, horizontalPercent: Number(e.target.value)}))}
-                  className="w-12 h-6 text-xs border rounded px-1 text-center"
-                  step="0.1"
-                />
-                <span className="text-xs text-blue-900">Y:</span>
-                <input 
-                  type="number" 
-                  value={portaMontanteConfig.verticalPercent} 
-                  onChange={(e) => setPortaMontanteConfig(prev => ({...prev, verticalPercent: Number(e.target.value)}))}
-                  className="w-12 h-6 text-xs border rounded px-1 text-center"
-                  step="0.1"
-                />
-                <span className="text-xs text-blue-900">W:</span>
-                <input 
-                  type="number" 
-                  value={portaMontanteConfig.widthPercent} 
-                  onChange={(e) => setPortaMontanteConfig(prev => ({...prev, widthPercent: Number(e.target.value)}))}
-                  className="w-12 h-6 text-xs border rounded px-1 text-center"
-                  step="0.1"
-                />
-                <span className="text-xs text-blue-900">H:</span>
-                <input 
-                  type="number" 
-                  value={portaMontanteConfig.heightPercent} 
-                  onChange={(e) => setPortaMontanteConfig(prev => ({...prev, heightPercent: Number(e.target.value)}))}
-                  className="w-12 h-6 text-xs border rounded px-1 text-center"
-                  step="0.1"
-                />
-              </div>
+            <div className="flex gap-1 items-center bg-purple/20 backdrop-blur-sm rounded-lg px-2 py-1 border border-purple-300/30">
+              <span className="text-xs text-blue-900 font-bold w-8">🚦</span>
+              <input 
+                type="number" 
+                value={semaforo3Config.horizontalPercent} 
+                onChange={(e) => setSemaforo3Config(prev => ({...prev, horizontalPercent: Number(e.target.value)}))}
+                className="w-10 h-6 text-xs border rounded px-1 text-center"
+                step="0.1"
+              />
+              <input 
+                type="number" 
+                value={semaforo3Config.verticalPercent} 
+                onChange={(e) => setSemaforo3Config(prev => ({...prev, verticalPercent: Number(e.target.value)}))}
+                className="w-10 h-6 text-xs border rounded px-1 text-center"
+                step="0.1"
+              />
+              <span className="text-xs text-blue-900 font-bold w-8">🚦</span>
+              <input 
+                type="number" 
+                value={semaforo4Config.horizontalPercent} 
+                onChange={(e) => setSemaforo4Config(prev => ({...prev, horizontalPercent: Number(e.target.value)}))}
+                className="w-10 h-6 text-xs border rounded px-1 text-center"
+                step="0.1"
+              />
+              <input 
+                type="number" 
+                value={semaforo4Config.verticalPercent} 
+                onChange={(e) => setSemaforo4Config(prev => ({...prev, verticalPercent: Number(e.target.value)}))}
+                className="w-10 h-6 text-xs border rounded px-1 text-center"
+                step="0.1"
+              />
             </div>
 
             {/* Status WebSocket e Dados dos Níveis e Portas */}
@@ -462,6 +516,78 @@ const EclusaRegua: React.FC = () => {
                 <PortaMontante 
                   websocketValue={portaMontanteValue}
                   editMode={false}
+                />
+              </div>
+
+              {/* Semáforo 1 - Dados reais do PLC */}
+              <div 
+                className="absolute transition-all duration-200 ease-in-out"
+                style={{
+                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * semaforo1Config.verticalPercent) / 100}px`,
+                  left: `${(maxWidth * semaforo1Config.horizontalPercent) / 100}px`,
+                  width: `${(maxWidth * semaforo1Config.widthPercent) / 100}px`,
+                  height: `${((caldeiraHeight + paredeHeight) * semaforo1Config.heightPercent) / 100}px`,
+                  zIndex: 15
+                }}
+              >
+                <SemaforoSimples 
+                  ledVerde={getSemaforoLeds(1).verde}
+                  ledVermelho={getSemaforoLeds(1).vermelho}
+                  editMode={true}
+                />
+              </div>
+
+              {/* Semáforo 2 - Dados reais do PLC */}
+              <div 
+                className="absolute transition-all duration-200 ease-in-out"
+                style={{
+                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * semaforo2Config.verticalPercent) / 100}px`,
+                  left: `${(maxWidth * semaforo2Config.horizontalPercent) / 100}px`,
+                  width: `${(maxWidth * semaforo2Config.widthPercent) / 100}px`,
+                  height: `${((caldeiraHeight + paredeHeight) * semaforo2Config.heightPercent) / 100}px`,
+                  zIndex: 15
+                }}
+              >
+                <SemaforoSimples 
+                  ledVerde={getSemaforoLeds(2).verde}
+                  ledVermelho={getSemaforoLeds(2).vermelho}
+                  editMode={true}
+                />
+              </div>
+
+              {/* Semáforo 3 - Dados reais do PLC */}
+              <div 
+                className="absolute transition-all duration-200 ease-in-out"
+                style={{
+                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * semaforo3Config.verticalPercent) / 100}px`,
+                  left: `${(maxWidth * semaforo3Config.horizontalPercent) / 100}px`,
+                  width: `${(maxWidth * semaforo3Config.widthPercent) / 100}px`,
+                  height: `${((caldeiraHeight + paredeHeight) * semaforo3Config.heightPercent) / 100}px`,
+                  zIndex: 15
+                }}
+              >
+                <SemaforoSimples 
+                  ledVerde={getSemaforoLeds(3).verde}
+                  ledVermelho={getSemaforoLeds(3).vermelho}
+                  editMode={true}
+                />
+              </div>
+
+              {/* Semáforo 4 - Dados reais do PLC */}
+              <div 
+                className="absolute transition-all duration-200 ease-in-out"
+                style={{
+                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * semaforo4Config.verticalPercent) / 100}px`,
+                  left: `${(maxWidth * semaforo4Config.horizontalPercent) / 100}px`,
+                  width: `${(maxWidth * semaforo4Config.widthPercent) / 100}px`,
+                  height: `${((caldeiraHeight + paredeHeight) * semaforo4Config.heightPercent) / 100}px`,
+                  zIndex: 15
+                }}
+              >
+                <SemaforoSimples 
+                  ledVerde={getSemaforoLeds(4).verde}
+                  ledVermelho={getSemaforoLeds(4).vermelho}
+                  editMode={true}
                 />
               </div>
             </div>

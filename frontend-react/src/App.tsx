@@ -15,7 +15,7 @@ const App: React.FC = () => {
     <BrowserRouter>
       <AuthProvider>
         <ThemeProvider>
-          <PLCProvider websocketUrl="ws://localhost:8081/ws">
+          <PLCProvider>
             <Routes>
               {/* Rota de Login - Pública */}
               <Route path="/login" element={<LoginPage />} />
