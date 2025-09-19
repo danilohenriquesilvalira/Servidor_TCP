@@ -17,9 +17,9 @@ const NIVEL_CONFIG = {
   },
   jusante: {
     verticalPercent: 29.4,  // % da altura total
-    horizontalPercent: 89.4, // % da largura total
+    horizontalPercent: 89.2, // % da largura total
     widthPercent: 10.2,     // % da largura total
-    heightPercent: 15,      // % da altura total
+    heightPercent: 15     // % da altura total
   },
   montante: {
     verticalPercent: 15.5,  // % da altura total
@@ -73,28 +73,35 @@ const SEMAFORO_CONFIG = {
   }
 };
 
+// 🏗️ CONFIGURAÇÃO DA BASE PORTA JUSANTE
+const BASE_PORTA_JUSANTE_CONFIG = {
+  verticalPercent: 13.5,    // % da altura total (posição Y inicial para ajuste)
+  horizontalPercent: 48.8,  // % da largura total (posição X inicial para ajuste)
+  widthPercent: 70,       // % da largura total (tamanho inicial)
+  heightPercent: 36.3,      // % da altura total (tamanho inicial)
+};
+
 const EclusaRegua: React.FC = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [containerDimensions, setContainerDimensions] = React.useState({ width: 0, height: 0 });
   const [paredeOffsetPercent, setParedeOffsetPercent] = React.useState(-50.5); // Posição ajustada para encaixe perfeito
   
-  // Estados para ajustar a caldeira
-  const [caldeiraScale] = React.useState(99.3); // Escala da caldeira em %
+  const caldeiraScale = 99.3;
   
-  // Estados para posicionamento dos componentes de nível
-  const [caldeiraConfig, setCaldeiraConfig] = React.useState(NIVEL_CONFIG.caldeira);
-  const [jusanteConfig, setJusanteConfig] = React.useState(NIVEL_CONFIG.jusante);
-  const [montanteConfig, setMontanteConfig] = React.useState(NIVEL_CONFIG.montante);
+  const caldeiraConfig = NIVEL_CONFIG.caldeira;
+  const jusanteConfig = NIVEL_CONFIG.jusante;
+  const montanteConfig = NIVEL_CONFIG.montante;
   
-  // Estados para posicionamento dos componentes de porta
-  const [portaJusanteConfig, setPortaJusanteConfig] = React.useState(PORTA_CONFIG.jusante);
-  const [portaMontanteConfig, setPortaMontanteConfig] = React.useState(PORTA_CONFIG.montante);
+  const portaJusanteConfig = PORTA_CONFIG.jusante;
+  const portaMontanteConfig = PORTA_CONFIG.montante;
   
-  // Estados para posicionamento dos semáforos
-  const [semaforo1Config, setSemaforo1Config] = React.useState(SEMAFORO_CONFIG.semaforo1);
-  const [semaforo2Config, setSemaforo2Config] = React.useState(SEMAFORO_CONFIG.semaforo2);
-  const [semaforo3Config, setSemaforo3Config] = React.useState(SEMAFORO_CONFIG.semaforo3);
-  const [semaforo4Config, setSemaforo4Config] = React.useState(SEMAFORO_CONFIG.semaforo4);
+  const semaforo1Config = SEMAFORO_CONFIG.semaforo1;
+  const semaforo2Config = SEMAFORO_CONFIG.semaforo2;
+  const semaforo3Config = SEMAFORO_CONFIG.semaforo3;
+  const semaforo4Config = SEMAFORO_CONFIG.semaforo4;
+  
+  const basePortaJusanteConfig = BASE_PORTA_JUSANTE_CONFIG;
+  
   
   // 📡 USAR O SISTEMA PLC EXISTENTE (sem criar nova conexão!)
   const { data: plcData, connectionStatus } = usePLC();
@@ -133,25 +140,21 @@ const EclusaRegua: React.FC = () => {
       case 1:
         const verde1 = getBitFromPosition(151); // Word[9] Bit[7]
         const vermelho1 = getBitFromPosition(152); // Word[9] Bit[8]
-        console.log(`Semáforo 1 - Verde(151): ${verde1}, Vermelho(152): ${vermelho1}`);
         return { verde: verde1, vermelho: vermelho1 };
         
       case 2:
         const verde2 = getBitFromPosition(153); // Word[9] Bit[9]
         const vermelho2 = getBitFromPosition(154); // Word[9] Bit[10]
-        console.log(`Semáforo 2 - Verde(153): ${verde2}, Vermelho(154): ${vermelho2}`);
         return { verde: verde2, vermelho: vermelho2 };
         
       case 3:
         const verde3 = getBitFromPosition(155); // Word[9] Bit[11]
         const vermelho3 = getBitFromPosition(156); // Word[9] Bit[12]
-        console.log(`Semáforo 3 - Verde(155): ${verde3}, Vermelho(156): ${vermelho3}`);
         return { verde: verde3, vermelho: vermelho3 };
         
       case 4:
         const verde4 = getBitFromPosition(157); // Word[9] Bit[13]
         const vermelho4 = getBitFromPosition(158); // Word[9] Bit[14]
-        console.log(`Semáforo 4 - Verde(157): ${verde4}, Vermelho(158): ${vermelho4}`);
         return { verde: verde4, vermelho: vermelho4 };
         
       default:
@@ -174,6 +177,7 @@ const EclusaRegua: React.FC = () => {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
+
   // Cálculo das proporções baseado nos viewBoxes originais
   const caldeiraAspectRatio = 1168 / 253; // width/height do Caldeira_Eclusa.svg
   const paredeAspectRatio = 1175 / 205;   // width/height do Parede_Eclusa.svg
@@ -193,181 +197,73 @@ const EclusaRegua: React.FC = () => {
   // Calcular offset em pixels baseado na porcentagem da altura da caldeira
   const paredeOffsetPx = (caldeiraHeight * paredeOffsetPercent) / 100;
   
-  // Função para ajustar posição da parede proporcionalmente
-  const adjustParedePosition = (direction: 'up' | 'down') => {
-    setParedeOffsetPercent(prev => {
-      const step = 0.5; // Porcentagem por ajuste (mais fino)
-      return direction === 'up' ? prev - step : prev + step;
-    });
-  };
-
-
-  // Função para resetar todas as configurações
-  const resetAllConfigs = () => {
-    setParedeOffsetPercent(-50.5);
-    setCaldeiraConfig(NIVEL_CONFIG.caldeira);
-    setJusanteConfig(NIVEL_CONFIG.jusante);
-    setMontanteConfig(NIVEL_CONFIG.montante);
-  };
-
-  // Função para mostrar valores atuais no console (para salvar no código)
-  const logCurrentValues = () => {
-    console.log('🎯 VALORES ATUAIS PARA SALVAR NO CÓDIGO:');
-    console.log('const NIVEL_CONFIG = {');
-    console.log('  caldeira: {');
-    console.log(`    verticalPercent: ${caldeiraConfig.verticalPercent},`);
-    console.log(`    horizontalPercent: ${caldeiraConfig.horizontalPercent},`);
-    console.log(`    widthPercent: ${caldeiraConfig.widthPercent},`);
-    console.log(`    heightPercent: ${caldeiraConfig.heightPercent},`);
-    console.log('  },');
-    console.log('  jusante: {');
-    console.log(`    verticalPercent: ${jusanteConfig.verticalPercent},`);
-    console.log(`    horizontalPercent: ${jusanteConfig.horizontalPercent},`);
-    console.log(`    widthPercent: ${jusanteConfig.widthPercent},`);
-    console.log(`    heightPercent: ${jusanteConfig.heightPercent},`);
-    console.log('  },');
-    console.log('  montante: {');
-    console.log(`    verticalPercent: ${montanteConfig.verticalPercent},`);
-    console.log(`    horizontalPercent: ${montanteConfig.horizontalPercent},`);
-    console.log(`    widthPercent: ${montanteConfig.widthPercent},`);
-    console.log(`    heightPercent: ${montanteConfig.heightPercent},`);
-    console.log('  }');
-    console.log('};');
-    console.log(`const paredeOffsetPercent = ${paredeOffsetPercent};`);
-  };
 
   return (
     <main className="flex-1 relative min-h-0">
-      <div className="w-full h-full pt-8 flex justify-center items-start">
+      
+      <div className="w-full h-full flex flex-col items-center">
+        
+        {/* ÁREA SUPERIOR - CARDS PADRÃO EDP */}
+        <div className="w-full max-w-[1920px] mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Card 1 - Operador Logado */}
+            <div className="bg-gray-200 rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition-all duration-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <svg className="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                  </svg>
+                  <span className="text-sm font-medium text-gray-800">Sistema HMI</span>
+                </div>
+                <div className={`w-2 h-2 rounded-full ${connectionStatus.connected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              </div>
+            </div>
+
+            {/* Card 2 - Igualdade e Níveis */}
+            <div className="bg-gray-200 rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition-all duration-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <svg className="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/>
+                  </svg>
+                  <span className="text-sm font-medium text-gray-800">Igualdade e Níveis</span>
+                </div>
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full" title={`Caldeira: ${nivelCaldeira.toFixed(1)}%`}></div>
+                  <div className="w-2 h-2 bg-green-500 rounded-full" title={`Jusante: ${nivelJusante.toFixed(1)}%`}></div>
+                  <div className="w-2 h-2 bg-orange-500 rounded-full" title={`Montante: ${nivelMontante.toFixed(1)}%`}></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3 - Status da Eclusa */}
+            <div className="bg-gray-200 rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition-all duration-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <svg className="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  <span className="text-sm font-medium text-gray-800">Status da Eclusa</span>
+                </div>
+                <div className="flex gap-1">
+                  <div className={`w-2 h-2 rounded-full ${portaJusanteValue > 0 ? 'bg-green-500' : 'bg-gray-300'}`} title="Porta Jusante"></div>
+                  <div className={`w-2 h-2 rounded-full ${portaMontanteValue > 0 ? 'bg-green-500' : 'bg-gray-300'}`} title="Porta Montante"></div>
+                  <div className={`w-2 h-2 rounded-full ${connectionStatus.connected ? 'bg-green-500' : 'bg-red-500'}`} title="Sistema PLC"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div 
           ref={containerRef}
           className="w-full max-w-[1920px] flex flex-col items-center relative"
           style={{
-            maxHeight: 'calc(100vh - 120px)', // Espaço para padding e margem
+            height: '100%', // Ocupa toda altura disponível
             overflow: 'hidden'
           }}
         >
-          {/* Controles de Ajuste - Compactos */}
-          <div className="mb-4 space-y-2">
-            {/* Controles da Parede */}
-            <div className="flex gap-2 items-center bg-black/20 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/30">
-              <span className="text-sm text-white w-16">Parede:</span>
-              <button
-                onClick={() => adjustParedePosition('up')}
-                className="bg-blue-500/80 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs transition-colors backdrop-blur-sm"
-                title="Subir parede"
-              >
-                ↑
-              </button>
-              <button
-                onClick={() => adjustParedePosition('down')}
-                className="bg-blue-500/80 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs transition-colors backdrop-blur-sm"
-                title="Descer parede"
-              >
-                ↓
-              </button>
-              <span className="text-xs text-white/80 ml-2">{paredeOffsetPercent.toFixed(1)}%</span>
-            </div>
-
-
-
-            {/* Controles dos Semáforos */}
-            <div className="flex gap-1 items-center bg-yellow/20 backdrop-blur-sm rounded-lg px-2 py-1 border border-yellow-300/30">
-              <span className="text-xs text-blue-900 font-bold w-8">🚦</span>
-              <input 
-                type="number" 
-                value={semaforo1Config.horizontalPercent} 
-                onChange={(e) => setSemaforo1Config(prev => ({...prev, horizontalPercent: Number(e.target.value)}))}
-                className="w-10 h-6 text-xs border rounded px-1 text-center"
-                step="0.1"
-              />
-              <input 
-                type="number" 
-                value={semaforo1Config.verticalPercent} 
-                onChange={(e) => setSemaforo1Config(prev => ({...prev, verticalPercent: Number(e.target.value)}))}
-                className="w-10 h-6 text-xs border rounded px-1 text-center"
-                step="0.1"
-              />
-              <span className="text-xs text-blue-900 font-bold w-8">🚦</span>
-              <input 
-                type="number" 
-                value={semaforo2Config.horizontalPercent} 
-                onChange={(e) => setSemaforo2Config(prev => ({...prev, horizontalPercent: Number(e.target.value)}))}
-                className="w-10 h-6 text-xs border rounded px-1 text-center"
-                step="0.1"
-              />
-              <input 
-                type="number" 
-                value={semaforo2Config.verticalPercent} 
-                onChange={(e) => setSemaforo2Config(prev => ({...prev, verticalPercent: Number(e.target.value)}))}
-                className="w-10 h-6 text-xs border rounded px-1 text-center"
-                step="0.1"
-              />
-            </div>
-
-            <div className="flex gap-1 items-center bg-purple/20 backdrop-blur-sm rounded-lg px-2 py-1 border border-purple-300/30">
-              <span className="text-xs text-blue-900 font-bold w-8">🚦</span>
-              <input 
-                type="number" 
-                value={semaforo3Config.horizontalPercent} 
-                onChange={(e) => setSemaforo3Config(prev => ({...prev, horizontalPercent: Number(e.target.value)}))}
-                className="w-10 h-6 text-xs border rounded px-1 text-center"
-                step="0.1"
-              />
-              <input 
-                type="number" 
-                value={semaforo3Config.verticalPercent} 
-                onChange={(e) => setSemaforo3Config(prev => ({...prev, verticalPercent: Number(e.target.value)}))}
-                className="w-10 h-6 text-xs border rounded px-1 text-center"
-                step="0.1"
-              />
-              <span className="text-xs text-blue-900 font-bold w-8">🚦</span>
-              <input 
-                type="number" 
-                value={semaforo4Config.horizontalPercent} 
-                onChange={(e) => setSemaforo4Config(prev => ({...prev, horizontalPercent: Number(e.target.value)}))}
-                className="w-10 h-6 text-xs border rounded px-1 text-center"
-                step="0.1"
-              />
-              <input 
-                type="number" 
-                value={semaforo4Config.verticalPercent} 
-                onChange={(e) => setSemaforo4Config(prev => ({...prev, verticalPercent: Number(e.target.value)}))}
-                className="w-10 h-6 text-xs border rounded px-1 text-center"
-                step="0.1"
-              />
-            </div>
-
-            {/* Status WebSocket e Dados dos Níveis e Portas */}
-            <div className="flex gap-2 items-center bg-green/20 backdrop-blur-sm rounded-lg px-3 py-2 border border-green-300/30">
-              <span className="text-sm text-blue-900 font-bold w-16">PLC:</span>
-              <div className={`w-2 h-2 rounded-full ${connectionStatus.connected ? 'bg-green-400' : 'bg-red-400'}`} />
-              <span className="text-xs text-blue-900 font-bold">
-                C:{nivelCaldeira.toFixed(1)}% | J:{nivelJusante.toFixed(1)}% | M:{nivelMontante.toFixed(1)}%
-              </span>
-              <span className="text-xs text-blue-900/70">
-                PJ:{portaJusanteValue} | PM:{portaMontanteValue}
-              </span>
-            </div>
-
-            {/* Botões de Ação */}
-            <div className="flex gap-2 items-center bg-purple/20 backdrop-blur-sm rounded-lg px-3 py-2 border border-purple-300/30">
-              <button
-                onClick={resetAllConfigs}
-                className="bg-gray-500/80 hover:bg-gray-600 text-white px-3 py-1 rounded text-xs transition-colors backdrop-blur-sm"
-                title="Resetar todas as configurações"
-              >
-                🔄 Reset Tudo
-              </button>
-              <button
-                onClick={logCurrentValues}
-                className="bg-orange-500/80 hover:bg-orange-600 text-white px-3 py-1 rounded text-xs transition-colors backdrop-blur-sm"
-                title="Mostrar valores no console para salvar"
-              >
-                💾 Ver Código
-              </button>
-            </div>
-          </div>
 
           {/* Container com positioning absoluto para controle total */}
           {containerDimensions.width > 0 && (
@@ -375,9 +271,10 @@ const EclusaRegua: React.FC = () => {
               className="relative w-full flex flex-col items-center"
               style={{
                 maxWidth: `${maxWidth}px`,
-                height: `${caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx) + 20}px` // +20px buffer
+                height: `${(caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * 0.56}px` // 55% da altura original
               }}
             >
+              {/* Elementos de debug removidos */}
               {/* Caldeira - Posição superior */}
               <div 
                 className="absolute top-0 left-1/2 transform -translate-x-1/2"
@@ -590,9 +487,159 @@ const EclusaRegua: React.FC = () => {
                   editMode={true}
                 />
               </div>
+
+              {/* Base Porta Jusante SVG */}
+              <div 
+                className="absolute transition-all duration-200 ease-in-out"
+                style={{
+                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * basePortaJusanteConfig.verticalPercent) / 100}px`,
+                  left: `${(maxWidth * basePortaJusanteConfig.horizontalPercent) / 100}px`,
+                  width: `${(maxWidth * basePortaJusanteConfig.widthPercent) / 100}px`,
+                  height: `${((caldeiraHeight + paredeHeight) * basePortaJusanteConfig.heightPercent) / 100}px`,
+                  zIndex: 12
+                }}
+              >
+                <svg
+                  width="100%"
+                  height="100%"
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="xMidYMid meet"
+                  className="w-full h-full"
+                >
+                  <image
+                    href="/Eclusa/Base_Porta_Jusante.svg"
+                    width="100"
+                    height="100"
+                    preserveAspectRatio="xMidYMid meet"
+                  />
+                </svg>
+              </div>
             </div>
           )}
 
+        </div>
+        
+        {/* ÁREA INFERIOR - BOTÕES DE CONTROLE */}
+        <div className="w-full max-w-[1920px] mt-8">
+          
+          {/* 12 Botões em 2 filas de 6 */}
+          <div className="space-y-4">
+            {/* Primeira fila - 6 botões */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              <button className="bg-white hover:bg-edp-electric hover:text-white border border-edp-neutral-lighter rounded-2xl px-6 py-3 transition-all duration-200 shadow-sm hover:shadow-md group">
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4 text-edp-marine group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  <span className="text-sm font-medium text-edp-neutral-darkest group-hover:text-white">Iniciar</span>
+                </div>
+              </button>
+
+              <button className="bg-white hover:bg-edp-electric hover:text-white border border-edp-neutral-lighter rounded-2xl px-6 py-3 transition-all duration-200 shadow-sm hover:shadow-md group">
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4 text-edp-marine group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 10l2 2 4-4"/>
+                  </svg>
+                  <span className="text-sm font-medium text-edp-neutral-darkest group-hover:text-white">Parar</span>
+                </div>
+              </button>
+
+              <button className="bg-white hover:bg-edp-electric hover:text-white border border-edp-neutral-lighter rounded-2xl px-6 py-3 transition-all duration-200 shadow-sm hover:shadow-md group">
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4 text-edp-marine group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                  </svg>
+                  <span className="text-sm font-medium text-edp-neutral-darkest group-hover:text-white">Reset</span>
+                </div>
+              </button>
+
+              <button className="bg-white hover:bg-edp-electric hover:text-white border border-edp-neutral-lighter rounded-2xl px-6 py-3 transition-all duration-200 shadow-sm hover:shadow-md group">
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4 text-edp-marine group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                  </svg>
+                  <span className="text-sm font-medium text-edp-neutral-darkest group-hover:text-white">Auto</span>
+                </div>
+              </button>
+
+              <button className="bg-white hover:bg-edp-electric hover:text-white border border-edp-neutral-lighter rounded-2xl px-6 py-3 transition-all duration-200 shadow-sm hover:shadow-md group">
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4 text-edp-marine group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"/>
+                  </svg>
+                  <span className="text-sm font-medium text-edp-neutral-darkest group-hover:text-white">Manual</span>
+                </div>
+              </button>
+
+              <button className="bg-white hover:bg-edp-electric hover:text-white border border-edp-neutral-lighter rounded-2xl px-6 py-3 transition-all duration-200 shadow-sm hover:shadow-md group">
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4 text-edp-marine group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                  <span className="text-sm font-medium text-edp-neutral-darkest group-hover:text-white">Config</span>
+                </div>
+              </button>
+            </div>
+
+            {/* Segunda fila - 6 botões */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              <button className="bg-white hover:bg-edp-electric hover:text-white border border-edp-neutral-lighter rounded-2xl px-6 py-3 transition-all duration-200 shadow-sm hover:shadow-md group">
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4 text-edp-marine group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
+                  </svg>
+                  <span className="text-sm font-medium text-edp-neutral-darkest group-hover:text-white">Encher</span>
+                </div>
+              </button>
+
+              <button className="bg-white hover:bg-edp-electric hover:text-white border border-edp-neutral-lighter rounded-2xl px-6 py-3 transition-all duration-200 shadow-sm hover:shadow-md group">
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4 text-edp-marine group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                  </svg>
+                  <span className="text-sm font-medium text-edp-neutral-darkest group-hover:text-white">Esvaziar</span>
+                </div>
+              </button>
+
+              <button className="bg-white hover:bg-edp-electric hover:text-white border border-edp-neutral-lighter rounded-2xl px-6 py-3 transition-all duration-200 shadow-sm hover:shadow-md group">
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4 text-edp-marine group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
+                  </svg>
+                  <span className="text-sm font-medium text-edp-neutral-darkest group-hover:text-white">P. Jusante</span>
+                </div>
+              </button>
+
+              <button className="bg-white hover:bg-edp-electric hover:text-white border border-edp-neutral-lighter rounded-2xl px-6 py-3 transition-all duration-200 shadow-sm hover:shadow-md group">
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4 text-edp-marine group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
+                  </svg>
+                  <span className="text-sm font-medium text-edp-neutral-darkest group-hover:text-white">P. Montante</span>
+                </div>
+              </button>
+
+              <button className="bg-white hover:bg-edp-electric hover:text-white border border-edp-neutral-lighter rounded-2xl px-6 py-3 transition-all duration-200 shadow-sm hover:shadow-md group">
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4 text-edp-marine group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                  </svg>
+                  <span className="text-sm font-medium text-edp-neutral-darkest group-hover:text-white">Alarmes</span>
+                </div>
+              </button>
+
+              <button className="bg-white hover:bg-edp-electric hover:text-white border border-edp-neutral-lighter rounded-2xl px-6 py-3 transition-all duration-200 shadow-sm hover:shadow-md group">
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4 text-edp-marine group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                  </svg>
+                  <span className="text-sm font-medium text-edp-neutral-darkest group-hover:text-white">Relatórios</span>
+                </div>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </main>
