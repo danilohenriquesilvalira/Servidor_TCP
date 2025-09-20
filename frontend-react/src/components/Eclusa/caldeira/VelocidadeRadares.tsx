@@ -8,6 +8,8 @@ interface RadarChartProps {
 
 const RadarChart: React.FC<RadarChartProps> = ({ height = 200 }) => {
   const { data: plcData } = usePLC();
+  const chartRef = React.useRef<HTMLDivElement>(null);
+  const [tooltipActive, setTooltipActive] = React.useState(false);
   
   // Valores dos radares de velocidade em m/s
   const jusante = Number(plcData?.reals?.[116]) || 0;   // Radar Jusante
@@ -45,16 +47,33 @@ const RadarChart: React.FC<RadarChartProps> = ({ height = 200 }) => {
     }));
   }, [historyData]);
 
-  // Tooltip customizado
+  // Detectar cliques fora do gráfico para esconder tooltip
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (chartRef.current && !chartRef.current.contains(event.target as Node)) {
+        setTooltipActive(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, []);
+
+  // Tooltip customizado com controle manual
   const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
+    if (active && payload && payload.length && tooltipActive) {
       return (
-        <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
-          <p className="text-xs font-medium text-gray-600 mb-2">Ponto {label}</p>
+        <div className="bg-white p-2 rounded-lg shadow-lg border border-gray-200 pointer-events-none">
+          <p className="text-xs font-medium text-gray-600 mb-1">Ponto {label}</p>
           {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex items-center gap-2 text-xs">
+            <div key={index} className="flex items-center gap-1 text-xs">
               <div
-                className="w-3 h-3 rounded-full"
+                className="w-2 h-2 rounded-full"
                 style={{ backgroundColor: entry.color }}
               ></div>
               <span className="font-medium capitalize">{entry.dataKey}:</span>
@@ -69,6 +88,7 @@ const RadarChart: React.FC<RadarChartProps> = ({ height = 200 }) => {
 
   return (
     <div 
+      ref={chartRef}
       className="bg-gray-200 rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col"
       style={{ height: `${height}px` }}
     >
@@ -101,7 +121,11 @@ const RadarChart: React.FC<RadarChartProps> = ({ height = 200 }) => {
       </div>
 
       {/* Gráfico preenchendo todo o espaço restante */}
-      <div className="flex-1 w-full">
+      <div 
+        className="flex-1 w-full"
+        onMouseEnter={() => setTooltipActive(true)}
+        onTouchStart={() => setTooltipActive(true)}
+      >
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <defs>
@@ -119,7 +143,12 @@ const RadarChart: React.FC<RadarChartProps> = ({ height = 200 }) => {
               </linearGradient>
             </defs>
             <YAxis domain={[0, 5]} hide />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip 
+              content={<CustomTooltip />}
+              cursor={{ strokeDasharray: '3 3' }}
+              animationDuration={150}
+              wrapperStyle={{ outline: 'none' }}
+            />
             <Area
               type="monotone"
               dataKey="caldeira"

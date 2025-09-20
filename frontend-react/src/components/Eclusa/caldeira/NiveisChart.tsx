@@ -8,6 +8,8 @@ interface NiveisChartProps {
 
 const NiveisChart: React.FC<NiveisChartProps> = ({ height = 180 }) => {
   const { data: plcData, connectionStatus } = usePLC();
+  const chartRef = React.useRef<HTMLDivElement>(null);
+  const [tooltipActive, setTooltipActive] = React.useState(false);
 
   // Valores dos níveis (0-100% ou metros)
   const caldeira = Number(plcData?.reals?.[108]) || 45;
@@ -48,16 +50,33 @@ const NiveisChart: React.FC<NiveisChartProps> = ({ height = 180 }) => {
   // Responsividade baseada na altura
   const isSmall = height < 160;
 
-  // Tooltip customizado
+  // Detectar cliques fora do gráfico para esconder tooltip
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (chartRef.current && !chartRef.current.contains(event.target as Node)) {
+        setTooltipActive(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, []);
+
+  // Tooltip customizado com controle manual
   const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
+    if (active && payload && payload.length && tooltipActive) {
       return (
-        <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
-          <p className="text-xs font-medium text-gray-600 mb-2">Ponto {label}</p>
+        <div className="bg-white p-2 rounded-lg shadow-lg border border-gray-200 pointer-events-none">
+          <p className="text-xs font-medium text-gray-600 mb-1">Ponto {label}</p>
           {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex items-center gap-2 text-xs">
+            <div key={index} className="flex items-center gap-1 text-xs">
               <div
-                className="w-3 h-3 rounded-full"
+                className="w-2 h-2 rounded-full"
                 style={{ backgroundColor: entry.color }}
               ></div>
               <span className="font-medium capitalize">{entry.dataKey}:</span>
@@ -72,6 +91,7 @@ const NiveisChart: React.FC<NiveisChartProps> = ({ height = 180 }) => {
 
   return (
     <div
+      ref={chartRef}
       className="bg-gray-200 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col"
       style={{ height: `${height}px` }}
     >
@@ -104,7 +124,11 @@ const NiveisChart: React.FC<NiveisChartProps> = ({ height = 180 }) => {
       </div>
 
       {/* Gráfico preenchendo todo o espaço abaixo do header */}
-      <div className="flex-1 w-full">
+      <div 
+        className="flex-1 w-full"
+        onMouseEnter={() => setTooltipActive(true)}
+        onTouchStart={() => setTooltipActive(true)}
+      >
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <defs>
@@ -121,7 +145,12 @@ const NiveisChart: React.FC<NiveisChartProps> = ({ height = 180 }) => {
                 <stop offset="95%" stopColor="#6D32FF" stopOpacity={0.1}/>
               </linearGradient>
             </defs>
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip 
+              content={<CustomTooltip />}
+              cursor={{ strokeDasharray: '3 3' }}
+              animationDuration={150}
+              wrapperStyle={{ outline: 'none' }}
+            />
             <Area
               type="monotone"
               dataKey="caldeira"
@@ -131,17 +160,17 @@ const NiveisChart: React.FC<NiveisChartProps> = ({ height = 180 }) => {
             />
             <Area
               type="monotone"
-              dataKey="montante"
-              stroke="#28FF52"
-              strokeWidth={3}
-              fill="url(#colorMontante)"
-            />
-            <Area
-              type="monotone"
               dataKey="jusante"
               stroke="#6D32FF"
               strokeWidth={3}
               fill="url(#colorJusante)"
+            />
+            <Area
+              type="monotone"
+              dataKey="montante"
+              stroke="#28FF52"
+              strokeWidth={3}
+              fill="url(#colorMontante)"
             />
           </AreaChart>
         </ResponsiveContainer>

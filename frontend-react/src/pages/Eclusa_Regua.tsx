@@ -88,8 +88,20 @@ const BASE_PORTA_JUSANTE_CONFIG = {
 const EclusaRegua: React.FC = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
-  const [containerDimensions, setContainerDimensions] = React.useState({ width: 0, height: 0 });
-  const [windowDimensions, setWindowDimensions] = React.useState({ width: 0, height: 0 });
+  const [containerDimensions, setContainerDimensions] = React.useState(() => {
+    // Inicializar com dimensões adequadas para evitar flash
+    if (typeof window !== 'undefined') {
+      const width = Math.min(window.innerWidth - 32, 1920);
+      return { width, height: width / 5.7 }; // Aproximação da altura baseada no aspect ratio
+    }
+    return { width: 0, height: 0 };
+  });
+  const [windowDimensions, setWindowDimensions] = React.useState(() => {
+    if (typeof window !== 'undefined') {
+      return { width: window.innerWidth, height: window.innerHeight };
+    }
+    return { width: 0, height: 0 };
+  });
   const [paredeOffsetPercent] = React.useState(-50.5); // Posição ajustada para encaixe perfeito
   const [showTrendDialog, setShowTrendDialog] = React.useState(false);
   const [currentCardIndex, setCurrentCardIndex] = React.useState(0);
@@ -174,14 +186,36 @@ const EclusaRegua: React.FC = () => {
     const updateDimensions = () => {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
-        setContainerDimensions({ width: rect.width, height: rect.height });
+        const newDimensions = { width: rect.width, height: rect.height };
+        
+        // Só atualizar se as dimensões mudaram significativamente
+        setContainerDimensions(prev => {
+          if (Math.abs(prev.width - newDimensions.width) > 10 || 
+              Math.abs(prev.height - newDimensions.height) > 10) {
+            return newDimensions;
+          }
+          return prev;
+        });
       }
-      setWindowDimensions({ width: window.innerWidth, height: window.innerHeight });
+      
+      const newWindowDimensions = { width: window.innerWidth, height: window.innerHeight };
+      setWindowDimensions(prev => {
+        if (Math.abs(prev.width - newWindowDimensions.width) > 10 || 
+            Math.abs(prev.height - newWindowDimensions.height) > 10) {
+          return newWindowDimensions;
+        }
+        return prev;
+      });
     };
     
-    updateDimensions();
+    // Delay inicial para garantir que o DOM está pronto
+    const timeoutId = setTimeout(updateDimensions, 100);
+    
     window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', updateDimensions);
+    };
   }, []);
 
   // Funções de navegação melhoradas
@@ -278,33 +312,45 @@ const EclusaRegua: React.FC = () => {
             // Layout mobile: scroll horizontal moderno com snap
             <div className="relative">
               
-              {/* Container de scroll com snap */}
-              <div 
-                ref={scrollContainerRef}
-                className="flex overflow-x-auto snap-x snap-mandatory"
-                style={{ 
-                  scrollbarWidth: 'none', 
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
-                <style>{`
-                  div::-webkit-scrollbar {
-                    display: none;
-                  }
-                `}</style>
+              {/* Container de scroll com snap e indicadores visuais */}
+              <div className="relative">
+                {/* Gradiente esquerda - indica que há cards anteriores */}
+                {currentCardIndex > 0 && (
+                  <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white/60 to-transparent z-10 pointer-events-none" />
+                )}
                 
-                {cards.map((card, index) => {
-                  const Component = card.component;
-                  return (
-                    <div 
-                      key={index}
-                      className="flex-shrink-0 w-full snap-center px-4"
-                    >
-                      <Component height={controlLayout.areaHeight} />
-                    </div>
-                  );
-                })}
+                {/* Gradiente direita - indica que há mais cards */}
+                {currentCardIndex < cards.length - 1 && (
+                  <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white/60 to-transparent z-10 pointer-events-none" />
+                )}
+
+                <div 
+                  ref={scrollContainerRef}
+                  className="flex overflow-x-auto snap-x snap-mandatory"
+                  style={{ 
+                    scrollbarWidth: 'none', 
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
+                  <style>{`
+                    div::-webkit-scrollbar {
+                      display: none;
+                    }
+                  `}</style>
+                  
+                  {cards.map((card, index) => {
+                    const Component = card.component;
+                    return (
+                      <div 
+                        key={index}
+                        className="flex-shrink-0 w-full snap-center px-4"
+                      >
+                        <Component height={controlLayout.areaHeight} />
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Setas de navegação modernas - posicionadas fora dos cards */}
@@ -328,27 +374,21 @@ const EclusaRegua: React.FC = () => {
                 </svg>
               </button>
 
-              {/* Indicadores modernos com animação */}
-              <div className="flex justify-center mt-4 gap-2">
+              {/* Indicadores de posição - pontos discretos */}
+              <div className="flex justify-center mt-3 gap-1.5">
                 {cards.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => scrollToCard(index)}
-                    className={`transition-all duration-300 rounded-full ${
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
                       index === currentCardIndex
-                        ? 'w-8 h-2 bg-slate-700'
-                        : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
+                        ? 'bg-slate-700 w-6'
+                        : 'bg-gray-300 hover:bg-gray-400'
                     }`}
                   />
                 ))}
               </div>
 
-              {/* Título do card atual */}
-              <div className="text-center mt-3">
-                <h3 className="text-sm font-medium text-gray-600">
-                  {cards[currentCardIndex]?.title}
-                </h3>
-              </div>
             </div>
           ) : (
             // Layout desktop: grid tradicional
@@ -381,7 +421,7 @@ const EclusaRegua: React.FC = () => {
         >
 
           {/* Container com positioning absoluto para controle total */}
-          {containerDimensions.width > 0 && (
+          {containerDimensions.width > 100 && windowDimensions.width > 0 ? (
             <div 
               className="relative w-full flex flex-col items-center"
               style={{
@@ -629,6 +669,17 @@ const EclusaRegua: React.FC = () => {
                   />
                 </svg>
               </div>
+            </div>
+          ) : (
+            /* Placeholder para evitar flash de redimensionamento */
+            <div className="w-full flex items-center justify-center">
+              <div 
+                className="w-full bg-gray-100 rounded-lg animate-pulse"
+                style={{ 
+                  height: isMobile ? '200px' : '300px',
+                  maxWidth: '800px'
+                }}
+              />
             </div>
           )}
 

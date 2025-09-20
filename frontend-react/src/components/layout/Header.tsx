@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePLC } from '@/contexts/PLCContext';
 import { ProfileModal } from '@/components/profile/ProfileModal';
+import { SignalIcon } from '@heroicons/react/24/outline';
 
 export const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { connectionStatus } = usePLC();
   const [notificationCount] = useState(3);
-  const [backendStatus] = useState<'active' | 'inactive' | 'failure'>('active');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   // Função para obter o nome da página atual
@@ -37,18 +39,12 @@ export const Header = () => {
     navigate('/login');
   };
 
+  const getConnectionStatusText = () => {
+    return connectionStatus.connected ? 'WebSocket Conectado' : 'WebSocket Desconectado';
+  };
 
-  const getBackendStatusText = () => {
-    switch (backendStatus) {
-      case 'active':
-        return 'Sistema Online';
-      case 'inactive':
-        return 'Sistema Inativo';
-      case 'failure':
-        return 'Falha de Conexão';
-      default:
-        return 'Status Desconhecido';
-    }
+  const getConnectionStatusColor = () => {
+    return connectionStatus.connected ? 'text-green-500' : 'text-red-500';
   };
 
   return (
@@ -62,54 +58,13 @@ export const Header = () => {
       {/* Actions Area */}
       <div className="flex items-center gap-2 sm:gap-3">
         
-        {/* Connection Status Icon */}
+        {/* WebSocket Connection Status Icon */}
         <button
-          className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-edp-neutral-dark hover:text-edp-electric hover:bg-edp-electric/10 rounded-lg transition-colors duration-200"
-          aria-label="Status da Conexão"
-          title={getBackendStatusText()}
+          className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center ${getConnectionStatusColor()} hover:text-edp-electric hover:bg-edp-electric/10 rounded-lg transition-colors duration-200`}
+          aria-label="Status da Conexão WebSocket"
+          title={getConnectionStatusText()}
         >
-          <svg 
-            className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            {backendStatus === 'active' ? (
-              // Ícone de WiFi conectado
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth="2" 
-                d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"
-              />
-            ) : backendStatus === 'inactive' ? (
-              // Ícone de WiFi desconectado
-              <g>
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth="2" 
-                  d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01"
-                />
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth="2" 
-                  d="m3 3 18 18"
-                />
-              </g>
-            ) : (
-              // Ícone de erro de conexão
-              <g>
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth="2" 
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-                />
-              </g>
-            )}
-          </svg>
+          <SignalIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
         </button>
         
         {/* Notifications */}

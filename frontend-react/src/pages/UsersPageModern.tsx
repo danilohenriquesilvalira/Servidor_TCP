@@ -395,9 +395,9 @@ const UsersPage: React.FC = () => {
 
   return (
     <div className="w-full h-full flex flex-col">
-      {/* Header com Tabs e Filtros */}
+      {/* Header com Tabs e Filtros na mesma linha */}
       <div className="flex-shrink-0 mb-4">
-        <div className="flex items-center justify-between">
+        <div className={`flex ${isMobile ? 'flex-col gap-3' : 'items-center justify-between'}`}>
           <TabNavigation
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -405,20 +405,22 @@ const UsersPage: React.FC = () => {
           
           {/* Filtros só aparecem na aba Lista */}
           {activeTab === 'lista' && (
-            <UsersFilters
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              selectedCargo={selectedCargo}
-              onCargoChange={setSelectedCargo}
-              selectedEclusa={selectedEclusa}
-              onEclusaChange={setSelectedEclusa}
-              cargoOptions={getManageableCargos()}
-              eclusaOptions={[...VALID_ECLUSAS]}
-              onClearFilters={handleClearFilters}
-              onCreateUser={openCreateModal}
-              canCreateUsers={permissions?.can_create_users}
-              totalResults={filteredUsers.length}
-            />
+            <div className={`${isMobile ? 'px-4' : ''}`}>
+              <UsersFilters
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                selectedCargo={selectedCargo}
+                onCargoChange={setSelectedCargo}
+                selectedEclusa={selectedEclusa}
+                onEclusaChange={setSelectedEclusa}
+                cargoOptions={getManageableCargos()}
+                eclusaOptions={[...VALID_ECLUSAS]}
+                onClearFilters={handleClearFilters}
+                onCreateUser={openCreateModal}
+                canCreateUsers={permissions?.can_create_users}
+                totalResults={filteredUsers.length}
+              />
+            </div>
           )}
         </div>
       </div>
@@ -537,7 +539,7 @@ const UsersPage: React.FC = () => {
                 </div>
               ) : isMobile ? (
                 /* Mobile Cards List */
-                <div className="space-y-3 px-1">
+                <div className="space-y-3 px-4">
                   {/* Card Criar Usuário - Mobile Estilizado */}
                   {permissions?.can_create_users && (
                     <div
