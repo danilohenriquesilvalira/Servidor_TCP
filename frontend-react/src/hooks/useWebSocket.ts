@@ -21,8 +21,9 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
-  const maxReconnectAttempts = 5;
-  const reconnectDelay = 3000;
+  const maxReconnectAttempts = 20; // Mais tentativas
+  const reconnectDelay = 3000; // Delay menor
+  const isPageVisibleRef = useRef(true);
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -33,6 +34,12 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
     if (wsRef.current?.readyState === WebSocket.CONNECTING) {
       console.log('WebSocket já tentando conectar, aguardando...');
       return;
+    }
+
+    // Fechar conexão anterior se existir
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
     }
 
     try {
@@ -77,14 +84,22 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
           connected: false,
         }));
 
-        // Tentar reconectar automaticamente
+        // Tentar reconectar automaticamente com backoff mais suave
         if (reconnectAttemptsRef.current < maxReconnectAttempts) {
           reconnectAttemptsRef.current += 1;
-          console.log(`Tentativa de reconexão ${reconnectAttemptsRef.current}/${maxReconnectAttempts}`);
+          const delay = Math.min(reconnectDelay * Math.pow(1.2, reconnectAttemptsRef.current - 1), 15000); // Crescimento mais suave
+          console.log(`Tentativa de reconexão ${reconnectAttemptsRef.current}/${maxReconnectAttempts} em ${delay}ms`);
           
           reconnectTimeoutRef.current = setTimeout(() => {
-            connect();
-          }, reconnectDelay);
+            // Só reconectar se a página estiver visível
+            if (isPageVisibleRef.current) {
+              console.log('Executando reconexão...');
+              connect();
+            } else {
+              console.log('Página não visível, adiando reconexão...');
+              reconnectAttemptsRef.current -= 1; // Não contar esta tentativa
+            }
+          }, delay);
         } else {
           console.error('Máximo de tentativas de reconexão atingido');
         }
@@ -141,7 +156,7 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
     }
   }, []);
 
-  // Buscar status do servidor periodicamente
+  // Buscar status do servidor periodicamente (menos frequente)
   useEffect(() => {
     const fetchStatus = async () => {
       try {
@@ -157,7 +172,7 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
       }
     };
 
-    const statusInterval = setInterval(fetchStatus, 2000);
+    const statusInterval = setInterval(fetchStatus, 5000); // Menos frequente
     return () => clearInterval(statusInterval);
   }, []);
 
@@ -180,6 +195,21 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
       clearTimeout(timer);
     };
   }, [connect]);
+
+  // Monitorar visibilidade da página para otimizar reconexões
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      isPageVisibleRef.current = !document.hidden;
+      if (isPageVisibleRef.current && !connectionStatus.connected) {
+        console.log('Página ficou visível, tentando reconectar...');
+        reconnectAttemptsRef.current = Math.max(0, reconnectAttemptsRef.current - 2); // Reset parcial
+        connect();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [connectionStatus.connected, connect]);
 
   // Cleanup no unmount
   useEffect(() => {

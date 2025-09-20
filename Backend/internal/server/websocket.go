@@ -116,11 +116,11 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		
-		// Rate limiting por cliente: máximo 10 mensagens por segundo
+		// Rate limiting por cliente: máximo 5 mensagens por segundo
 		now := time.Now()
-		if now.Sub(lastMessage) < 100*time.Millisecond {
+		if now.Sub(lastMessage) < 200*time.Millisecond {
 			messageCount++
-			if messageCount > 10 {
+			if messageCount > 20 {
 				log.Printf("⚠️ Cliente %s enviando muitas mensagens, desconectando", r.RemoteAddr)
 				break
 			}

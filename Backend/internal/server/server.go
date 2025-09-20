@@ -64,12 +64,12 @@ func NewWSClient(conn *websocket.Conn, remoteAddr, userAgent string) *WSClient {
 	return &WSClient{
 		conn:         conn,
 		send:         make(chan []byte, 2000), // Buffer ainda maior
-		rateLimit:    50 * time.Millisecond,   // Máximo 20 msgs/segundo por cliente
+		rateLimit:    100 * time.Millisecond,  // Máximo 10 msgs/segundo por cliente
 		isHealthy:    true,
-		maxSlowCount: 5, // Máximo 5 respostas lentas antes de desconectar
-		writeTimeout: 10 * time.Second,
-		readTimeout:  60 * time.Second,
-		pingInterval: 30 * time.Second,
+		maxSlowCount: 50, // Máximo 50 respostas lentas antes de desconectar (mais tolerante)
+		writeTimeout: 60 * time.Second,
+		readTimeout:  300 * time.Second, // 5 minutos para mobile
+		pingInterval: 45 * time.Second,  // Menos frequente para mobile
 		lastPong:     time.Now(),
 		closed:       false,
 		remoteAddr:   remoteAddr,
@@ -159,8 +159,8 @@ func (s *Server) GetPLCCount() int {
 func (s *Server) BroadcastData(data *plcdata.PLCData) {
 	now := time.Now()
 
-	// Rate limiting global: evita spam de broadcasts (relaxado)
-	if now.Sub(s.lastBroadcast) < 5*time.Millisecond {
+	// Rate limiting global: evita spam de broadcasts (mais relaxado)
+	if now.Sub(s.lastBroadcast) < 2*time.Millisecond {
 		atomic.AddInt64(&s.broadcastStats.dropped, 1)
 		return
 	}
@@ -215,6 +215,25 @@ func (s *Server) AddClient(conn *websocket.Conn, remoteAddr, userAgent string) *
 		log.Printf("   📍 IP: %s (já tem %d conexões)", remoteAddr, sameIPCount)
 		log.Printf("   🖥️ User-Agent: %s (já tem %d conexões)", userAgent, sameUACount)
 		log.Printf("   🔄 Duplicados exatos: %d", duplicateCount)
+		
+		// Fechar conexões duplicadas antigas do mesmo IP/User-Agent
+		var clientsToRemove []*WSClient
+		for existingClient := range s.clients {
+			if existingClient.remoteAddr == remoteAddr && existingClient.userAgent == userAgent {
+				log.Printf("🗑️ Removendo conexão duplicada antiga: %s", existingClient.remoteAddr)
+				clientsToRemove = append(clientsToRemove, existingClient)
+			}
+		}
+		
+		// Remover clientes duplicados
+		for _, client := range clientsToRemove {
+			delete(s.clients, client)
+			client.conn.Close()
+		}
+	} else if sameIPCount >= 5 { // Mais tolerante para mobile
+		log.Printf("🚨 Muitas conexões do mesmo IP (%s): %d - rejeitando nova conexão", remoteAddr, sameIPCount)
+		conn.Close()
+		return nil
 	} else if sameIPCount > 0 || sameUACount > 0 {
 		log.Printf("⚠️ Conexão similar detectada:")
 		log.Printf("   📍 Mesmo IP (%s): %d conexões existentes", remoteAddr, sameIPCount)
@@ -422,9 +441,9 @@ func (s *Server) handleClientHealth(client *WSClient) {
 				return
 			}
 
-			// Verificar se recebemos pong recentemente
+			// Verificar se recebemos pong recentemente (mais tolerante para mobile)
 			timeSinceLastPong := time.Since(client.lastPong)
-			if timeSinceLastPong > 120*time.Second { // 2 minutos sem pong
+			if timeSinceLastPong > 600*time.Second { // 10 minutos sem pong
 				log.Printf("🚨 Cliente %s não responde a ping há %v - removendo", 
 					client.remoteAddr, timeSinceLastPong)
 				client.isHealthy = false

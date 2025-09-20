@@ -87,10 +87,12 @@ const BASE_PORTA_JUSANTE_CONFIG = {
 
 const EclusaRegua: React.FC = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [containerDimensions, setContainerDimensions] = React.useState({ width: 0, height: 0 });
   const [windowDimensions, setWindowDimensions] = React.useState({ width: 0, height: 0 });
   const [paredeOffsetPercent] = React.useState(-50.5); // Posição ajustada para encaixe perfeito
   const [showTrendDialog, setShowTrendDialog] = React.useState(false);
+  const [currentCardIndex, setCurrentCardIndex] = React.useState(0);
   
   const caldeiraScale = 99.4;
   
@@ -110,7 +112,7 @@ const EclusaRegua: React.FC = () => {
   
   
   // 📡 USAR O SISTEMA PLC EXISTENTE (sem criar nova conexão!)
-  const { data: plcData, connectionStatus } = usePLC();
+  const { data: plcData } = usePLC();
   
   // Extrair dados reais dos níveis do PLC (do sistema existente)
   const nivelJusante = plcData?.reals?.[107] || 0;    // NIV.NIV_JUSANTE_COTA (índice 107)
@@ -182,6 +184,45 @@ const EclusaRegua: React.FC = () => {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
+  // Funções de navegação melhoradas
+  const scrollToCard = (index: number) => {
+    if (scrollContainerRef.current) {
+      const cardWidth = scrollContainerRef.current.clientWidth;
+      scrollContainerRef.current.scrollTo({
+        left: index * cardWidth,
+        behavior: 'smooth'
+      });
+      setCurrentCardIndex(index);
+    }
+  };
+
+  const nextCard = () => {
+    const nextIndex = (currentCardIndex + 1) % 3;
+    scrollToCard(nextIndex);
+  };
+
+  const prevCard = () => {
+    const prevIndex = currentCardIndex === 0 ? 2 : currentCardIndex - 1;
+    scrollToCard(prevIndex);
+  };
+
+  // Detectar scroll no mobile
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, clientWidth } = scrollContainerRef.current;
+      const cardIndex = Math.round(scrollLeft / clientWidth);
+      setCurrentCardIndex(cardIndex);
+    }
+  };
+
+  // Auto-scroll indicators
+  React.useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+      return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
 
   // Cálculo das proporções baseado nos viewBoxes originais
   const caldeiraAspectRatio = 1168 / 253; // width/height do Caldeira_Eclusa.svg
@@ -202,11 +243,11 @@ const EclusaRegua: React.FC = () => {
   // Calcular offset em pixels baseado na porcentagem da altura da caldeira
   const paredeOffsetPx = (caldeiraHeight * paredeOffsetPercent) / 100;
 
-  // SEMPRE 3 ÁREAS FIXAS - RESPONSIVAS EM LARGURA
+  // Detectar se é mobile
+  const isMobile = windowDimensions.width < 768;
+
+  // ÁREA DE CONTROLE COM SCROLL MOBILE MELHORADO
   const calculateControlAreas = () => {
-    // SEMPRE 3 áreas em 1 linha - simples e direto
-    const rows = 1;
-    const cols = 3; 
     const areas = 3;
     
     // Altura fixa baseada no tamanho da tela
@@ -214,62 +255,120 @@ const EclusaRegua: React.FC = () => {
     if (windowDimensions.height > 800) areaHeight = 180;
     if (windowDimensions.height > 1000) areaHeight = 200;
     
-    return { rows, cols, areas, areaHeight };
+    return { areas, areaHeight };
   };
 
   const controlLayout = calculateControlAreas();
   
+  // Cards data
+  const cards = [
+    { component: EclusaStatusCard, title: "Status da Eclusa" },
+    { component: NiveisChart, title: "Níveis" },
+    { component: VelocidadeRadares, title: "Radares" }
+  ];
 
   return (
     <main className="flex-1 relative min-h-0">
       
       <div className="w-full h-full flex flex-col items-center min-h-0">
         
-        {/* ÁREAS TRACEJADAS VAZIAS PARA FUTURO CONTEÚDO */}
+        {/* ÁREAS DE CONTROLE COM SCROLL HORIZONTAL MELHORADO */}
         <div className="w-full max-w-[1920px] mb-8">
-          <div 
-            className={`grid gap-4`}
-            style={{
-              gridTemplateColumns: `repeat(${controlLayout.cols}, 1fr)`,
-              gridTemplateRows: `repeat(${controlLayout.rows}, ${controlLayout.areaHeight}px)`
-            }}
-          >
-            {Array.from({ length: controlLayout.areas }, (_, index) => (
-              <div key={index}>
-                {index === 0 ? (
-                  // Área 1: Card de Status da Eclusa
-                  <EclusaStatusCard height={controlLayout.areaHeight} />
-                ) : index === 1 ? (
-                  // Área 2: Gráfico de Níveis
-                  <NiveisChart height={controlLayout.areaHeight} />
-                ) : index === 2 ? (
-                  // Área 3: Velocidade dos Radares
-                  <VelocidadeRadares height={controlLayout.areaHeight} />
-                ) : (
-                  // Outras áreas: Placeholders
-                  <div 
-                    className="border-2 border-dashed border-gray-400 rounded-2xl p-4 flex items-center justify-center text-center text-gray-600 transition-all duration-200 hover:border-gray-500"
-                    style={{ height: `${controlLayout.areaHeight}px` }}
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                      </svg>
-                      <p className={`font-medium ${
-                        windowDimensions.width < 768 ? 'text-xs' : 
-                        windowDimensions.width < 1024 ? 'text-sm' : 'text-base'
-                      }`}>
-                        Área de Controle {index + 1}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Pronta para conteúdo
-                      </p>
+          {isMobile ? (
+            // Layout mobile: scroll horizontal moderno com snap
+            <div className="relative">
+              
+              {/* Container de scroll com snap */}
+              <div 
+                ref={scrollContainerRef}
+                className="flex overflow-x-auto snap-x snap-mandatory"
+                style={{ 
+                  scrollbarWidth: 'none', 
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                <style>{`
+                  div::-webkit-scrollbar {
+                    display: none;
+                  }
+                `}</style>
+                
+                {cards.map((card, index) => {
+                  const Component = card.component;
+                  return (
+                    <div 
+                      key={index}
+                      className="flex-shrink-0 w-full snap-center px-4"
+                    >
+                      <Component height={controlLayout.areaHeight} />
                     </div>
-                  </div>
-                )}
+                  );
+                })}
               </div>
-            ))}
-          </div>
+
+              {/* Setas de navegação modernas - posicionadas fora dos cards */}
+              <button
+                onClick={prevCard}
+                className="absolute -left-14 top-1/2 transform -translate-y-1/2 z-20 bg-white/70 backdrop-blur-sm text-slate-600 p-2 rounded-full shadow-md hover:bg-white/90 hover:text-slate-800 hover:scale-105 transition-all duration-300 border border-gray-300"
+                style={{ height: '36px', width: '36px' }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+
+              <button
+                onClick={nextCard}
+                className="absolute -right-14 top-1/2 transform -translate-y-1/2 z-20 bg-white/70 backdrop-blur-sm text-slate-600 p-2 rounded-full shadow-md hover:bg-white/90 hover:text-slate-800 hover:scale-105 transition-all duration-300 border border-gray-300"
+                style={{ height: '36px', width: '36px' }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              {/* Indicadores modernos com animação */}
+              <div className="flex justify-center mt-4 gap-2">
+                {cards.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => scrollToCard(index)}
+                    className={`transition-all duration-300 rounded-full ${
+                      index === currentCardIndex
+                        ? 'w-8 h-2 bg-slate-700'
+                        : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Título do card atual */}
+              <div className="text-center mt-3">
+                <h3 className="text-sm font-medium text-gray-600">
+                  {cards[currentCardIndex]?.title}
+                </h3>
+              </div>
+            </div>
+          ) : (
+            // Layout desktop: grid tradicional
+            <div 
+              className="grid gap-4"
+              style={{
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gridTemplateRows: `${controlLayout.areaHeight}px`
+              }}
+            >
+              {cards.map((card, index) => {
+                const Component = card.component;
+                return (
+                  <div key={index}>
+                    <Component height={controlLayout.areaHeight} />
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div 
@@ -290,7 +389,6 @@ const EclusaRegua: React.FC = () => {
                 height: `${(caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * 0.56}px` // 55% da altura original
               }}
             >
-              {/* Elementos de debug removidos */}
               {/* Caldeira - Posição superior */}
               <div 
                 className="absolute top-0 left-1/2 transform -translate-x-1/2 cursor-pointer"

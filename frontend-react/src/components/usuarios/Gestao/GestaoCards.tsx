@@ -32,28 +32,28 @@ export const GestaoCards: React.FC<GestaoCardsProps> = ({
       value: totalSobGestao,
       description: 'Usuários que você pode gerenciar',
       icon: UserGroupIcon,
-      color: 'bg-gray-600'
+      status: 'info' as const
     },
     {
       title: 'Usuários Ativos',
       value: usuariosAtivos,
       description: `Taxa de ${taxaAtivos}% do total`,
       icon: ShieldCheckIcon,
-      color: 'bg-gray-700'
+      status: 'success' as const
     },
     {
       title: 'Cargos Diferentes',
       value: manageableCargos.length,
       description: 'Níveis de hierarquia',
       icon: ChartBarIcon,
-      color: 'bg-gray-600'
+      status: 'info' as const
     },
     {
       title: 'Eclusas Ativas',
       value: totalEclusas,
       description: 'Localizações em operação',
       icon: BuildingOfficeIcon,
-      color: 'bg-gray-700'
+      status: 'warning' as const
     }
   ];
 
@@ -83,10 +83,9 @@ export const GestaoCards: React.FC<GestaoCardsProps> = ({
               {card.description}
             </p>
             
-            {/* Indicador visual simples */}
             <div className="mt-4 w-full bg-gray-200 rounded-full h-1">
               <div 
-                className={`h-1 rounded-full ${card.color} transition-all duration-1000 ease-out`}
+                className={`h-1 rounded-full ${card.status === 'success' ? 'bg-green-600' : card.status === 'warning' ? 'bg-yellow-600' : 'bg-gray-600'} transition-all duration-1000 ease-out`}
                 style={{
                   width: `${Math.min(100, (card.value || 0) * (index === 2 || index === 3 ? 10 : 5))}%`
                 }}

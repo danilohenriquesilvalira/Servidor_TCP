@@ -1,93 +1,151 @@
 import React from 'react';
+import { AreaChart, Area, ResponsiveContainer, Tooltip, YAxis } from 'recharts';
 import { usePLC } from '../../../contexts/PLCContext';
 
-interface VelocidadeRadaresProps {
+interface RadarChartProps {
   height?: number;
 }
 
-const VelocidadeRadares: React.FC<VelocidadeRadaresProps> = ({ height = 180 }) => {
-  const { data: plcData, connectionStatus } = usePLC();
+const RadarChart: React.FC<RadarChartProps> = ({ height = 200 }) => {
+  const { data: plcData } = usePLC();
   
   // Valores dos radares de velocidade em m/s
   const jusante = Number(plcData?.reals?.[116]) || 0;   // Radar Jusante
   const montante = Number(plcData?.reals?.[117]) || 0;  // Radar Montante  
   const caldeira = Number(plcData?.reals?.[118]) || 0;  // Radar Caldeira
 
-  // Responsividade baseada na altura
-  const isSmall = height < 160;
+  // Histórico de dados reais dos radares
+  const [historyData, setHistoryData] = React.useState<Array<{time: number, jusante: number, montante: number, caldeira: number}>>([]);
 
-  // Velocidade máxima para escala (ajustar conforme necessário)
-  const maxVelocidade = 10; // 10 m/s como máximo para a barra
+  // Atualizar histórico com valores reais do PLC
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      setHistoryData(prev => {
+        const newData = [...prev, {
+          time: now,
+          jusante: jusante,
+          montante: montante,
+          caldeira: caldeira
+        }].slice(-30); // Manter apenas os últimos 30 pontos
+        return newData;
+      });
+    }, 1000); // Atualizar a cada segundo
+
+    return () => clearInterval(interval);
+  }, [jusante, montante, caldeira]);
+
+  // Dados para o gráfico (apenas valores reais)
+  const chartData = React.useMemo(() => {
+    return historyData.map((point, index) => ({
+      time: index,
+      jusante: point.jusante,
+      montante: point.montante,
+      caldeira: point.caldeira
+    }));
+  }, [historyData]);
+
+  // Tooltip customizado
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
+          <p className="text-xs font-medium text-gray-600 mb-2">Ponto {label}</p>
+          {payload.map((entry: any, index: number) => (
+            <div key={index} className="flex items-center gap-2 text-xs">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: entry.color }}
+              ></div>
+              <span className="font-medium capitalize">{entry.dataKey}:</span>
+              <span className="font-bold">{entry.value.toFixed(1)}m/s</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div 
-      className={`bg-gray-200 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 ${
-        isSmall ? 'p-3' : 'p-6'
-      }`}
+      className="bg-gray-200 rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col"
       style={{ height: `${height}px` }}
     >
-      <div className="h-full flex flex-col">
-        
-        <div className={isSmall ? 'mb-1' : 'mb-2'}>
+      {/* Header azul - retângulo para ícone e título */}
+      <div className="bg-slate-700 text-white px-4 py-2">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <svg className={`${isSmall ? 'w-3 h-3' : 'w-4 h-4'} text-gray-600`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-4 h-4 ${plcData ? 'text-green-400' : 'text-red-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
-            <h4 className={`${isSmall ? 'text-xs' : 'text-sm'} font-medium text-gray-600`}>
-              Radares
-            </h4>
-          </div>
-        </div>
-        
-        <div className={`flex-1 flex flex-col justify-center ${isSmall ? 'space-y-1' : 'space-y-2'}`}>
-          
-          {/* Radar Jusante */}
-          <div>
-            <div className={`flex justify-between items-center ${isSmall ? 'mb-0' : 'mb-1'}`}>
-              <span className={`${isSmall ? 'text-xs' : 'text-sm'} font-medium text-gray-800`}>Jusante</span>
-              <span className={`${isSmall ? 'text-xs' : 'text-sm'} font-medium text-gray-800`} style={isSmall ? { fontSize: '10px' } : {}}>{isSmall ? `${jusante.toFixed(1)}` : `${jusante.toFixed(1)} m/s`}</span>
-            </div>
-            <div className="w-full bg-gray-300 rounded-full h-1">
-              <div 
-                className="h-1 rounded-full bg-gray-600 transition-all duration-1000 ease-out"
-                style={{ width: `${Math.min((jusante / maxVelocidade) * 100, 100)}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Radar Montante */}
-          <div>
-            <div className={`flex justify-between items-center ${isSmall ? 'mb-0' : 'mb-1'}`}>
-              <span className={`${isSmall ? 'text-xs' : 'text-sm'} font-medium text-gray-800`}>Montante</span>
-              <span className={`${isSmall ? 'text-xs' : 'text-sm'} font-medium text-gray-800`} style={isSmall ? { fontSize: '10px' } : {}}>{isSmall ? `${montante.toFixed(1)}` : `${montante.toFixed(1)} m/s`}</span>
-            </div>
-            <div className="w-full bg-gray-300 rounded-full h-1">
-              <div 
-                className="h-1 rounded-full bg-gray-600 transition-all duration-1000 ease-out"
-                style={{ width: `${Math.min((montante / maxVelocidade) * 100, 100)}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Radar Caldeira */}
-          <div>
-            <div className={`flex justify-between items-center ${isSmall ? 'mb-0' : 'mb-1'}`}>
-              <span className={`${isSmall ? 'text-xs' : 'text-sm'} font-medium text-gray-800`}>Caldeira</span>
-              <span className={`${isSmall ? 'text-xs' : 'text-sm'} font-medium text-gray-800`} style={isSmall ? { fontSize: '10px' } : {}}>{isSmall ? `${caldeira.toFixed(1)}` : `${caldeira.toFixed(1)} m/s`}</span>
-            </div>
-            <div className="w-full bg-gray-300 rounded-full h-1">
-              <div 
-                className="h-1 rounded-full bg-gray-600 transition-all duration-1000 ease-out"
-                style={{ width: `${Math.min((caldeira / maxVelocidade) * 100, 100)}%` }}
-              />
-            </div>
+            <h4 className="text-sm font-medium">Radares de Velocidade</h4>
           </div>
           
+          {/* Valores no header - lado direito */}
+          <div className="flex items-center gap-3 text-xs">
+            <div className="text-center">
+              <div className="text-gray-300">Jus</div>
+              <div className="font-bold text-green-400">{jusante.toFixed(1)}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-gray-300">Mon</div>
+              <div className="font-bold text-green-400">{montante.toFixed(1)}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-gray-300">Cal</div>
+              <div className="font-bold text-green-400">{caldeira.toFixed(1)}</div>
+            </div>
+          </div>
         </div>
-        
+      </div>
+
+      {/* Gráfico preenchendo todo o espaço restante */}
+      <div className="flex-1 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="colorCaldeiraRadar" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#7C9599" stopOpacity={0.6}/>
+                <stop offset="95%" stopColor="#7C9599" stopOpacity={0.1}/>
+              </linearGradient>
+              <linearGradient id="colorMontanteRadar" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#28FF52" stopOpacity={0.7}/>
+                <stop offset="95%" stopColor="#28FF52" stopOpacity={0.1}/>
+              </linearGradient>
+              <linearGradient id="colorJusanteRadar" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#6D32FF" stopOpacity={0.7}/>
+                <stop offset="95%" stopColor="#6D32FF" stopOpacity={0.1}/>
+              </linearGradient>
+            </defs>
+            <YAxis domain={[0, 5]} hide />
+            <Tooltip content={<CustomTooltip />} />
+            <Area
+              type="monotone"
+              dataKey="caldeira"
+              stroke="#7C9599"
+              strokeWidth={2.5}
+              fill="url(#colorCaldeiraRadar)"
+            />
+            <Area
+              type="monotone"
+              dataKey="montante"
+              stroke="#28FF52"
+              strokeWidth={3}
+              fill="url(#colorMontanteRadar)"
+            />
+            <Area
+              type="monotone"
+              dataKey="jusante"
+              stroke="#6D32FF"
+              strokeWidth={3}
+              fill="url(#colorJusanteRadar)"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
 };
 
-export default VelocidadeRadares;
+export default RadarChart;
