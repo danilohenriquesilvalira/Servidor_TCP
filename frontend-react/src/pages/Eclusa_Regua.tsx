@@ -9,6 +9,7 @@ import EclusaStatusCard from '../components/Eclusa/caldeira/EclusaStatusCard';
 import NiveisChart from '../components/Eclusa/caldeira/NiveisChart';
 import VelocidadeRadares from '../components/Eclusa/caldeira/VelocidadeRadares';
 import TrendDialog from '../components/Eclusa/caldeira/TrendDialog';
+import TubulacaoValvulas from '../components/Eclusa/caldeira/TubulacaoValvulas';
 import { usePLC } from '../contexts/PLCContext';
 
 // 🎯 CONFIGURAÇÕES DOS COMPONENTES DE NÍVEL - Edite aqui para salvar permanentemente
@@ -85,6 +86,15 @@ const BASE_PORTA_JUSANTE_CONFIG = {
   heightPercent: 36.3,      // % da altura total (tamanho inicial)
 };
 
+// 🔧 CONFIGURAÇÃO DA TUBULAÇÃO E VÁLVULAS
+const TUBULACAO_CONFIG = {
+  verticalPercent: 37.2,    // % da altura total (posição Y)
+  horizontalPercent: 5,   // % da largura total (posição X)
+  widthPercent: 90,       // % da largura total (tamanho)
+  heightPercent: 22,      // % da altura total (tamanho)
+};
+
+
 const EclusaRegua: React.FC = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
@@ -121,6 +131,7 @@ const EclusaRegua: React.FC = () => {
   const semaforo4Config = SEMAFORO_CONFIG.semaforo4;
   
   const basePortaJusanteConfig = BASE_PORTA_JUSANTE_CONFIG;
+  const tubulacaoConfig = TUBULACAO_CONFIG;
   
   
   // 📡 USAR O SISTEMA PLC EXISTENTE (sem criar nova conexão!)
@@ -138,15 +149,30 @@ const EclusaRegua: React.FC = () => {
   // Extrair dados dos semáforos do PLC (bit_data.status_bits)
   const statusBits = plcData?.bit_data?.status_bits || [];
   
+  // Função para calcular word e bit de uma posição (reutilizável)
+  const getBitFromPosition = (position: number) => {
+    const wordIndex = Math.floor(position / 16);  // posição ÷ 16
+    const bitIndex = position % 16;              // posição % 16
+    const wordData = statusBits[wordIndex] || [];
+    return wordData[bitIndex] || false;
+  };
+  
+  // Extrair bits das válvulas da tubulação do PLC - USANDO A FUNÇÃO CORRETA
+  const bitMontanteCaldeira = getBitFromPosition(132); // Bit 132 - Word 8 Bit 4
+  const bitCaldeiraJusante = getBitFromPosition(133);  // Bit 133 - Word 8 Bit 5
+  
+  // Debug - verificar se os bits estão sendo extraídos corretamente
+  console.log('🔧 Debug Tubulação - Status:', {
+    statusBitsLength: statusBits.length,
+    word8: statusBits[8] || [],
+    bitMontanteCaldeira: bitMontanteCaldeira,
+    bitCaldeiraJusante: bitCaldeiraJusante,
+    bit132_calc: getBitFromPosition(132),
+    bit133_calc: getBitFromPosition(133)
+  });
+  
   // Função para obter o estado dos LEDs de cada semáforo
   const getSemaforoLeds = (semaforoNum: number) => {
-    // Função para calcular word e bit de uma posição
-    const getBitFromPosition = (position: number) => {
-      const wordIndex = Math.floor(position / 16);  // posição ÷ 16
-      const bitIndex = position % 16;              // posição % 16
-      const wordData = statusBits[wordIndex] || [];
-      return wordData[bitIndex] || false;
-    };
     
     // Mapeamento individual de cada LED:
     // Semafaro_verde_1: 151, Semafaro_vermelho_1: 152
@@ -669,6 +695,25 @@ const EclusaRegua: React.FC = () => {
                   />
                 </svg>
               </div>
+
+              {/* Componente Tubulação e Válvulas - Dados reais do PLC */}
+              <div 
+                className="absolute transition-all duration-200 ease-in-out"
+                style={{
+                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * tubulacaoConfig.verticalPercent) / 100}px`,
+                  left: `${(maxWidth * tubulacaoConfig.horizontalPercent) / 100}px`,
+                  width: `${(maxWidth * tubulacaoConfig.widthPercent) / 100}px`,
+                  height: `${((caldeiraHeight + paredeHeight) * tubulacaoConfig.heightPercent) / 100}px`,
+                  zIndex: 20 // Mais alto que todos os outros componentes
+                }}
+              >
+                <TubulacaoValvulas 
+                  bitMontanteCaldeira={bitMontanteCaldeira}
+                  bitCaldeiraJusante={bitCaldeiraJusante}
+                  editMode={false}
+                />
+              </div>
+
             </div>
           ) : (
             /* Placeholder para evitar flash de redimensionamento */
