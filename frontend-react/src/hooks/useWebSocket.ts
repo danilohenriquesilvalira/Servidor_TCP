@@ -21,8 +21,8 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
-  const maxReconnectAttempts = 20; // Mais tentativas
-  const reconnectDelay = 3000; // Delay menor
+  const maxReconnectAttempts = 5; // Reduzido de 20 para 5 (menos agressivo)
+  const reconnectDelay = 8000; // Aumentado de 3s para 8s (mais respeitoso)
   const isPageVisibleRef = useRef(true);
 
   const connect = useCallback(() => {
@@ -84,10 +84,10 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
           connected: false,
         }));
 
-        // Tentar reconectar automaticamente com backoff mais suave
+        // Tentar reconectar automaticamente com backoff exponencial mais inteligente
         if (reconnectAttemptsRef.current < maxReconnectAttempts) {
           reconnectAttemptsRef.current += 1;
-          const delay = Math.min(reconnectDelay * Math.pow(1.2, reconnectAttemptsRef.current - 1), 15000); // Crescimento mais suave
+          const delay = Math.min(reconnectDelay * Math.pow(1.5, reconnectAttemptsRef.current - 1), 30000); // Backoff mais respeitoso
           console.log(`Tentativa de reconexão ${reconnectAttemptsRef.current}/${maxReconnectAttempts} em ${delay}ms`);
           
           reconnectTimeoutRef.current = setTimeout(() => {
@@ -172,7 +172,7 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
       }
     };
 
-    const statusInterval = setInterval(fetchStatus, 5000); // Menos frequente
+    const statusInterval = setInterval(fetchStatus, 15000); // Reduzido de 5s para 15s (mais eficiente)
     return () => clearInterval(statusInterval);
   }, []);
 
@@ -187,8 +187,8 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
       }
     };
 
-    // Conectar após um pequeno delay para evitar conexões simultâneas
-    const timer = setTimeout(autoConnect, 100);
+    // Conectar após um delay maior para evitar conexões simultâneas
+    const timer = setTimeout(autoConnect, 500); // Aumentado de 100ms para 500ms
     
     return () => {
       isActive = false;

@@ -306,6 +306,71 @@ const EclusaRegua: React.FC = () => {
   // Detectar se é mobile
   const isMobile = windowDimensions.width < 768;
 
+  // 🎯 CÁLCULO CORRETO - ESPAÇO APÓS A PAREDE DA ECLUSA (ÚLTIMO COMPONENTE)
+  const calculateVerticalSpace = () => {
+    const { width, height } = windowDimensions;
+    const cardsHeight = controlLayout.areaHeight;
+    
+    // 📊 CÁLCULO REAL DAS POSIÇÕES DOS COMPONENTES
+    const headerHeight = 64; // Header fixo
+    
+    // Posição real da parede (último componente visual)
+    const paredeBottomPosition = caldeiraHeight + paredeOffsetPx + paredeHeight;
+    
+    // Espaço usado até agora: header + cards + posição final da parede
+    const usedSpaceUntilWall = headerHeight + cardsHeight + paredeBottomPosition;
+    
+    // 📐 ESPAÇO REALMENTE DISPONÍVEL APÓS A PAREDE
+    const realAvailableSpace = height - usedSpaceUntilWall;
+    const freeAreaHeight = Math.max(20, realAvailableSpace); // Mínimo 20px
+
+    // 🔍 DEBUG - Log dos cálculos
+    console.log('📐 Cálculo de espaço vertical:', {
+      altura_janela: height,
+      largura_janela: width,
+      header: headerHeight,
+      cards: cardsHeight,
+      caldeira: caldeiraHeight,
+      parede_offset: paredeOffsetPx,
+      parede_altura: paredeHeight,
+      parede_bottom: paredeBottomPosition,
+      espaco_usado: usedSpaceUntilWall,
+      espaco_livre: freeAreaHeight
+    });
+    
+    // 🔍 CLASSIFICAÇÃO POR ALTURA
+    let screenType = '';
+    if (height <= 480) screenType = 'Muito Baixa';
+    else if (height <= 640) screenType = 'Baixa';
+    else if (height <= 800) screenType = 'Média';
+    else if (height <= 1024) screenType = 'Alta';
+    else if (height <= 1366) screenType = 'Muito Alta';
+    else screenType = 'Gigante';
+    
+    // 📋 PERCENTUAIS REAIS
+    const utilizationPercent = Math.round((usedSpaceUntilWall / height) * 100);
+    const freePercent = Math.round((freeAreaHeight / height) * 100);
+    
+    return {
+      freeAreaHeight,
+      eclusaHeight: paredeBottomPosition, // Altura real até o fim da parede
+      screenType,
+      aspectRatio: Math.round((width / height) * 100) / 100,
+      orientation: width / height < 1 ? 'Portrait' : 'Landscape',
+      utilizationPercent,
+      freePercent,
+      paredeBottomPosition, // Nova propriedade para debug
+      breakdown: {
+        total: height,
+        cards: cardsHeight,
+        eclusa: paredeBottomPosition,
+        header: headerHeight,
+        margins: 0,
+        free: freeAreaHeight
+      }
+    };
+  };
+
   // ÁREA DE CONTROLE COM SCROLL MOBILE MELHORADO
   const calculateControlAreas = () => {
     const areas = 3;
@@ -319,6 +384,7 @@ const EclusaRegua: React.FC = () => {
   };
 
   const controlLayout = calculateControlAreas();
+  const verticalSpace = calculateVerticalSpace();
   
   // Cards data
   const cards = [
@@ -328,9 +394,7 @@ const EclusaRegua: React.FC = () => {
   ];
 
   return (
-    <main className="flex-1 relative min-h-0">
-      
-      <div className="w-full h-full flex flex-col items-center min-h-0">
+    <div className="w-full h-auto flex flex-col items-center">
         
         {/* ÁREAS DE CONTROLE COM SCROLL HORIZONTAL MELHORADO */}
         <div className="w-full max-w-[1920px] mb-8">
@@ -452,7 +516,7 @@ const EclusaRegua: React.FC = () => {
               className="relative w-full flex flex-col items-center"
               style={{
                 maxWidth: `${maxWidth}px`,
-                height: `${(caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * 0.56}px` // 55% da altura original
+                height: `${verticalSpace.eclusaHeight}px` // Altura calculada dinamicamente
               }}
             >
               {/* Caldeira - Posição superior */}
@@ -729,16 +793,15 @@ const EclusaRegua: React.FC = () => {
           )}
 
         </div>
-        
 
-      </div>
+
 
       {/* Dialog de Trend */}
       <TrendDialog 
         isOpen={showTrendDialog}
         onClose={() => setShowTrendDialog(false)}
       />
-    </main>
+    </div>
   );
 };
 

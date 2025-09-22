@@ -15,10 +15,7 @@ const TagsViewer: React.FC = () => {
 
   const isExpanded = (section: string) => expandedSections.includes(section);
 
-  // Debug para ver o que está chegando
-  console.log('PLC Data completo:', plcData);
-  console.log('Bit Data:', plcData?.bit_data);
-  console.log('Status Bits:', plcData?.bit_data?.status_bits);
+  // Debug removido para evitar spam no console e rate limiting
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">

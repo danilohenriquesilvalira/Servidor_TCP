@@ -37,11 +37,28 @@ func (s *Server) handlePLCConnection(conn net.Conn) {
 		log.Printf("🔌 PLC desconectado: %s | PLCs ativos: %d", conn.RemoteAddr(), s.GetPLCCount())
 	}()
 
+	// FILTRO DE SEGURANÇA: Apenas IP do PLC real é permitido
+	remoteAddr := conn.RemoteAddr().String()
+	allowedPLCIP := "192.168.1.33" // SEU PLC REAL
+	
+	// Extrair apenas o IP (sem porta)
+	if host, _, err := net.SplitHostPort(remoteAddr); err == nil {
+		if host != allowedPLCIP {
+			log.Printf("🚨 CONEXÃO REJEITADA - IP não autorizado: %s (permitido: %s)", host, allowedPLCIP)
+			return
+		}
+	} else {
+		log.Printf("🚨 CONEXÃO REJEITADA - Endereço inválido: %s", remoteAddr)
+		return
+	}
+	
+	log.Printf("✅ PLC autorizado conectado: %s", remoteAddr)
+
 	buffer := make([]byte, 4096)
 
 	for {
-		// Timeout de 30 segundos para leitura
-		conn.SetReadDeadline(time.Now().Add(30 * time.Second))
+		// Timeout de 120 segundos para leitura (mais generoso para PLC industrial)
+		conn.SetReadDeadline(time.Now().Add(120 * time.Second))
 
 		n, err := conn.Read(buffer)
 		if err != nil {

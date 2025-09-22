@@ -64,9 +64,9 @@ func NewWSClient(conn *websocket.Conn, remoteAddr, userAgent string) *WSClient {
 	return &WSClient{
 		conn:         conn,
 		send:         make(chan []byte, 2000), // Buffer ainda maior
-		rateLimit:    100 * time.Millisecond,  // Máximo 10 msgs/segundo por cliente
+		rateLimit:    10 * time.Millisecond,   // Otimizado para 1328 bytes - mais rápido
 		isHealthy:    true,
-		maxSlowCount: 50, // Máximo 50 respostas lentas antes de desconectar (mais tolerante)
+		maxSlowCount: 100, // Mais tolerante para dados de 1328 bytes
 		writeTimeout: 60 * time.Second,
 		readTimeout:  300 * time.Second, // 5 minutos para mobile
 		pingInterval: 45 * time.Second,  // Menos frequente para mobile
