@@ -96,9 +96,11 @@ const RadarChart: React.FC<RadarChartProps> = ({ height = 200 }) => {
       <div className="bg-slate-700 text-white px-4 py-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <svg className={`w-4 h-4 ${plcData ? 'text-green-400' : 'text-red-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-            </svg>
+            <div className="bg-edp-electric rounded px-1.5 py-1 flex items-center justify-center">
+              <svg className="w-4 h-4 text-edp-marine" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+            </div>
             <h4 className="text-sm font-medium">Radares de Velocidade</h4>
           </div>
           
@@ -130,16 +132,16 @@ const RadarChart: React.FC<RadarChartProps> = ({ height = 200 }) => {
           <AreaChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="colorCaldeiraRadar" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#7C9599" stopOpacity={0.6}/>
-                <stop offset="95%" stopColor="#7C9599" stopOpacity={0.1}/>
+                <stop offset="0%" stopColor="#7C9599" stopOpacity={0.4}/>
+                <stop offset="100%" stopColor="#90A5A8" stopOpacity={0.1}/>
               </linearGradient>
               <linearGradient id="colorMontanteRadar" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#28FF52" stopOpacity={0.7}/>
-                <stop offset="95%" stopColor="#28FF52" stopOpacity={0.1}/>
+                <stop offset="0%" stopColor="#0CD3F8" stopOpacity={0.4}/>
+                <stop offset="100%" stopColor="#3DDCF9" stopOpacity={0.1}/>
               </linearGradient>
               <linearGradient id="colorJusanteRadar" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#6D32FF" stopOpacity={0.7}/>
-                <stop offset="95%" stopColor="#6D32FF" stopOpacity={0.1}/>
+                <stop offset="0%" stopColor="#263CC8" stopOpacity={0.4}/>
+                <stop offset="100%" stopColor="#4759D0" stopOpacity={0.1}/>
               </linearGradient>
             </defs>
             <YAxis domain={[0, 5]} hide />
@@ -153,22 +155,25 @@ const RadarChart: React.FC<RadarChartProps> = ({ height = 200 }) => {
               type="monotone"
               dataKey="caldeira"
               stroke="#7C9599"
-              strokeWidth={2.5}
+              strokeWidth={2}
               fill="url(#colorCaldeiraRadar)"
+              connectNulls={false}
             />
             <Area
               type="monotone"
               dataKey="montante"
-              stroke="#28FF52"
-              strokeWidth={3}
+              stroke="#0CD3F8"
+              strokeWidth={2}
               fill="url(#colorMontanteRadar)"
+              connectNulls={false}
             />
             <Area
               type="monotone"
               dataKey="jusante"
-              stroke="#6D32FF"
-              strokeWidth={3}
+              stroke="#263CC8"
+              strokeWidth={2}
               fill="url(#colorJusanteRadar)"
+              connectNulls={false}
             />
           </AreaChart>
         </ResponsiveContainer>
