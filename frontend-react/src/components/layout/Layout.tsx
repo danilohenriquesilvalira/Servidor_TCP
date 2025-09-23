@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 
@@ -33,7 +33,10 @@ export const Layout = ({ children }: LayoutProps) => {
         <main className="flex-1 overflow-hidden bg-edp-neutral-white-wash">
           <div className="h-full overflow-y-auto">
             <div className="w-full max-w-full p-4 lg:p-6 h-full">
-              {children}
+              {typeof children === 'object' && children && 'type' in children ? 
+                React.cloneElement(children as React.ReactElement, { sidebarOpen: isSidebarOpen }) : 
+                children
+              }
             </div>
           </div>
         </main>

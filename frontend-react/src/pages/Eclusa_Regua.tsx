@@ -94,8 +94,11 @@ const TUBULACAO_CONFIG = {
   heightPercent: 22,      // % da altura total (tamanho)
 };
 
+interface EclusaReguaProps {
+  sidebarOpen?: boolean; // Prop para detectar estado do sidebar
+}
 
-const EclusaRegua: React.FC = () => {
+const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [containerDimensions, setContainerDimensions] = React.useState(() => {
@@ -304,7 +307,7 @@ const EclusaRegua: React.FC = () => {
   const paredeOffsetPx = (caldeiraHeight * paredeOffsetPercent) / 100;
 
   // Detectar se é mobile
-  const isMobile = windowDimensions.width < 768;
+  const isMobile = windowDimensions.width < 1024;
 
   // 🎯 CÁLCULO CORRETO - ESPAÇO APÓS A PAREDE DA ECLUSA (ÚLTIMO COMPONENTE)
   const calculateVerticalSpace = () => {
@@ -385,6 +388,60 @@ const EclusaRegua: React.FC = () => {
 
   const controlLayout = calculateControlAreas();
   const verticalSpace = calculateVerticalSpace();
+
+  // 🟢 CÁLCULO DO TRACEJADO RESPONSIVO - CENTRALIZADO E ALINHADO COM OS CARDS
+  const calculateTracejado = () => {
+    if (verticalSpace.freeAreaHeight < 50) return null; // Não mostrar se muito pequeno
+    
+    const { width, height } = windowDimensions;
+    const headerHeight = 64;
+    const contentPadding = isMobile ? 16 : 32;
+    const margemAposEclusa = isMobile ? 60 : 20; // Margem maior no mobile para afastar do componente
+    
+    let tracejadoX, tracejadoWidth, alturaMaxima;
+    
+    if (isMobile) {
+      // MOBILE: alinhado com a área dos cards no mobile
+      const mobileBottomNav = 64;
+      tracejadoX = contentPadding;
+      tracejadoWidth = width - (contentPadding * 2);
+      alturaMaxima = height - mobileBottomNav - headerHeight - contentPadding;
+    } else {
+      // DESKTOP: alinhado exatamente com os cards
+      const sidebarWidth = sidebarOpen ? 256 : 64;
+      const availableWidth = width - sidebarWidth - (contentPadding * 2);
+      const containerMaxWidth = Math.min(availableWidth, 1920);
+      
+      // Calcular posição X exata - mesmo cálculo que os cards usam
+      const centeredX = sidebarWidth + contentPadding + ((availableWidth - containerMaxWidth) / 2);
+      
+      tracejadoX = centeredX;
+      tracejadoWidth = containerMaxWidth;
+      alturaMaxima = height - headerHeight - contentPadding;
+    }
+    
+    // Calcular posição Y considerando mobile vs desktop
+    let tracejadoY;
+    if (isMobile) {
+      // MOBILE: usar a posição real da parede + margem
+      tracejadoY = headerHeight + contentPadding + verticalSpace.breakdown.cards + verticalSpace.paredeBottomPosition + margemAposEclusa;
+    } else {
+      // DESKTOP: usar o cálculo original
+      tracejadoY = headerHeight + contentPadding + verticalSpace.breakdown.cards + verticalSpace.breakdown.eclusa + margemAposEclusa;
+    }
+    const espacoRestante = alturaMaxima - (verticalSpace.breakdown.cards + verticalSpace.breakdown.eclusa + margemAposEclusa);
+    const tracejadoHeight = Math.max(40, Math.min(verticalSpace.freeAreaHeight - 40, espacoRestante - 20));
+    
+    return {
+      x: tracejadoX,
+      y: tracejadoY,
+      width: tracejadoWidth,
+      height: tracejadoHeight,
+      show: tracejadoHeight > 40
+    };
+  };
+
+  const tracejado = calculateTracejado();
   
   // Cards data
   const cards = [
@@ -794,7 +851,63 @@ const EclusaRegua: React.FC = () => {
 
         </div>
 
-
+      {/* 🟢 TRACEJADO DO ESPAÇO LIVRE - INTEGRADO E RESPONSIVO */}
+      {tracejado && tracejado.show && (
+        <>
+          {/* Retângulo tracejado verde */}
+          <div
+            className="fixed pointer-events-none z-30 transition-all duration-300 ease-out"
+            style={{
+              left: `${tracejado.x}px`,
+              top: `${tracejado.y}px`,
+              width: `${tracejado.width}px`,
+              height: `${tracejado.height}px`,
+              border: '3px dashed #22c55e',
+              backgroundColor: 'rgba(34, 197, 94, 0.05)',
+              borderRadius: '8px',
+              boxShadow: '0 0 20px rgba(34, 197, 94, 0.15)',
+            }}
+          />
+          
+          {/* Label central */}
+          <div
+            className="fixed pointer-events-none z-31 transition-all duration-300 ease-out"
+            style={{
+              left: `${tracejado.x + tracejado.width/2}px`,
+              top: `${tracejado.y + 20}px`,
+              transform: 'translateX(-50%)',
+            }}
+          >
+            <div className="bg-green-500 text-white text-sm px-4 py-2 rounded-full font-bold shadow-lg">
+              ESPAÇO LIVRE: {Math.round(verticalSpace.freeAreaHeight)}px
+            </div>
+          </div>
+          
+          {/* Medida altura - lateral esquerda */}
+          <div
+            className="fixed pointer-events-none z-31 text-green-600 text-xs font-mono bg-white/90 px-2 py-1 rounded shadow transition-all duration-300 ease-out"
+            style={{
+              left: `${tracejado.x - 55}px`,
+              top: `${tracejado.y + tracejado.height/2}px`,
+              transform: 'translateY(-50%)',
+            }}
+          >
+            {Math.round(verticalSpace.freeAreaHeight)}px
+          </div>
+          
+          {/* Medida largura - lateral direita */}
+          <div
+            className="fixed pointer-events-none z-31 text-green-600 text-xs font-mono bg-white/90 px-2 py-1 rounded shadow transition-all duration-300 ease-out"
+            style={{
+              right: `${windowDimensions.width - (tracejado.x + tracejado.width) - 55}px`,
+              top: `${tracejado.y + tracejado.height/2}px`,
+              transform: 'translateY(-50%)',
+            }}
+          >
+            {Math.round(tracejado.width)}px
+          </div>
+        </>
+      )}
 
       {/* Dialog de Trend */}
       <TrendDialog 
