@@ -9,6 +9,9 @@ import LoginPage from '@/pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import UsersPage from './pages/UsersPageModern.tsx';
 import EclusaRegua from './pages/Eclusa_Regua';
+import PortaMontante from './pages/PortaMontante';
+import PortaJusante from './pages/PortaJusante';
+import Enchimento from './pages/Enchimento';
 
 const App: React.FC = () => {
   return (
@@ -49,6 +52,39 @@ const App: React.FC = () => {
                   <ProtectedRoute>
                     <Layout>
                       <EclusaRegua />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/porta-montante"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <PortaMontante />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/porta-jusante"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <PortaJusante />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/enchimento"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Enchimento />
                     </Layout>
                   </ProtectedRoute>
                 }

@@ -45,9 +45,9 @@ export const Sidebar = ({ isOpen, onToggle, onClose }: SidebarProps) => {
       setActiveItem('dashboard');
     } else if (pathname.includes('eclusa') || pathname.includes('caldeira-eclusa')) {
       setActiveItem('eclusa');
-    } else if (pathname.includes('porta_jusante')) {
+    } else if (pathname.includes('porta-jusante')) {
       setActiveItem('porta_jusante');
-    } else if (pathname.includes('porta_montante')) {
+    } else if (pathname.includes('porta-montante')) {
       setActiveItem('porta_montante');
     } else if (pathname.includes('enchimento')) {
       setActiveItem('enchimento');
@@ -91,13 +91,13 @@ export const Sidebar = ({ isOpen, onToggle, onClose }: SidebarProps) => {
       id: 'porta_jusante' as NavItem,
       label: 'Porta Jusante',
       icon: AdjustmentsHorizontalIcon,
-      path: '/porta_jusante'
+      path: '/porta-jusante'
     },
     {
       id: 'porta_montante' as NavItem,
       label: 'Porta Montante',
       icon: Cog6ToothIcon,
-      path: '/porta_montante'
+      path: '/porta-montante'
     },
     {
       id: 'usuarios' as NavItem,

@@ -19,11 +19,11 @@ export const Header = () => {
     
     if (pathname.includes('dashboard') || pathname === '/') {
       return 'Dashboard';
-    } else if (pathname.includes('eclusa') || pathname.includes('caldeira-eclusa')) {
-      return 'Eclusa';
-    } else if (pathname.includes('porta_jusante')) {
+    } else if (pathname.includes('eclusa-regua')) {
+      return 'Eclusa Régua';
+    } else if (pathname.includes('porta-jusante')) {
       return 'Porta Jusante';
-    } else if (pathname.includes('porta_montante')) {
+    } else if (pathname.includes('porta-montante')) {
       return 'Porta Montante';
     } else if (pathname.includes('enchimento')) {
       return 'Enchimento';
