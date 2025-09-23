@@ -1,8 +1,42 @@
 import React from 'react';
+import { usePLC } from '../contexts/PLCContext';
+import ContraPeso60t from '../components/Porta_Jusante/Porta_Jusante_Contrapeso';
 
 interface PortaJusanteProps {
   sidebarOpen?: boolean;
 }
+
+// 🏗️ CONFIGURAÇÃO DOS CONTRAPESOS - SEPARADO MOBILE/DESKTOP
+const CONTRAPESO_CONFIG = {
+  desktop: {
+    direito: {
+      verticalPercent: 42.9,    // % da altura total (posição Y)
+      horizontalPercent: 67.8,  // % da largura total (posição X)
+      widthPercent: 8,          // % da largura total (tamanho)
+      heightPercent: 60,        // % da altura total (tamanho)
+    },
+    esquerdo: {
+      verticalPercent: 42.8,    // % da altura total (posição Y)
+      horizontalPercent: 24.2,  // % da largura total (posição X)
+      widthPercent: 8,          // % da largura total (tamanho)
+      heightPercent: 60,        // % da altura total (tamanho)
+    }
+  },
+  mobile: {
+    direito: {
+      verticalPercent: 36.8,    // % da altura total (posição Y) - mesmo que desktop
+      horizontalPercent: 85.3,  // % da largura total (posição X) - ajustado para mobile
+      widthPercent: 8,          // % da largura total (tamanho)
+      heightPercent: 60,        // % da altura total (tamanho)
+    },
+    esquerdo: {
+      verticalPercent: 36.8,    // % da altura total (posição Y) - mesmo que desktop
+      horizontalPercent: 6.8,  // % da largura total (posição X) - ajustado para mobile
+      widthPercent: 8,          // % da largura total (tamanho)
+      heightPercent: 60,        // % da altura total (tamanho)
+    }
+  }
+};
 
 const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -56,55 +90,60 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
   // Detectar se é mobile
   const isMobile = windowDimensions.width < 1024;
 
-  // Cálculo das proporções baseado no aspect ratio real do SVG
+  // 🎯 SISTEMA IDÊNTICO AO ECLUSA_REGUA - SEM ESCALA RESPONSIVA
   const portaJusanteAspectRatio = 1075 / 1098; // Baseado no SVG real: width="1075" height="1098"
   
-  // Calcular dimensões otimizadas para o container disponível
-  const padding = isMobile ? 16 : 32; // Padding responsivo
-  const maxWidth = Math.min(containerDimensions.width - padding, 1920); // Margem responsiva
+  // 📐 EXATAMENTE IGUAL ECLUSA_REGUA - maxWidth direto
+  const maxWidth = Math.min(containerDimensions.width - 32, 1920); // 32px = margem mínima
   
-  // Calcular dimensões considerando altura disponível
-  const availableHeight = windowDimensions.height - 100; // 100px para header e margens
+  // 🎯 PORTA JUSANTE: maxWidth direto igual caldeira na Eclusa_Regua  
+  const portaScale = isMobile ? 90 : 50; // 90% mobile, 50% desktop
+  const basePortaWidth = (maxWidth * portaScale) / 100;
+  const basePortaHeight = basePortaWidth / portaJusanteAspectRatio;
   
-  // Calcular por largura
-  let basePortaWidth = maxWidth;
-  let basePortaHeight = basePortaWidth / portaJusanteAspectRatio;
+  // 🎯 ALTURA TOTAL FIXA - igual sistema Eclusa_Regua
+  const alturaTotal = basePortaHeight;
   
-  // Se a altura calculada exceder o espaço disponível, ajustar pela altura
-  if (basePortaHeight > availableHeight) {
-    basePortaHeight = availableHeight * 0.9; // 90% da altura disponível
-    basePortaWidth = basePortaHeight * portaJusanteAspectRatio;
-  }
+  // 📡 USAR O SISTEMA PLC EXISTENTE (sem criar nova conexão!)
+  const { data: plcData } = usePLC();
   
-  // Garantir dimensões mínimas responsivas
-  const minWidth = isMobile ? 280 : 400;
-  const minHeight = minWidth / portaJusanteAspectRatio;
+  // Extrair dados dos contrapesos do PLC (índices 40 e 41)
+  const contrapesoDirecto = plcData?.ints?.[40] || 0;   // Contrapeso direito (índice 40)
+  const contrapesoEsquerdo = plcData?.ints?.[41] || 0;  // Contrapeso esquerdo (índice 41)
   
-  basePortaWidth = Math.max(minWidth, basePortaWidth);
-  basePortaHeight = Math.max(minHeight, basePortaHeight);
+  // Configuração responsiva dos contrapesos
+  const configAtual = isMobile ? CONTRAPESO_CONFIG.mobile : CONTRAPESO_CONFIG.desktop;
+  const contrapesoDireitoConfig = configAtual.direito;
+  const contrapesoEsquerdoConfig = configAtual.esquerdo;
   
-  // Debug das dimensões (remover em produção)
-  console.log('🔍 PortaJusante - Dimensões calculadas:', {
+  // Debug das dimensões
+  console.log('🔍 PortaJusante - Sistema com Configuração Responsiva:', {
     tela: { width: windowDimensions.width, height: windowDimensions.height },
     container: { width: containerDimensions.width, height: containerDimensions.height },
-    disponivel: { width: maxWidth, height: availableHeight },
-    calculado: { width: basePortaWidth, height: basePortaHeight },
+    maxWidth: maxWidth,
+    config_usada: isMobile ? 'mobile' : 'desktop',
+    porta: { width: basePortaWidth, height: basePortaHeight },
+    altura_total: alturaTotal,
+    portaScale: portaScale,
     aspectRatio: portaJusanteAspectRatio,
+    contrapesos: { 
+      direito: { valor: contrapesoDirecto, config: contrapesoDireitoConfig },
+      esquerdo: { valor: contrapesoEsquerdo, config: contrapesoEsquerdoConfig }
+    },
     isMobile
   });
 
   return (
     <div className="w-full h-auto flex flex-col items-center">
 
-      {/* Container do SVG */}
+      {/* Container do SVG - SISTEMA IDÊNTICO AO ECLUSA_REGUA */}
       <div 
         ref={containerRef}
         className="w-full max-w-[1920px] flex flex-col items-center relative"
         style={{
-          minHeight: isMobile ? '50vh' : '60vh',
-          maxHeight: '100vh',
-          overflow: 'hidden',
-          padding: `${padding}px`
+          height: 'auto',
+          minHeight: '50vh',
+          overflow: 'visible'
         }}
       >
 
@@ -113,11 +152,11 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
             className="relative w-full flex flex-col items-center justify-center"
             style={{
               maxWidth: `${maxWidth}px`,
-              height: `${basePortaHeight}px`,
-              minHeight: `${basePortaHeight}px`
+              height: `${alturaTotal}px`,
+              minHeight: `${alturaTotal}px`
             }}
           >
-            {/* SVG Base Porta Jusante */}
+            {/* SVG Base Porta Jusante - CENTRALIZADO */}
             <div 
               className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
               style={{
@@ -140,6 +179,42 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
                   preserveAspectRatio="xMidYMid meet"
                 />
               </svg>
+            </div>
+
+            {/* 🎯 CONTRAPESO DIREITO - EXATAMENTE COMO ECLUSA_REGUA */}
+            <div 
+              className="absolute transition-all duration-200 ease-in-out"
+              style={{
+                // 📐 SISTEMA IDÊNTICO ECLUSA_REGUA: maxWidth horizontal + alturaTotal vertical
+                top: `${(alturaTotal * contrapesoDireitoConfig.verticalPercent) / 100}px`,
+                left: `${(maxWidth * contrapesoDireitoConfig.horizontalPercent) / 100}px`,
+                width: `${(maxWidth * contrapesoDireitoConfig.widthPercent) / 100}px`,
+                height: `${(alturaTotal * contrapesoDireitoConfig.heightPercent) / 100}px`,
+                zIndex: 10
+              }}
+            >
+              <ContraPeso60t 
+                websocketValue={contrapesoDirecto}
+                editMode={false}
+              />
+            </div>
+
+            {/* 🎯 CONTRAPESO ESQUERDO - EXATAMENTE COMO ECLUSA_REGUA */}
+            <div 
+              className="absolute transition-all duration-200 ease-in-out"
+              style={{
+                // 📐 SISTEMA IDÊNTICO ECLUSA_REGUA: maxWidth horizontal + alturaTotal vertical
+                top: `${(alturaTotal * contrapesoEsquerdoConfig.verticalPercent) / 100}px`,
+                left: `${(maxWidth * contrapesoEsquerdoConfig.horizontalPercent) / 100}px`,
+                width: `${(maxWidth * contrapesoEsquerdoConfig.widthPercent) / 100}px`,
+                height: `${(alturaTotal * contrapesoEsquerdoConfig.heightPercent) / 100}px`,
+                zIndex: 10
+              }}
+            >
+              <ContraPeso60t 
+                websocketValue={contrapesoEsquerdo}
+                editMode={false}
+              />
             </div>
 
           </div>

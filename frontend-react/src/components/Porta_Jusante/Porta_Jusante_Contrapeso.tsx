@@ -1,7 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-const ContraPeso60t: React.FC = () => {
-  const [valor, setValor] = useState(0);
+interface ContraPeso60tProps {
+  websocketValue: number;
+  editMode?: boolean;
+}
+
+const ContraPeso60t: React.FC<ContraPeso60tProps> = ({ 
+  websocketValue = 0, 
+  editMode = false 
+}) => {
+  const valor = websocketValue;
   
   // Calcular posição do contrapeso
   const maxDescida = 350;
@@ -12,29 +20,21 @@ const ContraPeso60t: React.FC = () => {
   const alturaCorda = pontoConexaoOriginal + posicaoContrapeso;
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen flex flex-col items-center">
-      <h1 className="text-2xl font-bold mb-4">Contrapeso 60t</h1>
-      
-      {/* Controle */}
-      <div className="mb-8 flex flex-col items-center gap-4">
-        <div className="text-lg font-semibold">Valor: {valor}%</div>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          value={valor}
-          onChange={(e) => setValor(Number(e.target.value))}
-          className="w-64"
-        />
-      </div>
-
-      {/* SVG */}
+    <div className="w-full h-full flex items-center justify-center">
+      {/* SVG com tamanho controlado */}
       <svg 
-        width="109" 
-        height="600" 
+        width="100%" 
+        height="100%" 
         viewBox="0 0 109 600" 
+        preserveAspectRatio="xMidYMid meet"
         fill="none" 
         xmlns="http://www.w3.org/2000/svg"
+        className="max-w-full max-h-full"
+        style={{ 
+          width: 'auto', 
+          height: '100%',
+          maxWidth: '109px' // Limita a largura máxima
+        }}
       >
         {/* Contrapeso */}
         <g transform={`translate(0, ${posicaoContrapeso})`}>
