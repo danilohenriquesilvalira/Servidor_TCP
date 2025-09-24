@@ -12,14 +12,14 @@ interface PortaJusanteProps {
 const CONTRAPESO_CONFIG = {
   desktop: {
     direito: {
-      verticalPercent: 42.9,    // % da altura total (posição Y)
-      horizontalPercent: 67.8,  // % da largura total (posição X)
+      verticalPercent: 42.7,    // % da altura total (posição Y)
+      horizontalPercent: 70,  // % da largura total (posição X)
       widthPercent: 8,          // % da largura total (tamanho)
       heightPercent: 60,        // % da altura total (tamanho)
     },
     esquerdo: {
-      verticalPercent: 42.8,    // % da altura total (posição Y)
-      horizontalPercent: 24.2,  // % da largura total (posição X)
+      verticalPercent: 42.7,    // % da altura total (posição Y)
+      horizontalPercent: 22,  // % da largura total (posição X)
       widthPercent: 8,          // % da largura total (tamanho)
       heightPercent: 60,        // % da altura total (tamanho)
     }
@@ -43,13 +43,13 @@ const CONTRAPESO_CONFIG = {
 // 📏 CONFIGURAÇÃO DA RÉGUA PORTA JUSANTE - SEPARADO MOBILE/DESKTOP
 const REGUA_CONFIG = {
   desktop: {
-    verticalPercent: 25,      // % da altura total (posição Y)
-    horizontalPercent: 32.5,    // % da largura total (posição X)
-    widthPercent: 35,         // % da largura total (tamanho) - MAIOR
-    heightPercent: 80,        // % da altura total (tamanho) - MAIOR
+    verticalPercent: 46,      // % da altura total (posição Y)
+    horizontalPercent: 29,    // % da largura total (posição X) - VOLTA POSIÇÃO ORIGINAL
+    widthPercent: 42,         // % da largura total (tamanho) - 2% MENOR
+    heightPercent: 52,        // % da altura total (tamanho) - 2% MENOR
   },
   mobile: {
-    verticalPercent: 25,      // % da altura total (posição Y)
+    verticalPercent: 46,      // % da altura total (posição Y)
     horizontalPercent: 26,    // % da largura total (posição X) - ajustado para mobile
     widthPercent: 48,         // % da largura total (tamanho) - MAIOR no mobile
     heightPercent: 83,        // % da altura total (tamanho) - MAIOR
@@ -61,13 +61,13 @@ const MOTOR_CONFIG = {
   desktop: {
     direito: {
       verticalPercent: -1,      // % da altura total (posição Y)
-      horizontalPercent: 67.5,    // % da largura total (posição X)
+      horizontalPercent: 70,    // % da largura total (posição X)
       widthPercent: 7.4,        // % da largura total (tamanho) - 45% menor
       heightPercent: 9.2,       // % da altura total (tamanho) - 45% menor
     },
     esquerdo: {
       verticalPercent: -1,      // % da altura total (posição Y)
-      horizontalPercent: 25,    // % da largura total (posição X)
+      horizontalPercent: 22.6,    // % da largura total (posição X)
       widthPercent: 7.4,        // % da largura total (tamanho) - 45% menor
       heightPercent: 9.2,       // % da altura total (tamanho) - 45% menor
     }
@@ -91,21 +91,33 @@ const MOTOR_CONFIG = {
 
 const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const [containerDimensions, setContainerDimensions] = React.useState(() => {
-    if (typeof window !== 'undefined') {
-      const width = Math.min(window.innerWidth - 32, 1920);
-      return { width, height: width / 5.7 };
-    }
-    return { width: 0, height: 0 };
-  });
-  const [windowDimensions, setWindowDimensions] = React.useState(() => {
-    if (typeof window !== 'undefined') {
-      return { width: window.innerWidth, height: window.innerHeight };
-    }
-    return { width: 0, height: 0 };
-  });
+  const [containerDimensions, setContainerDimensions] = React.useState({ width: 0, height: 0 });
+  const [windowDimensions, setWindowDimensions] = React.useState({ width: 0, height: 0 });
+  const [isInitialized, setIsInitialized] = React.useState(false);
 
-  React.useEffect(() => {
+  // UseLayoutEffect para calcular dimensões ANTES da renderização visual
+  React.useLayoutEffect(() => {
+    const initializeDimensions = () => {
+      if (typeof window !== 'undefined') {
+        const newWindowDimensions = { width: window.innerWidth, height: window.innerHeight };
+        setWindowDimensions(newWindowDimensions);
+        
+        if (containerRef.current) {
+          const rect = containerRef.current.getBoundingClientRect();
+          setContainerDimensions({ width: rect.width, height: rect.height });
+        } else {
+          // Fallback: calcular dimensões baseado na janela
+          const width = Math.min(newWindowDimensions.width - 32, 1920);
+          setContainerDimensions({ width, height: width / 5.7 });
+        }
+        
+        setIsInitialized(true);
+      }
+    };
+    
+    // Executar imediatamente (sem timeout)
+    initializeDimensions();
+    
     const updateDimensions = () => {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
@@ -130,16 +142,14 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
       });
     };
     
-    const timeoutId = setTimeout(updateDimensions, 100);
     window.addEventListener('resize', updateDimensions);
     return () => {
-      clearTimeout(timeoutId);
       window.removeEventListener('resize', updateDimensions);
     };
   }, []);
 
-  // Detectar se é mobile
-  const isMobile = windowDimensions.width < 1024;
+  // Detectar se é mobile - otimizado para evitar recálculos
+  const isMobile = React.useMemo(() => windowDimensions.width < 1024, [windowDimensions.width]);
 
   // 🎯 SISTEMA IDÊNTICO AO ECLUSA_REGUA - SEM ESCALA RESPONSIVA
   const portaJusanteAspectRatio = 1075 / 1098; // Baseado no SVG real: width="1075" height="1098"
@@ -148,7 +158,7 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
   const maxWidth = Math.min(containerDimensions.width - 32, 1920); // 32px = margem mínima
   
   // 🎯 PORTA JUSANTE: maxWidth direto igual caldeira na Eclusa_Regua  
-  const portaScale = isMobile ? 90 : 50; // 90% mobile, 50% desktop
+  const portaScale = isMobile ? 90 : 55; // 90% mobile, 100% desktop
   const basePortaWidth = (maxWidth * portaScale) / 100;
   const basePortaHeight = basePortaWidth / portaJusanteAspectRatio;
   
@@ -165,7 +175,7 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
   const motorDireito = plcData?.ints?.[28] || 0;        // Motor direito (índice 28)
   const motorEsquerdo = plcData?.ints?.[29] || 0;       // Motor esquerdo (índice 29)
   
-  // Configuração responsiva dos contrapesos, régua e motores
+  // Configuração responsiva SIMPLES - igual outros componentes
   const configAtual = isMobile ? CONTRAPESO_CONFIG.mobile : CONTRAPESO_CONFIG.desktop;
   const contrapesoDireitoConfig = configAtual.direito;
   const contrapesoEsquerdoConfig = configAtual.esquerdo;
@@ -208,7 +218,7 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
         }}
       >
 
-        {containerDimensions.width > 100 && windowDimensions.width > 0 ? (
+        {isInitialized && containerDimensions.width > 100 && windowDimensions.width > 0 ? (
           <div 
             className="relative w-full flex flex-col items-center justify-center"
             style={{
@@ -242,7 +252,7 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
               </svg>
             </div>
 
-            {/* 🎯 CONTRAPESO DIREITO - EXATAMENTE COMO ECLUSA_REGUA */}
+            {/* 🎯 CONTRAPESO DIREITO - COM MOVIMENTO PROPORCIONAL */}
             <div 
               className="absolute transition-all duration-200 ease-in-out"
               style={{
@@ -260,7 +270,7 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
               />
             </div>
 
-            {/* 🎯 CONTRAPESO ESQUERDO - EXATAMENTE COMO ECLUSA_REGUA */}
+            {/* 🎯 CONTRAPESO ESQUERDO - COM MOVIMENTO PROPORCIONAL */}
             <div 
               className="absolute transition-all duration-200 ease-in-out"
               style={{
@@ -337,14 +347,24 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
 
           </div>
         ) : (
+          /* Loading otimizado - mantém proporções corretas */
           <div className="w-full flex items-center justify-center">
             <div 
-              className="w-full bg-gray-100 rounded-lg animate-pulse"
+              className="w-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 rounded-lg animate-pulse"
               style={{ 
-                height: isMobile ? '200px' : '300px',
-                maxWidth: '800px'
+                height: '600px',
+                maxWidth: '800px',
+                backgroundSize: '200% 100%',
+                animation: 'shimmer 1.5s ease-in-out infinite'
               }}
-            />
+            >
+              <style>{`
+                @keyframes shimmer {
+                  0% { background-position: -200% 0; }
+                  100% { background-position: 200% 0; }
+                }
+              `}</style>
+            </div>
           </div>
         )}
 

@@ -101,20 +101,9 @@ interface EclusaReguaProps {
 const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
-  const [containerDimensions, setContainerDimensions] = React.useState(() => {
-    // Inicializar com dimensões adequadas para evitar flash
-    if (typeof window !== 'undefined') {
-      const width = Math.min(window.innerWidth - 32, 1920);
-      return { width, height: width / 5.7 }; // Aproximação da altura baseada no aspect ratio
-    }
-    return { width: 0, height: 0 };
-  });
-  const [windowDimensions, setWindowDimensions] = React.useState(() => {
-    if (typeof window !== 'undefined') {
-      return { width: window.innerWidth, height: window.innerHeight };
-    }
-    return { width: 0, height: 0 };
-  });
+  const [containerDimensions, setContainerDimensions] = React.useState({ width: 0, height: 0 });
+  const [windowDimensions, setWindowDimensions] = React.useState({ width: 0, height: 0 });
+  const [isInitialized, setIsInitialized] = React.useState(false);
   const [paredeOffsetPercent] = React.useState(-50.5); // Posição ajustada para encaixe perfeito
   const [showTrendDialog, setShowTrendDialog] = React.useState(false);
   const [currentCardIndex, setCurrentCardIndex] = React.useState(0);
@@ -211,13 +200,34 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
   
   
   
-  React.useEffect(() => {
+  // UseLayoutEffect para calcular dimensões ANTES da renderização visual
+  React.useLayoutEffect(() => {
+    const initializeDimensions = () => {
+      if (typeof window !== 'undefined') {
+        const newWindowDimensions = { width: window.innerWidth, height: window.innerHeight };
+        setWindowDimensions(newWindowDimensions);
+        
+        if (containerRef.current) {
+          const rect = containerRef.current.getBoundingClientRect();
+          setContainerDimensions({ width: rect.width, height: rect.height });
+        } else {
+          // Fallback: calcular dimensões baseado na janela
+          const width = Math.min(newWindowDimensions.width - 32, 1920);
+          setContainerDimensions({ width, height: width / 5.7 });
+        }
+        
+        setIsInitialized(true);
+      }
+    };
+    
+    // Executar imediatamente (sem timeout)
+    initializeDimensions();
+    
     const updateDimensions = () => {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
         const newDimensions = { width: rect.width, height: rect.height };
         
-        // Só atualizar se as dimensões mudaram significativamente
         setContainerDimensions(prev => {
           if (Math.abs(prev.width - newDimensions.width) > 10 || 
               Math.abs(prev.height - newDimensions.height) > 10) {
@@ -237,12 +247,8 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
       });
     };
     
-    // Delay inicial para garantir que o DOM está pronto
-    const timeoutId = setTimeout(updateDimensions, 100);
-    
     window.addEventListener('resize', updateDimensions);
     return () => {
-      clearTimeout(timeoutId);
       window.removeEventListener('resize', updateDimensions);
     };
   }, []);
@@ -306,8 +312,8 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
   // Calcular offset em pixels baseado na porcentagem da altura da caldeira
   const paredeOffsetPx = (caldeiraHeight * paredeOffsetPercent) / 100;
 
-  // Detectar se é mobile
-  const isMobile = windowDimensions.width < 1024;
+  // Detectar se é mobile - otimizado para evitar recálculos
+  const isMobile = React.useMemo(() => windowDimensions.width < 1024, [windowDimensions.width]);
 
   // 🎯 CÁLCULO CORRETO - ESPAÇO APÓS A PAREDE DA ECLUSA (ÚLTIMO COMPONENTE)
   const calculateVerticalSpace = () => {
@@ -568,7 +574,7 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
         >
 
           {/* Container com positioning absoluto para controle total */}
-          {containerDimensions.width > 100 && windowDimensions.width > 0 ? (
+          {isInitialized && containerDimensions.width > 100 && windowDimensions.width > 0 ? (
             <div 
               className="relative w-full flex flex-col items-center"
               style={{
@@ -837,15 +843,24 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
 
             </div>
           ) : (
-            /* Placeholder para evitar flash de redimensionamento */
+            /* Loading otimizado - mantém proporções corretas */
             <div className="w-full flex items-center justify-center">
               <div 
-                className="w-full bg-gray-100 rounded-lg animate-pulse"
+                className="w-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 rounded-lg animate-pulse"
                 style={{ 
-                  height: isMobile ? '200px' : '300px',
-                  maxWidth: '800px'
+                  height: '400px',
+                  maxWidth: '1200px',
+                  backgroundSize: '200% 100%',
+                  animation: 'shimmer 1.5s ease-in-out infinite'
                 }}
-              />
+              >
+                <style>{`
+                  @keyframes shimmer {
+                    0% { background-position: -200% 0; }
+                    100% { background-position: 200% 0; }
+                  }
+                `}</style>
+              </div>
             </div>
           )}
 
