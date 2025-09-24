@@ -1,12 +1,14 @@
 import React from 'react';
 import { usePLC } from '../contexts/PLCContext';
 import ContraPeso60t from '../components/Porta_Jusante/Porta_Jusante_Contrapeso';
+import PortaJusanteRegua from '../components/Porta_Jusante/PortaJusanteRegua';
+import MotorJusante from '../components/Porta_Jusante/Motor_Jusante';
 
 interface PortaJusanteProps {
   sidebarOpen?: boolean;
 }
 
-// 🏗️ CONFIGURAÇÃO DOS CONTRAPESOS - SEPARADO MOBILE/DESKTOP
+// 🏗️ CONFIGURAÇÃO DOS CONTRAPESOS E RÉGUA - SEPARADO MOBILE/DESKTOP
 const CONTRAPESO_CONFIG = {
   desktop: {
     direito: {
@@ -37,6 +39,55 @@ const CONTRAPESO_CONFIG = {
     }
   }
 };
+
+// 📏 CONFIGURAÇÃO DA RÉGUA PORTA JUSANTE - SEPARADO MOBILE/DESKTOP
+const REGUA_CONFIG = {
+  desktop: {
+    verticalPercent: 25,      // % da altura total (posição Y)
+    horizontalPercent: 32.5,    // % da largura total (posição X)
+    widthPercent: 35,         // % da largura total (tamanho) - MAIOR
+    heightPercent: 80,        // % da altura total (tamanho) - MAIOR
+  },
+  mobile: {
+    verticalPercent: 25,      // % da altura total (posição Y)
+    horizontalPercent: 26,    // % da largura total (posição X) - ajustado para mobile
+    widthPercent: 48,         // % da largura total (tamanho) - MAIOR no mobile
+    heightPercent: 83,        // % da altura total (tamanho) - MAIOR
+  }
+};
+
+// ⚙️ CONFIGURAÇÃO DOS MOTORES PORTA JUSANTE - SEPARADO MOBILE/DESKTOP
+const MOTOR_CONFIG = {
+  desktop: {
+    direito: {
+      verticalPercent: -1,      // % da altura total (posição Y)
+      horizontalPercent: 67.5,    // % da largura total (posição X)
+      widthPercent: 7.4,        // % da largura total (tamanho) - 45% menor
+      heightPercent: 9.2,       // % da altura total (tamanho) - 45% menor
+    },
+    esquerdo: {
+      verticalPercent: -1,      // % da altura total (posição Y)
+      horizontalPercent: 25,    // % da largura total (posição X)
+      widthPercent: 7.4,        // % da largura total (tamanho) - 45% menor
+      heightPercent: 9.2,       // % da altura total (tamanho) - 45% menor
+    }
+  },
+  mobile: {
+    direito: {
+      verticalPercent: -4,      // % da altura total (posição Y)
+      horizontalPercent: 81.5,    // % da largura total (posição X)
+      widthPercent: 13.5,       // % da largura total (tamanho) - 10% menor
+      heightPercent: 16.2,      // % da altura total (tamanho) - 10% menor
+    },
+    esquerdo: {
+      verticalPercent: -4,      // % da altura total (posição Y)
+      horizontalPercent: 5,    // % da largura total (posição X)
+      widthPercent: 13.5,       // % da largura total (tamanho) - 10% menor
+      heightPercent: 16.2,      // % da altura total (tamanho) - 10% menor
+    }
+  }
+};
+
 
 const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -107,14 +158,23 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
   // 📡 USAR O SISTEMA PLC EXISTENTE (sem criar nova conexão!)
   const { data: plcData } = usePLC();
   
-  // Extrair dados dos contrapesos do PLC (índices 40 e 41)
+  // Extrair dados dos contrapesos, régua e motores do PLC
   const contrapesoDirecto = plcData?.ints?.[40] || 0;   // Contrapeso direito (índice 40)
   const contrapesoEsquerdo = plcData?.ints?.[41] || 0;  // Contrapeso esquerdo (índice 41)
+  const reguaPortaJusante = plcData?.ints?.[39] || 0;   // Régua porta jusante (índice 39)
+  const motorDireito = plcData?.ints?.[28] || 0;        // Motor direito (índice 28)
+  const motorEsquerdo = plcData?.ints?.[29] || 0;       // Motor esquerdo (índice 29)
   
-  // Configuração responsiva dos contrapesos
+  // Configuração responsiva dos contrapesos, régua e motores
   const configAtual = isMobile ? CONTRAPESO_CONFIG.mobile : CONTRAPESO_CONFIG.desktop;
   const contrapesoDireitoConfig = configAtual.direito;
   const contrapesoEsquerdoConfig = configAtual.esquerdo;
+  
+  const reguaConfigAtual = isMobile ? REGUA_CONFIG.mobile : REGUA_CONFIG.desktop;
+  
+  const motorConfigAtual = isMobile ? MOTOR_CONFIG.mobile : MOTOR_CONFIG.desktop;
+  const motorDireitoConfig = motorConfigAtual.direito;
+  const motorEsquerdoConfig = motorConfigAtual.esquerdo;
   
   // Debug das dimensões
   console.log('🔍 PortaJusante - Sistema com Configuração Responsiva:', {
@@ -130,6 +190,7 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
       direito: { valor: contrapesoDirecto, config: contrapesoDireitoConfig },
       esquerdo: { valor: contrapesoEsquerdo, config: contrapesoEsquerdoConfig }
     },
+    regua: { valor: reguaPortaJusante, config: reguaConfigAtual },
     isMobile
   });
 
@@ -216,6 +277,63 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
                 editMode={false}
               />
             </div>
+
+            {/* 📏 RÉGUA PORTA JUSANTE - WEBSOCKET ÍNDICE 39 */}
+            <div 
+              className="absolute transition-all duration-200 ease-in-out"
+              style={{
+                // 📐 SISTEMA IDÊNTICO ECLUSA_REGUA: maxWidth horizontal + alturaTotal vertical
+                top: `${(alturaTotal * reguaConfigAtual.verticalPercent) / 100}px`,
+                left: `${(maxWidth * reguaConfigAtual.horizontalPercent) / 100}px`,
+                width: `${(maxWidth * reguaConfigAtual.widthPercent) / 100}px`,
+                height: `${(alturaTotal * reguaConfigAtual.heightPercent) / 100}px`,
+                zIndex: 5
+              }}
+            >
+              <PortaJusanteRegua 
+                websocketValue={reguaPortaJusante}
+                editMode={false}
+              />
+            </div>
+
+            {/* ⚙️ MOTOR DIREITO - WEBSOCKET ÍNDICE 28 */}
+            <div 
+              className="absolute transition-all duration-200 ease-in-out"
+              style={{
+                // 📐 SISTEMA IDÊNTICO ECLUSA_REGUA: maxWidth horizontal + alturaTotal vertical
+                top: `${(alturaTotal * motorDireitoConfig.verticalPercent) / 100}px`,
+                left: `${(maxWidth * motorDireitoConfig.horizontalPercent) / 100}px`,
+                width: `${(maxWidth * motorDireitoConfig.widthPercent) / 100}px`,
+                height: `${(alturaTotal * motorDireitoConfig.heightPercent) / 100}px`,
+                zIndex: 15
+              }}
+            >
+              <MotorJusante 
+                websocketValue={motorDireito}
+                editMode={false}
+                direction="left"
+              />
+            </div>
+
+            {/* ⚙️ MOTOR ESQUERDO - WEBSOCKET ÍNDICE 29 - ESPELHADO */}
+            <div 
+              className="absolute transition-all duration-200 ease-in-out"
+              style={{
+                // 📐 SISTEMA IDÊNTICO ECLUSA_REGUA: maxWidth horizontal + alturaTotal vertical
+                top: `${(alturaTotal * motorEsquerdoConfig.verticalPercent) / 100}px`,
+                left: `${(maxWidth * motorEsquerdoConfig.horizontalPercent) / 100}px`,
+                width: `${(maxWidth * motorEsquerdoConfig.widthPercent) / 100}px`,
+                height: `${(alturaTotal * motorEsquerdoConfig.heightPercent) / 100}px`,
+                zIndex: 15
+              }}
+            >
+              <MotorJusante 
+                websocketValue={motorEsquerdo}
+                editMode={false}
+                direction="right"
+              />
+            </div>
+
 
           </div>
         ) : (

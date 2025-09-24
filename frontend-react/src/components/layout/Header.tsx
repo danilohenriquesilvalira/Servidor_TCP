@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePLC } from '@/contexts/PLCContext';
 import { ProfileModal } from '@/components/profile/ProfileModal';
-import { SignalIcon } from '@heroicons/react/24/outline';
+import { WifiIcon } from '@heroicons/react/24/outline';
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -64,7 +64,7 @@ export const Header = () => {
           aria-label="Status da Conexão WebSocket"
           title={getConnectionStatusText()}
         >
-          <SignalIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+          <WifiIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
         </button>
         
         {/* Notifications */}
