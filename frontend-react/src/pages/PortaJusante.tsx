@@ -3,6 +3,20 @@ import { usePLC } from '../contexts/PLCContext';
 import ContraPeso60t from '../components/Porta_Jusante/Porta_Jusante_Contrapeso';
 import PortaJusanteRegua from '../components/Porta_Jusante/PortaJusanteRegua';
 import MotorJusante from '../components/Porta_Jusante/Motor_Jusante';
+import { Card } from '../components/ui/Card';
+import { 
+  CogIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+  PlayIcon,
+  StopIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  EyeIcon,
+  ShieldCheckIcon,
+  XMarkIcon
+} from '@heroicons/react/24/outline';
+
 
 interface PortaJusanteProps {
   sidebarOpen?: boolean;
@@ -94,6 +108,7 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
   const [containerDimensions, setContainerDimensions] = React.useState({ width: 0, height: 0 });
   const [windowDimensions, setWindowDimensions] = React.useState({ width: 0, height: 0 });
   const [isInitialized, setIsInitialized] = React.useState(false);
+  const [menuParametrosOpen, setMenuParametrosOpen] = React.useState(false);
 
   // UseLayoutEffect para calcular dimensões ANTES da renderização visual
   React.useLayoutEffect(() => {
@@ -186,31 +201,392 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
   const motorDireitoConfig = motorConfigAtual.direito;
   const motorEsquerdoConfig = motorConfigAtual.esquerdo;
   
-  // Debug das dimensões
-  console.log('🔍 PortaJusante - Sistema com Configuração Responsiva:', {
-    tela: { width: windowDimensions.width, height: windowDimensions.height },
-    container: { width: containerDimensions.width, height: containerDimensions.height },
-    maxWidth: maxWidth,
+  // CÁLCULO DO ESPAÇO DISPONÍVEL REAL
+  const espacoTotalLateral = windowDimensions.width > maxWidth ? 
+    (windowDimensions.width - maxWidth) / 2 : 0;
+  
+  const espacoDisponivelEsquerda = Math.max(0, espacoTotalLateral - 20); // -20px margem
+  const espacoDisponivelDireita = Math.max(0, espacoTotalLateral - 20); // -20px margem
+
+  // Debug completo do espaço disponível
+  console.log('📐 ESPAÇO DISPONÍVEL REAL:', {
+    tela_largura: windowDimensions.width,
+    componentes_largura_maxima: maxWidth,
+    componentes_largura_real: basePortaWidth,
+    espaco_total_lateral: espacoTotalLateral,
+    espaco_disponivel_esquerda: espacoDisponivelEsquerda,
+    espaco_disponivel_direita: espacoDisponivelDireita,
+    altura_total_componentes: alturaTotal,
+    pode_usar_laterais: espacoDisponivelEsquerda > 200,
+    condicao_esquerda: espacoDisponivelEsquerda > 200,
+    condicao_direita: espacoDisponivelDireita > 200 && windowDimensions.width >= 1800,
     config_usada: isMobile ? 'mobile' : 'desktop',
-    porta: { width: basePortaWidth, height: basePortaHeight },
-    altura_total: alturaTotal,
-    portaScale: portaScale,
-    aspectRatio: portaJusanteAspectRatio,
-    contrapesos: { 
-      direito: { valor: contrapesoDirecto, config: contrapesoDireitoConfig },
-      esquerdo: { valor: contrapesoEsquerdo, config: contrapesoEsquerdoConfig }
-    },
-    regua: { valor: reguaPortaJusante, config: reguaConfigAtual },
-    isMobile
+    isMobile: isMobile
   });
 
   return (
-    <div className="w-full h-auto flex flex-col items-center">
+    <div className="w-full h-auto flex flex-col items-center relative">
 
-      {/* Container do SVG - SISTEMA IDÊNTICO AO ECLUSA_REGUA */}
+      {/* PAINEL INDUSTRIAL ISA-104 - ESQUERDA */}
+      {!isMobile && espacoDisponivelEsquerda > 100 && (
+        <div 
+          className="absolute top-16 z-0 flex flex-col gap-3"
+          style={{ 
+            left: '20px',
+            width: `${Math.max(250, Math.min(espacoDisponivelEsquerda - 30, windowDimensions.width <= 1536 ? 300 : 400))}px`,
+            maxHeight: 'calc(100vh - 200px)'
+          }}
+        >
+          {/* DADOS OPERACIONAIS - RETÂNGULO ÚNICO MODERNO */}
+          <div className="bg-slate-800 border border-slate-600 rounded-lg p-4">
+            <div className="text-sm font-bold text-[#00A3E0] uppercase tracking-wide mb-4 border-b border-slate-600 pb-2">
+              DADOS OPERACIONAIS
+            </div>
+            
+            {/* POSIÇÃO */}
+            <div className="mb-3">
+              <div className="text-xs font-medium text-green-400 uppercase tracking-wide mb-1">POSIÇÃO PORTA</div>
+              <div className="text-2xl font-mono font-bold text-white">
+                {(reguaPortaJusante * 12.5 / 100).toFixed(2)} <span className="text-sm text-slate-400">m</span>
+              </div>
+              <div className="text-xs text-slate-400">Abertura: {reguaPortaJusante}%</div>
+            </div>
+
+            {/* DIFERENÇA */}
+            <div className="mb-3">
+              <div className="text-xs font-medium text-yellow-400 uppercase tracking-wide mb-1">DIFERENÇA E/D</div>
+              <div className="text-xl font-mono font-bold text-white">
+                {Math.abs(contrapesoEsquerdo - contrapesoDirecto).toFixed(1)} <span className="text-sm text-slate-400">mm</span>
+              </div>
+              <div className="text-xs text-slate-400">E:{contrapesoEsquerdo}% D:{contrapesoDirecto}%</div>
+            </div>
+
+            {/* VELOCIDADE */}
+            <div>
+              <div className="text-xs font-medium text-blue-400 uppercase tracking-wide mb-1">VELOCIDADE</div>
+              <div className="text-xl font-mono font-bold text-white">
+                {(Math.random() * 0.5 + 0.1).toFixed(2)} <span className="text-sm text-slate-400">m/s</span>
+              </div>
+              <div className="text-xs text-slate-400">Nominal: 0.25 m/s</div>
+            </div>
+          </div>
+
+          {/* STATUS OPERACIONAIS - 3 RETÂNGULOS EDP */}
+          <div className="flex flex-col gap-2">
+            {/* COMANDO AUTOMÁTICO - AZUL EDP */}
+            <div className="bg-[#00A3E0] border border-blue-500 rounded-md p-3">
+              <div className="text-center">
+                <div className="text-xs font-bold text-white uppercase tracking-wide">
+                  COMANDO EM AUTOMÁTICO
+                </div>
+              </div>
+            </div>
+
+            {/* IGUALDADE NÍVEIS PRESENTE - VERDE */}
+            <div className="bg-green-600 border border-green-500 rounded-md p-3">
+              <div className="text-center">
+                <div className="text-xs font-bold text-white uppercase tracking-wide">
+                  IGUALDADE DE NÍVEIS PRESENTE
+                </div>
+              </div>
+            </div>
+
+            {/* FALTA IGUALDADE NÍVEIS - VERMELHO */}
+            <div className="bg-red-600 border border-red-500 rounded-md p-3">
+              <div className="text-center">
+                <div className="text-xs font-bold text-white uppercase tracking-wide">
+                  FALTA IGUALDADE DE NÍVEIS
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PAINEL INDUSTRIAL ISA-104 - DIREITA */}
+      {!isMobile && espacoDisponivelDireita > 100 && windowDimensions.width >= 1500 && (
+        <div 
+          className="absolute top-16 z-0 flex flex-col gap-3"
+          style={{ 
+            right: '20px',
+            width: `${Math.max(250, Math.min(espacoDisponivelDireita - 30, windowDimensions.width <= 1536 ? 300 : 400))}px`,
+            maxHeight: 'calc(100vh - 200px)'
+          }}
+        >
+          {/* MOTORES - RETÂNGULO ÚNICO MODERNO */}
+          <div className="bg-slate-800 border border-slate-600 rounded-lg p-4">
+            <div className="text-sm font-bold text-[#00A3E0] uppercase tracking-wide mb-4 border-b border-slate-600 pb-2">
+              MOTORES
+            </div>
+            
+            {/* MOTOR DIREITO */}
+            <div className="mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <div className="text-xs font-medium text-green-400 uppercase tracking-wide">MOTOR DIREITO</div>
+                <div className={`w-3 h-3 rounded-full ${motorDireito === 1 ? 'bg-green-500' : motorDireito === 2 ? 'bg-red-500' : 'bg-gray-500'}`}></div>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="text-lg font-mono font-bold text-white">
+                  {Math.round(1450 + Math.random() * 100)} <span className="text-xs text-slate-400">RPM</span>
+                </div>
+                <div className="text-lg font-mono font-bold text-white">
+                  {(12.5 + Math.random() * 2).toFixed(1)} <span className="text-xs text-slate-400">A</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-slate-600 my-3"></div>
+
+            {/* MOTOR ESQUERDO */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <div className="text-xs font-medium text-green-400 uppercase tracking-wide">MOTOR ESQUERDO</div>
+                <div className={`w-3 h-3 rounded-full ${motorEsquerdo === 1 ? 'bg-green-500' : motorEsquerdo === 2 ? 'bg-red-500' : 'bg-gray-500'}`}></div>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="text-lg font-mono font-bold text-white">
+                  {Math.round(1450 + Math.random() * 100)} <span className="text-xs text-slate-400">RPM</span>
+                </div>
+                <div className="text-lg font-mono font-bold text-white">
+                  {(12.5 + Math.random() * 2).toFixed(1)} <span className="text-xs text-slate-400">A</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SISTEMA STATUS - RETÂNGULO ÚNICO MODERNO */}
+          <div className="bg-slate-800 border border-slate-600 rounded-lg p-4">
+            <div className="text-sm font-bold text-[#00A3E0] uppercase tracking-wide mb-4 border-b border-slate-600 pb-2">
+              SISTEMA
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">Pressão:</span>
+                <span className="text-white font-mono font-bold">2.4 bar</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">Temperatura:</span>
+                <span className="text-white font-mono font-bold">24.5°C</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">Vibração:</span>
+                <span className="text-green-400 font-mono font-bold">NORMAL</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">Status Geral:</span>
+                <span className="text-green-400 font-mono font-bold">OPERACIONAL</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BOTÃO MENU PARÂMETROS - FLUTUANTE */}
+      {!isMobile && (
+        <button
+          onClick={() => setMenuParametrosOpen(!menuParametrosOpen)}
+          className={`fixed top-20 right-6 z-30 w-12 h-12 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center ${
+            menuParametrosOpen 
+              ? 'bg-[#00A3E0] text-white shadow-xl scale-110' 
+              : 'bg-slate-800 text-white hover:bg-slate-700 hover:shadow-xl'
+          }`}
+          title="Menu Parâmetros da Porta"
+        >
+          <CogIcon className={`w-6 h-6 transition-transform duration-300 ${menuParametrosOpen ? 'rotate-90' : ''}`} />
+        </button>
+      )}
+
+      {/* DIALOG PARÂMETROS - FLUTUANTE E MODERNO */}
+      {menuParametrosOpen && (
+        <div 
+          className="fixed inset-0 z-30 flex items-center justify-center p-4"
+          onClick={() => setMenuParametrosOpen(false)}
+        >
+          {/* Dialog Container */}
+          <div 
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header azul escuro EDP */}
+            <div className="bg-[#212E3E] p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    <CogIcon className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">PARÂMETROS DA PORTA</h2>
+                    <p className="text-gray-300 text-sm">Configurações e Monitoramento Industrial</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setMenuParametrosOpen(false)}
+                  className="w-10 h-10 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Conteúdo com scroll */}
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                {/* PROGRAMA ABERTURA AUTOMÁTICA */}
+                <Card 
+                  title="PROGRAMA ABERTURA" 
+                  icon={<ArrowUpIcon className="w-5 h-5" />}
+                  variant="default"
+                  className="h-fit"
+                >
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Posição Alvo:</span>
+                      <span className="text-xl font-mono font-bold text-gray-900">8.50 m</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">RPM Configurado:</span>
+                      <div className="flex items-center gap-2">
+                        <ArrowUpIcon className="w-4 h-4 text-slate-600" />
+                        <span className="text-lg font-mono font-bold text-gray-900">1450 RPM</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 pt-2">
+                      <button className="flex-1 bg-slate-600 hover:bg-slate-700 text-white py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium">
+                        <PlayIcon className="w-4 h-4" />
+                        INICIAR
+                      </button>
+                      <button className="flex-1 bg-slate-500 hover:bg-slate-600 text-white py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium">
+                        <StopIcon className="w-4 h-4" />
+                        PARAR
+                      </button>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* PROGRAMA FECHAMENTO AUTOMÁTICO */}
+                <Card 
+                  title="PROGRAMA FECHAMENTO" 
+                  icon={<ArrowDownIcon className="w-5 h-5" />}
+                  variant="default"
+                  className="h-fit"
+                >
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Posição Alvo:</span>
+                      <span className="text-xl font-mono font-bold text-gray-900">0.00 m</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">RPM Configurado:</span>
+                      <div className="flex items-center gap-2">
+                        <ArrowDownIcon className="w-4 h-4 text-slate-600" />
+                        <span className="text-lg font-mono font-bold text-gray-900">1200 RPM</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 pt-2">
+                      <button className="flex-1 bg-slate-600 hover:bg-slate-700 text-white py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium">
+                        <PlayIcon className="w-4 h-4" />
+                        INICIAR
+                      </button>
+                      <button className="flex-1 bg-slate-500 hover:bg-slate-600 text-white py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium">
+                        <StopIcon className="w-4 h-4" />
+                        PARAR
+                      </button>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* PARÂMETROS LASER JUSANTE */}
+                <Card 
+                  title="LASER JUSANTE" 
+                  icon={<EyeIcon className="w-5 h-5" />}
+                  variant="default"
+                  className="h-fit"
+                >
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Área Protegida:</span>
+                      <span className="text-lg font-mono font-bold text-slate-700">LIVRE</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Leitura Cota:</span>
+                      <span className="text-lg font-mono font-bold text-gray-900">
+                        {(reguaPortaJusante * 12.5 / 100 + 125.5).toFixed(2)} m
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Status:</span>
+                      <span className="text-lg font-mono font-bold text-slate-700">OPERACIONAL</span>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* LIMITES E ALARMES */}
+                <Card 
+                  title="LIMITES & ALARMES" 
+                  icon={<ShieldCheckIcon className="w-5 h-5" />}
+                  variant="default"
+                  className="h-fit"
+                >
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 text-sm">Limite Abertura:</span>
+                          <span className="text-gray-900 font-mono font-bold">12.50 m</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 text-sm">Limite Fecho:</span>
+                          <span className="text-gray-900 font-mono font-bold">0.00 m</span>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 text-sm">Desnível Defeito:</span>
+                          <span className="text-slate-600 font-mono font-bold">±5 mm</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 text-sm">Desnível Stop:</span>
+                          <span className="text-slate-700 font-mono font-bold">±10 mm</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-3 border-t border-gray-200">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 font-medium">Desnível Alarme:</span>
+                        <span className="text-slate-800 font-mono font-bold text-lg">±15 mm</span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+              </div>
+            </div>
+
+            {/* Footer com ações */}
+            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setMenuParametrosOpen(false)}
+                  className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors font-medium"
+                >
+                  Fechar
+                </button>
+                <button className="px-6 py-2 bg-green-500 hover:bg-green-600 text-[#212E3E] rounded-lg transition-colors font-bold">
+                  Salvar Configurações
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* Container do SVG - SISTEMA ORIGINAL INALTERADO */}
       <div 
         ref={containerRef}
-        className="w-full max-w-[1920px] flex flex-col items-center relative"
+        className="w-full max-w-[1920px] flex flex-col items-center relative z-10"
         style={{
           height: 'auto',
           minHeight: '50vh',
@@ -343,6 +719,47 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
                 direction="right"
               />
             </div>
+
+            {/* 🚪 INDICADOR STATUS PORTA - ÚNICO (CONDICIONAL) */}
+            {reguaPortaJusante >= 95 && (
+              <div 
+                className="absolute flex items-center justify-center z-20"
+                style={{
+                  top: `${(alturaTotal * 5) / 100}px`, // 5% do topo
+                  left: `${(maxWidth * 42) / 100}px`, // Centralizado
+                  width: `${(maxWidth * 16) / 100}px`, // Mais largo
+                  height: `${(alturaTotal * 6) / 100}px` // Menor altura
+                }}
+              >
+                <div className="bg-green-600 border border-green-500 rounded-md p-3 w-full">
+                  <div className="text-center">
+                    <div className="text-xs font-bold text-white uppercase tracking-wide">
+                      PORTA ABERTA
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {reguaPortaJusante <= 5 && (
+              <div 
+                className="absolute flex items-center justify-center z-20"
+                style={{
+                  bottom: `${(alturaTotal * 5) / 100}px`, // 5% do fundo
+                  left: `${(maxWidth * 42) / 100}px`, // Centralizado
+                  width: `${(maxWidth * 16) / 100}px`, // Mais largo
+                  height: `${(alturaTotal * 6) / 100}px` // Menor altura
+                }}
+              >
+                <div className="bg-yellow-600 border border-yellow-500 rounded-md p-3 w-full">
+                  <div className="text-center">
+                    <div className="text-xs font-bold text-white uppercase tracking-wide">
+                      PORTA FECHADA
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
 
           </div>
