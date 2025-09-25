@@ -4,6 +4,8 @@ import ContraPeso60t from '../components/Porta_Jusante/Porta_Jusante_Contrapeso'
 import PortaJusanteRegua from '../components/Porta_Jusante/PortaJusanteRegua';
 import MotorJusante from '../components/Porta_Jusante/Motor_Jusante';
 import { Card } from '../components/ui/Card';
+import { InfoCard } from '../components/ui/InfoCard';
+import { StatusCard } from '../components/ui/StatusCard';
 import { 
   CogIcon,
   ChevronUpIcon,
@@ -69,6 +71,7 @@ const REGUA_CONFIG = {
     heightPercent: 83,        // % da altura total (tamanho) - MAIOR
   }
 };
+
 
 // ⚙️ CONFIGURAÇÃO DOS MOTORES PORTA JUSANTE - SEPARADO MOBILE/DESKTOP
 const MOTOR_CONFIG = {
@@ -161,7 +164,7 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
     return () => {
       window.removeEventListener('resize', updateDimensions);
     };
-  }, []);
+  }, []); // Não incluir sidebarOpen para evitar recálculos desnecessários
 
   // Detectar se é mobile - otimizado para evitar recálculos
   const isMobile = React.useMemo(() => windowDimensions.width < 1024, [windowDimensions.width]);
@@ -169,7 +172,7 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
   // 🎯 SISTEMA IDÊNTICO AO ECLUSA_REGUA - SEM ESCALA RESPONSIVA
   const portaJusanteAspectRatio = 1075 / 1098; // Baseado no SVG real: width="1075" height="1098"
   
-  // 📐 EXATAMENTE IGUAL ECLUSA_REGUA - maxWidth direto
+  // 📐 EXATAMENTE IGUAL ECLUSA_REGUA - maxWidth direto - MANTER CÁLCULO ORIGINAL
   const maxWidth = Math.min(containerDimensions.width - 32, 1920); // 32px = margem mínima
   
   // 🎯 PORTA JUSANTE: maxWidth direto igual caldeira na Eclusa_Regua  
@@ -201,25 +204,28 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
   const motorDireitoConfig = motorConfigAtual.direito;
   const motorEsquerdoConfig = motorConfigAtual.esquerdo;
   
-  // CÁLCULO DO ESPAÇO DISPONÍVEL REAL
-  const espacoTotalLateral = windowDimensions.width > maxWidth ? 
-    (windowDimensions.width - maxWidth) / 2 : 0;
   
-  const espacoDisponivelEsquerda = Math.max(0, espacoTotalLateral - 20); // -20px margem
-  const espacoDisponivelDireita = Math.max(0, espacoTotalLateral - 20); // -20px margem
+  // CÁLCULO DO ESPAÇO DISPONÍVEL REAL - SEM CONSIDERAR SIDEBAR
+  const larguraTotalTela = windowDimensions.width;
+  const espacoUsadoPorComponentes = maxWidth; // Usar maxWidth que mantém o tamanho original
+  const espacoSobrandoTotal = Math.max(0, larguraTotalTela - espacoUsadoPorComponentes);
+  
+  const espacoDisponivelEsquerda = Math.max(0, espacoSobrandoTotal / 2); // Metade do espaço sobrando
+  const espacoDisponivelDireita = Math.max(0, espacoSobrandoTotal / 2); // Metade do espaço sobrando
 
   // Debug completo do espaço disponível
   console.log('📐 ESPAÇO DISPONÍVEL REAL:', {
     tela_largura: windowDimensions.width,
+    container_largura: containerDimensions.width,
+    sidebar_aberto: sidebarOpen,
+    espaco_usado_componentes: espacoUsadoPorComponentes,
     componentes_largura_maxima: maxWidth,
     componentes_largura_real: basePortaWidth,
-    espaco_total_lateral: espacoTotalLateral,
+    espaco_sobrando_total: espacoSobrandoTotal,
     espaco_disponivel_esquerda: espacoDisponivelEsquerda,
     espaco_disponivel_direita: espacoDisponivelDireita,
-    altura_total_componentes: alturaTotal,
-    pode_usar_laterais: espacoDisponivelEsquerda > 200,
-    condicao_esquerda: espacoDisponivelEsquerda > 200,
-    condicao_direita: espacoDisponivelDireita > 200 && windowDimensions.width >= 1800,
+    condicao_esquerda: espacoDisponivelEsquerda > 100,
+    condicao_direita: espacoDisponivelDireita > 100 && windowDimensions.width >= 1500,
     config_usada: isMobile ? 'mobile' : 'desktop',
     isMobile: isMobile
   });
@@ -230,19 +236,15 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
       {/* PAINEL INDUSTRIAL ISA-104 - ESQUERDA */}
       {!isMobile && espacoDisponivelEsquerda > 100 && (
         <div 
-          className="absolute top-16 z-0 flex flex-col gap-3"
+          className="absolute top-8 z-10 flex flex-col gap-4"
           style={{ 
-            left: '20px',
-            width: `${Math.max(250, Math.min(espacoDisponivelEsquerda - 30, windowDimensions.width <= 1536 ? 300 : 400))}px`,
-            maxHeight: 'calc(100vh - 200px)'
+            left: '16px',
+            width: `${Math.max(380, Math.min(espacoDisponivelEsquerda - 20, 600))}px`,
+            maxHeight: 'calc(100vh - 120px)'
           }}
         >
-          {/* DADOS OPERACIONAIS - RETÂNGULO ÚNICO MODERNO */}
-          <div className="bg-slate-800 border border-slate-600 rounded-lg p-4">
-            <div className="text-sm font-bold text-[#00A3E0] uppercase tracking-wide mb-4 border-b border-slate-600 pb-2">
-              DADOS OPERACIONAIS
-            </div>
-            
+          {/* DADOS OPERACIONAIS - USANDO INFOCARD PADRÃO */}
+          <InfoCard title="DADOS OPERACIONAIS" variant="industrial">
             {/* POSIÇÃO */}
             <div className="mb-3">
               <div className="text-xs font-medium text-green-400 uppercase tracking-wide mb-1">POSIÇÃO PORTA</div>
@@ -269,36 +271,24 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
               </div>
               <div className="text-xs text-slate-400">Nominal: 0.25 m/s</div>
             </div>
-          </div>
+          </InfoCard>
 
-          {/* STATUS OPERACIONAIS - 3 RETÂNGULOS EDP */}
+          {/* STATUS OPERACIONAIS - USANDO STATUSCARD PADRÃO */}
           <div className="flex flex-col gap-2">
-            {/* COMANDO AUTOMÁTICO - AZUL EDP */}
-            <div className="bg-[#00A3E0] border border-blue-500 rounded-md p-3">
-              <div className="text-center">
-                <div className="text-xs font-bold text-white uppercase tracking-wide">
-                  COMANDO EM AUTOMÁTICO
-                </div>
-              </div>
-            </div>
-
-            {/* IGUALDADE NÍVEIS PRESENTE - VERDE */}
-            <div className="bg-green-600 border border-green-500 rounded-md p-3">
-              <div className="text-center">
-                <div className="text-xs font-bold text-white uppercase tracking-wide">
-                  IGUALDADE DE NÍVEIS PRESENTE
-                </div>
-              </div>
-            </div>
-
-            {/* FALTA IGUALDADE NÍVEIS - VERMELHO */}
-            <div className="bg-red-600 border border-red-500 rounded-md p-3">
-              <div className="text-center">
-                <div className="text-xs font-bold text-white uppercase tracking-wide">
-                  FALTA IGUALDADE DE NÍVEIS
-                </div>
-              </div>
-            </div>
+            <StatusCard 
+              title="COMANDO EM AUTOMÁTICO"
+              variant="automatic"
+            />
+            
+            <StatusCard 
+              title="IGUALDADE DE NÍVEIS PRESENTE"
+              variant="success"
+            />
+            
+            <StatusCard 
+              title="FALTA IGUALDADE DE NÍVEIS"
+              variant="error"
+            />
           </div>
         </div>
       )}
@@ -306,19 +296,15 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
       {/* PAINEL INDUSTRIAL ISA-104 - DIREITA */}
       {!isMobile && espacoDisponivelDireita > 100 && windowDimensions.width >= 1500 && (
         <div 
-          className="absolute top-16 z-0 flex flex-col gap-3"
+          className="absolute top-8 z-10 flex flex-col gap-4"
           style={{ 
-            right: '20px',
-            width: `${Math.max(250, Math.min(espacoDisponivelDireita - 30, windowDimensions.width <= 1536 ? 300 : 400))}px`,
-            maxHeight: 'calc(100vh - 200px)'
+            right: '16px',
+            width: `${Math.max(380, Math.min(espacoDisponivelDireita - 20, 600))}px`,
+            maxHeight: 'calc(100vh - 120px)'
           }}
         >
-          {/* MOTORES - RETÂNGULO ÚNICO MODERNO */}
-          <div className="bg-slate-800 border border-slate-600 rounded-lg p-4">
-            <div className="text-sm font-bold text-[#00A3E0] uppercase tracking-wide mb-4 border-b border-slate-600 pb-2">
-              MOTORES
-            </div>
-            
+          {/* MOTORES - USANDO INFOCARD PADRÃO */}
+          <InfoCard title="MOTORES" variant="motor">
             {/* MOTOR DIREITO */}
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
@@ -352,13 +338,10 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
                 </div>
               </div>
             </div>
-          </div>
+          </InfoCard>
 
-          {/* SISTEMA STATUS - RETÂNGULO ÚNICO MODERNO */}
-          <div className="bg-slate-800 border border-slate-600 rounded-lg p-4">
-            <div className="text-sm font-bold text-[#00A3E0] uppercase tracking-wide mb-4 border-b border-slate-600 pb-2">
-              SISTEMA
-            </div>
+          {/* SISTEMA STATUS - USANDO INFOCARD PADRÃO */}
+          <InfoCard title="SISTEMA" variant="system">
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-slate-400">Pressão:</span>
@@ -377,22 +360,35 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
                 <span className="text-green-400 font-mono font-bold">OPERACIONAL</span>
               </div>
             </div>
-          </div>
+          </InfoCard>
         </div>
       )}
 
-      {/* BOTÃO MENU PARÂMETROS - FLUTUANTE */}
+
+      {/* MENU PARÂMETROS - CANTO INFERIOR DIREITO */}
       {!isMobile && (
         <button
           onClick={() => setMenuParametrosOpen(!menuParametrosOpen)}
-          className={`fixed top-20 right-6 z-30 w-12 h-12 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center ${
+          className={`fixed bottom-6 right-6 z-30 px-8 py-5 rounded-2xl shadow-2xl transition-all duration-300 flex items-center gap-5 ${
             menuParametrosOpen 
-              ? 'bg-[#00A3E0] text-white shadow-xl scale-110' 
-              : 'bg-slate-800 text-white hover:bg-slate-700 hover:shadow-xl'
+              ? 'bg-[#212E3E] text-white scale-105' 
+              : 'bg-[#212E3E] text-white hover:scale-102'
           }`}
-          title="Menu Parâmetros da Porta"
         >
-          <CogIcon className={`w-6 h-6 transition-transform duration-300 ${menuParametrosOpen ? 'rotate-90' : ''}`} />
+          {/* Ícone */}
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+            menuParametrosOpen ? 'bg-white/20' : 'bg-green-400/20'
+          }`}>
+            <CogIcon className={`w-6 h-6 transition-transform duration-300 text-white ${
+              menuParametrosOpen ? 'rotate-90' : ''
+            }`} />
+          </div>
+          
+          {/* Texto */}
+          <div className="text-left">
+            <div className="text-sm font-semibold uppercase">PARÂMETROS</div>
+            <div className="text-xs uppercase">Porta Jusante</div>
+          </div>
         </button>
       )}
 
