@@ -1,8 +1,8 @@
 import React from 'react';
 import { usePLC } from '../contexts/PLCContext';
 import ContraPeso20t from '../components/Porta_Montante/Porta_Montante_Contrapeso';
-// import PortaMontanteRegua from '../components/Porta_Montante/PortaMontanteRegua';
-// import MotorMontante from '../components/Porta_Montante/Motor_Montante';
+import PortaMontanteRegua from '../components/Porta_Montante/PortaMontanteRegua';
+import MotorMontante from '../components/Porta_Montante/Motor_Montante';
 import { Card } from '../components/ui/Card';
 import { InfoCard } from '../components/ui/InfoCard';
 import { StatusCard } from '../components/ui/StatusCard';
@@ -57,16 +57,16 @@ const CONTRAPESO_CONFIG = {
 // 📏 CONFIGURAÇÃO DA RÉGUA PORTA MONTANTE - SEPARADO MOBILE/DESKTOP
 const REGUA_CONFIG = {
   desktop: {
-    verticalPercent: 46,      // % da altura total (posição Y)
-    horizontalPercent: 29,    // % da largura total (posição X) - VOLTA POSIÇÃO ORIGINAL
-    widthPercent: 42,         // % da largura total (tamanho) - 2% MENOR
-    heightPercent: 52,        // % da altura total (tamanho) - 2% MENOR
+    verticalPercent: 20,      // % da altura total (posição Y)
+    horizontalPercent: 20.95,    // % da largura total (posição X) - VOLTA POSIÇÃO ORIGINAL
+    widthPercent: 58.16,      // % da largura total (tamanho) +34% (57.02 * 1.02)
+    heightPercent: 72.00,     // % da altura total (tamanho) +34% (70.59 * 1.02)
   },
   mobile: {
     verticalPercent: 46,      // % da altura total (posição Y)
     horizontalPercent: 26,    // % da largura total (posição X) - ajustado para mobile
-    widthPercent: 48,         // % da largura total (tamanho) - MAIOR no mobile
-    heightPercent: 83,        // % da altura total (tamanho) - MAIOR
+    widthPercent: 66.47,      // % da largura total (tamanho) +34% (65.17 * 1.02)
+    heightPercent: 114.93,    // % da altura total (tamanho) +34% (112.68 * 1.02)
   }
 };
 
@@ -75,14 +75,14 @@ const REGUA_CONFIG = {
 const MOTOR_CONFIG = {
   desktop: {
     direito: {
-      verticalPercent: -1,      // % da altura total (posição Y)
-      horizontalPercent: 70,    // % da largura total (posição X)
+      verticalPercent: 3.75,      // % da altura total (posição Y)
+      horizontalPercent: 69.3,    // % da largura total (posição X)
       widthPercent: 7.4,        // % da largura total (tamanho) - 45% menor
       heightPercent: 9.2,       // % da altura total (tamanho) - 45% menor
     },
     esquerdo: {
-      verticalPercent: -1,      // % da altura total (posição Y)
-      horizontalPercent: 22.6,    // % da largura total (posição X)
+      verticalPercent: 3.9,      // % da altura total (posição Y)
+      horizontalPercent: 23.25,    // % da largura total (posição X)
       widthPercent: 7.4,        // % da largura total (tamanho) - 45% menor
       heightPercent: 9.2,       // % da altura total (tamanho) - 45% menor
     }
@@ -174,7 +174,7 @@ const PortaMontante: React.FC<PortaMontanteProps> = ({ sidebarOpen = true }) => 
   const maxWidth = Math.min(containerDimensions.width - 32, 1920); // 32px = margem mínima
   
   // 🎯 PORTA MONTANTE: maxWidth direto igual caldeira na Eclusa_Regua  
-  const portaScale = isMobile ? 90 : 55; // 90% mobile, 100% desktop
+  const portaScale = isMobile ? 90 : 55; // 90% mobile, 55% desktop
   const basePortaWidth = (maxWidth * portaScale) / 100;
   const basePortaHeight = basePortaWidth / portaMontanteAspectRatio;
   
@@ -187,9 +187,9 @@ const PortaMontante: React.FC<PortaMontanteProps> = ({ sidebarOpen = true }) => 
   // Extrair dados dos contrapesos, régua e motores do PLC - PORTA MONTANTE
   const contrapesoDirecto = plcData?.ints?.[57] || 0;   // Contrapeso direito (índice 57)
   const contrapesoEsquerdo = plcData?.ints?.[58] || 0;  // Contrapeso esquerdo (índice 58)
-  const reguaPortaMontante = plcData?.ints?.[38] || 0;   // Régua porta montante (índice 38)
-  const motorDireito = plcData?.ints?.[26] || 0;        // Motor direito (índice 26)
-  const motorEsquerdo = plcData?.ints?.[27] || 0;       // Motor esquerdo (índice 27)
+  const reguaPortaMontante = plcData?.ints?.[56] || 0;   // Régua porta montante (índice 56)
+  const motorDireito = plcData?.ints?.[50] || 0;        // Motor direito (índice 50)
+  const motorEsquerdo = plcData?.ints?.[51] || 0;       // Motor esquerdo (índice 51)
   
   // Configuração responsiva SIMPLES - igual outros componentes
   const configAtual = isMobile ? CONTRAPESO_CONFIG.mobile : CONTRAPESO_CONFIG.desktop;
@@ -658,9 +658,7 @@ const PortaMontante: React.FC<PortaMontanteProps> = ({ sidebarOpen = true }) => 
               />
             </div>
 
-            {/* 📏 RÉGUA PORTA MONTANTE - WEBSOCKET ÍNDICE 38 */}
-            {/* TEMPORARIAMENTE COMENTADO - COMPONENTE AINDA NÃO CRIADO */}
-            {/*
+            {/* 📏 RÉGUA PORTA MONTANTE - WEBSOCKET ÍNDICE 56 */}
             <div 
               className="absolute transition-all duration-200 ease-in-out"
               style={{
@@ -677,11 +675,8 @@ const PortaMontante: React.FC<PortaMontanteProps> = ({ sidebarOpen = true }) => 
                 editMode={false}
               />
             </div>
-            */}
 
-            {/* ⚙️ MOTOR DIREITO - WEBSOCKET ÍNDICE 26 */}
-            {/* TEMPORARIAMENTE COMENTADO - COMPONENTE AINDA NÃO CRIADO */}
-            {/*
+            {/* ⚙️ MOTOR DIREITO - WEBSOCKET ÍNDICE 50 */}
             <div 
               className="absolute transition-all duration-200 ease-in-out"
               style={{
@@ -699,11 +694,8 @@ const PortaMontante: React.FC<PortaMontanteProps> = ({ sidebarOpen = true }) => 
                 direction="left"
               />
             </div>
-            */}
 
-            {/* ⚙️ MOTOR ESQUERDO - WEBSOCKET ÍNDICE 27 - ESPELHADO */}
-            {/* TEMPORARIAMENTE COMENTADO - COMPONENTE AINDA NÃO CRIADO */}
-            {/*
+            {/* ⚙️ MOTOR ESQUERDO - WEBSOCKET ÍNDICE 51 - ESPELHADO */}
             <div 
               className="absolute transition-all duration-200 ease-in-out"
               style={{
@@ -721,7 +713,6 @@ const PortaMontante: React.FC<PortaMontanteProps> = ({ sidebarOpen = true }) => 
                 direction="right"
               />
             </div>
-            */}
 
             {/* 🚪 INDICADOR STATUS PORTA - ÚNICO (CONDICIONAL) */}
             {reguaPortaMontante >= 95 && (

@@ -1,52 +1,348 @@
 import React from 'react';
+import { usePLC } from '../contexts/PLCContext';
+import BasePistaoEnchimento from '../components/Enchimento/BasePistaoEnchimento';
+import PistaoEnchimento from '../components/Enchimento/PistaoEnchimento';
+import CilindroEnchimento from '../components/Enchimento/CilindroEnchimento';
 
 interface EnchimentoProps {
   sidebarOpen?: boolean;
 }
 
-const Enchimento: React.FC<EnchimentoProps> = ({ sidebarOpen = true }) => {
-  return (
-    <div className="w-full h-full flex flex-col">
-      {/* Header da Página */}
-      <div className="w-full bg-white shadow-sm border-b border-gray-200 mb-6">
-        <div className="px-6 py-4">
-          <h1 className="text-2xl font-bold text-gray-900">Enchimento</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Controle e monitoramento do sistema de enchimento
-          </p>
-        </div>
-      </div>
+// Configuração responsiva da BASE dos pistões
+const BASE_PISTAO_CONFIG = {
+  desktop: {
+    direito: {
+      verticalPercent: 110,
+      horizontalPercent: 65,
+      widthPercent: 26.96,
+      heightPercent: 71.888,
+    },
+    esquerdo: {
+      verticalPercent: 110,
+      horizontalPercent: 5,
+      widthPercent: 26.96,
+      heightPercent: 71.888,
+    }
+  },
+  mobile: {
+    direito: {
+      verticalPercent: 50,
+      horizontalPercent: 70,
+      widthPercent: 31.2,
+      heightPercent: 62.4,
+    },
+    esquerdo: {
+      verticalPercent: 50,
+      horizontalPercent: 5,
+      widthPercent: 31.2,
+      heightPercent: 62.4,
+    }
+  }
+};
 
-      {/* Conteúdo Principal */}
-      <div className="flex-1 px-6 pb-6">
-        <div className="w-full h-full bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg 
-                  className="w-8 h-8 text-purple-600" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth="2" 
-                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
-                  />
-                </svg>
-              </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Sistema de Enchimento
-              </h2>
-              <p className="text-gray-600 max-w-md">
-                Esta página será desenvolvida com os componentes de controle e 
-                monitoramento específicos do sistema de enchimento.
-              </p>
-            </div>
+// Configuração responsiva do PISTÃO MÓVEL
+const PISTAO_CONFIG = {
+  desktop: {
+    direito: {
+      verticalPercent: 68.9,
+      horizontalPercent: 56.8,
+      widthPercent: 43.32,
+      heightPercent: 108.3,
+    },
+    esquerdo: {
+      verticalPercent: 68.9,
+      horizontalPercent: -3.2,
+      widthPercent: 43.32,
+      heightPercent: 108.3,
+    }
+  },
+  mobile: {
+    direito: {
+      verticalPercent: 50,
+      horizontalPercent: 70,
+      widthPercent: 50.54,
+      heightPercent: 86.64,
+    },
+    esquerdo: {
+      verticalPercent: 50,
+      horizontalPercent: 5,
+      widthPercent: 50.54,
+      heightPercent: 86.64,
+    }
+  }
+};
+
+// Configuração responsiva dos CILINDROS
+const CILINDRO_CONFIG = {
+  desktop: {
+    direito: {
+      verticalPercent: 16,
+      horizontalPercent: 71,
+      widthPercent: 14.92992,
+      heightPercent: 74.6496,
+    },
+    esquerdo: {
+      verticalPercent: 16,
+      horizontalPercent: 11,
+      widthPercent: 14.92992,
+      heightPercent: 74.6496,
+    }
+  },
+  mobile: {
+    direito: {
+      verticalPercent: 20,
+      horizontalPercent: 75,
+      widthPercent: 22.39488,
+      heightPercent: 65.3184,
+    },
+    esquerdo: {
+      verticalPercent: 20,
+      horizontalPercent: 8,
+      widthPercent: 22.39488,
+      heightPercent: 65.3184,
+    }
+  }
+};
+
+const Enchimento: React.FC<EnchimentoProps> = () => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [containerDimensions, setContainerDimensions] = React.useState({ width: 0, height: 0 });
+  const [windowDimensions, setWindowDimensions] = React.useState({ width: 0, height: 0 });
+  const [isInitialized, setIsInitialized] = React.useState(false);
+
+  // UseLayoutEffect para calcular dimensões ANTES da renderização visual
+  React.useLayoutEffect(() => {
+    const initializeDimensions = () => {
+      if (typeof window !== 'undefined') {
+        const newWindowDimensions = { width: window.innerWidth, height: window.innerHeight };
+        setWindowDimensions(newWindowDimensions);
+        
+        if (containerRef.current) {
+          const rect = containerRef.current.getBoundingClientRect();
+          setContainerDimensions({ width: rect.width, height: rect.height });
+        } else {
+          // Fallback: calcular dimensões baseado na janela
+          const width = Math.min(newWindowDimensions.width - 32, 1920);
+          setContainerDimensions({ width, height: 600 });
+        }
+        
+        setIsInitialized(true);
+      }
+    };
+    
+    // Executar imediatamente (sem timeout)
+    initializeDimensions();
+    
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const newDimensions = { width: rect.width, height: rect.height };
+        
+        setContainerDimensions(prev => {
+          if (Math.abs(prev.width - newDimensions.width) > 10 || 
+              Math.abs(prev.height - newDimensions.height) > 10) {
+            return newDimensions;
+          }
+          return prev;
+        });
+      }
+      
+      const newWindowDimensions = { width: window.innerWidth, height: window.innerHeight };
+      setWindowDimensions(prev => {
+        if (Math.abs(prev.width - newWindowDimensions.width) > 10 || 
+            Math.abs(prev.height - newWindowDimensions.height) > 10) {
+          return newWindowDimensions;
+        }
+        return prev;
+      });
+    };
+    
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
+
+  // Detectar se é mobile
+  const isMobile = React.useMemo(() => windowDimensions.width < 1024, [windowDimensions.width]);
+
+  // Sistema de dimensionamento responsivo
+  const maxWidth = Math.min(containerDimensions.width - 32, 1920);
+  
+  // 📡 USAR O SISTEMA PLC EXISTENTE
+  const { data: plcData } = usePLC();
+  
+  // Extrair dados dos pistões do PLC - SISTEMA ENCHIMENTO
+  const pistaoDireito = plcData?.ints?.[0] || 0;   // Pistão direito (índice 0)
+  const pistaoEsquerdo = plcData?.ints?.[1] || 0;  // Pistão esquerdo (índice 1)
+  
+  // Extrair bits dos cilindros do PLC - STATUS BITS 
+  // Bit 29: Word 1, Bit 13 (29 = 1*16 + 13)
+  // Bit 30: Word 1, Bit 14 (30 = 1*16 + 14)
+  const cilindroDireito = plcData?.bit_data?.status_bits?.[1]?.[13] || 0;  // Cilindro direito (bit 29)
+  const cilindroEsquerdo = plcData?.bit_data?.status_bits?.[1]?.[14] || 0; // Cilindro esquerdo (bit 30)
+  
+  // Configuração responsiva BASE
+  const baseConfigAtual = isMobile ? BASE_PISTAO_CONFIG.mobile : BASE_PISTAO_CONFIG.desktop;
+  const basePistaoDireitoConfig = baseConfigAtual.direito;
+  const basePistaoEsquerdoConfig = baseConfigAtual.esquerdo;
+
+  // Configuração responsiva PISTÃO MÓVEL
+  const pistaoConfigAtual = isMobile ? PISTAO_CONFIG.mobile : PISTAO_CONFIG.desktop;
+  const pistaoDireitoConfig = pistaoConfigAtual.direito;
+  const pistaoEsquerdoConfig = pistaoConfigAtual.esquerdo;
+
+  // Configuração responsiva CILINDROS
+  const cilindroConfigAtual = isMobile ? CILINDRO_CONFIG.mobile : CILINDRO_CONFIG.desktop;
+  const cilindroDireitoConfig = cilindroConfigAtual.direito;
+  const cilindroEsquerdoConfig = cilindroConfigAtual.esquerdo;
+
+  return (
+    <div className="w-full h-auto flex flex-col items-center relative">
+      {/* Container do Sistema de Enchimento */}
+      <div 
+        ref={containerRef}
+        className="w-full max-w-[1920px] flex flex-col items-center relative z-10"
+        style={{
+          height: 'auto',
+          minHeight: '60vh',
+          overflow: 'visible'
+        }}
+      >
+        {isInitialized && containerDimensions.width > 100 && windowDimensions.width > 0 ? (
+          <div 
+            className="relative w-full flex items-center justify-center"
+            style={{
+              width: '100%',
+              height: '600px',
+              minHeight: '600px'
+            }}
+          >
+            {/* BASE PISTÃO ESQUERDO */}
+          <div 
+            className="absolute"
+            style={{
+              top: `${(600 * basePistaoEsquerdoConfig.verticalPercent) / 100}px`,
+              left: `${(maxWidth * basePistaoEsquerdoConfig.horizontalPercent) / 100}px`,
+              width: `${(maxWidth * basePistaoEsquerdoConfig.widthPercent) / 100}px`,
+              height: `${(600 * basePistaoEsquerdoConfig.heightPercent) / 100}px`,
+              zIndex: 5
+            }}
+          >
+            <BasePistaoEnchimento 
+              side="esquerdo"
+              editMode={false}
+            />
+          </div>
+
+          {/* BASE PISTÃO DIREITO */}
+          <div 
+            className="absolute"
+            style={{
+              top: `${(600 * basePistaoDireitoConfig.verticalPercent) / 100}px`,
+              left: `${(maxWidth * basePistaoDireitoConfig.horizontalPercent) / 100}px`,
+              width: `${(maxWidth * basePistaoDireitoConfig.widthPercent) / 100}px`,
+              height: `${(600 * basePistaoDireitoConfig.heightPercent) / 100}px`,
+              zIndex: 5
+            }}
+          >
+            <BasePistaoEnchimento 
+              side="direito"
+              editMode={false}
+            />
+          </div>
+
+          {/* 🎯 PISTÃO ESQUERDO - COM MOVIMENTO PROPORCIONAL - WEBSOCKET ÍNDICE 1 */}
+          <div 
+            className="absolute transition-all duration-200 ease-in-out"
+            style={{
+              top: `${(600 * pistaoEsquerdoConfig.verticalPercent) / 100}px`,
+              left: `${(maxWidth * pistaoEsquerdoConfig.horizontalPercent) / 100}px`,
+              width: `${(maxWidth * pistaoEsquerdoConfig.widthPercent) / 100}px`,
+              height: `${(600 * pistaoEsquerdoConfig.heightPercent) / 100}px`,
+              zIndex: 10
+            }}
+          >
+            <PistaoEnchimento 
+              websocketValue={pistaoEsquerdo}
+              side="esquerdo"
+              editMode={false}
+            />
+          </div>
+
+          {/* 🎯 PISTÃO DIREITO - COM MOVIMENTO PROPORCIONAL - WEBSOCKET ÍNDICE 0 */}
+          <div 
+            className="absolute transition-all duration-200 ease-in-out"
+            style={{
+              top: `${(600 * pistaoDireitoConfig.verticalPercent) / 100}px`,
+              left: `${(maxWidth * pistaoDireitoConfig.horizontalPercent) / 100}px`,
+              width: `${(maxWidth * pistaoDireitoConfig.widthPercent) / 100}px`,
+              height: `${(600 * pistaoDireitoConfig.heightPercent) / 100}px`,
+              zIndex: 10
+            }}
+          >
+            <PistaoEnchimento 
+              websocketValue={pistaoDireito}
+              side="direito"
+              editMode={false}
+            />
+          </div>
+
+          {/* 🔧 CILINDRO ESQUERDO - STATUS WORD BIT ÍNDICE 30 */}
+          <div 
+            className="absolute"
+            style={{
+              top: `${(600 * cilindroEsquerdoConfig.verticalPercent) / 100}px`,
+              left: `${(maxWidth * cilindroEsquerdoConfig.horizontalPercent) / 100}px`,
+              width: `${(maxWidth * cilindroEsquerdoConfig.widthPercent) / 100}px`,
+              height: `${(600 * cilindroEsquerdoConfig.heightPercent) / 100}px`,
+              zIndex: 5
+            }}
+          >
+            <CilindroEnchimento 
+              websocketBit={cilindroEsquerdo}
+              side="esquerdo"
+              editMode={false}
+            />
+          </div>
+
+          {/* 🔧 CILINDRO DIREITO - STATUS WORD BIT ÍNDICE 29 */}
+          <div 
+            className="absolute"
+            style={{
+              top: `${(600 * cilindroDireitoConfig.verticalPercent) / 100}px`,
+              left: `${(maxWidth * cilindroDireitoConfig.horizontalPercent) / 100}px`,
+              width: `${(maxWidth * cilindroDireitoConfig.widthPercent) / 100}px`,
+              height: `${(600 * cilindroDireitoConfig.heightPercent) / 100}px`,
+              zIndex: 5
+            }}
+          >
+            <CilindroEnchimento 
+              websocketBit={cilindroDireito}
+              side="direito"
+              editMode={false}
+            />
           </div>
         </div>
+        ) : (
+          /* Loading otimizado - mantém proporções corretas */
+          <div className="w-full flex items-center justify-center">
+            <div 
+              className="w-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 rounded-lg animate-pulse"
+              style={{ 
+                height: '600px',
+                maxWidth: '800px',
+                backgroundSize: '200% 100%',
+                animation: 'shimmer 1.5s ease-in-out infinite'
+              }}
+            >
+              <style>{`
+                @keyframes shimmer {
+                  0% { background-position: -200% 0; }
+                  100% { background-position: 200% 0; }
+                }
+              `}</style>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
