@@ -276,7 +276,7 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
   
 
   return (
-    <div className="w-full h-screen flex flex-col items-center justify-end">
+    <div className="w-full h-screen flex flex-col items-center justify-end pb-8">
         
 
         <div 
@@ -588,32 +588,31 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
       />
 
 
-      {/* BOTÃO PARÂMETROS - TOTALMENTE RESPONSIVO */}
+      {/* BOTÃO MOBILE - Mesmo estilo do desktop, porém menor (abaixo de 1024px) */}
       <button
         onClick={() => setMenuParametrosOpen(!menuParametrosOpen)}
-        className={`fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-30 transition-all duration-300 ${
-          menuParametrosOpen 
-            ? 'bg-[#212E3E] text-white scale-105' 
-            : 'bg-[#212E3E] text-white hover:scale-105'
-        } ${
-          // Mobile: botão pequeno e circular
-          'w-12 h-12 rounded-full shadow-lg sm:w-auto sm:h-auto sm:px-8 sm:py-5 sm:rounded-2xl sm:shadow-2xl'
-        } flex items-center justify-center sm:gap-5`}
+        className="xl:hidden fixed top-20 right-4 z-50 px-4 py-3 bg-[#212E3E] text-white rounded-xl shadow-lg flex items-center gap-2 touch-manipulation transition-all duration-200"
+        style={{ touchAction: 'manipulation' }}
       >
-        {/* Ícone sempre visível */}
-        <div className={`transition-all duration-300 ${
-          menuParametrosOpen ? 'bg-white/20' : 'bg-green-400/20'
-        } ${
-          // Mobile: sem container de fundo
-          'sm:w-12 sm:h-12 sm:rounded-xl sm:flex sm:items-center sm:justify-center'
-        }`}>
-          <CogIcon className={`w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 text-white ${
-            menuParametrosOpen ? 'rotate-90' : ''
-          }`} />
+        <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+          <CogIcon className="w-3 h-3" />
         </div>
-        
-        {/* Texto apenas no desktop */}
-        <div className="text-left hidden sm:block">
+        <div className="text-left min-w-0">
+          <div className="font-bold text-xs leading-tight">PARÂMETROS</div>
+          <div className="text-xs opacity-80 leading-tight">Sistema</div>
+        </div>
+      </button>
+
+      {/* BOTÃO DESKTOP - Grande com texto NO FUNDO (acima de 1024px) */}
+      <button
+        onClick={() => setMenuParametrosOpen(!menuParametrosOpen)}
+        className="hidden xl:flex fixed bottom-6 right-6 z-50 px-8 py-5 bg-[#212E3E] text-white rounded-2xl shadow-2xl items-center gap-5 hover:scale-105 transition-all duration-200 touch-manipulation"
+        style={{ touchAction: 'manipulation' }}
+      >
+        <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+          <CogIcon className="w-6 h-6" />
+        </div>
+        <div className="text-left">
           <div className="font-bold text-lg">PARÂMETROS</div>
           <div className="text-sm opacity-80">Sistema de Eclusa</div>
         </div>
@@ -622,38 +621,65 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
       {/* MODAL DE PARÂMETROS */}
       {menuParametrosOpen && (
         <div 
-          className="fixed inset-0 z-30 flex items-center justify-center p-2 sm:p-4"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center p-2 md:p-4 overflow-hidden"
           onClick={() => setMenuParametrosOpen(false)}
+          style={{ 
+            touchAction: 'none',
+            overscrollBehavior: 'contain',
+            WebkitOverflowScrolling: 'touch'
+          }}
         >
           {/* Dialog Container */}
           <div 
-            className="bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-300"
+            className="
+              bg-white shadow-2xl overflow-hidden flex flex-col
+              w-full max-w-sm max-h-[85vh] rounded-t-2xl
+              animate-in slide-in-from-bottom duration-300
+              md:max-w-2xl md:max-h-[80vh] md:rounded-2xl
+              md:animate-in md:fade-in md:zoom-in
+              lg:max-w-4xl
+            "
             onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+            style={{ 
+              touchAction: 'pan-y',
+              overscrollBehavior: 'contain'
+            }}
           >
             {/* Header azul escuro EDP */}
-            <div className="bg-[#212E3E] p-4 sm:p-6 text-white">
+            <div className="bg-[#212E3E] p-3 md:p-4 text-white flex-shrink-0">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="w-8 h-8 sm:w-12 sm:h-12 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center">
-                    <CogIcon className="w-4 h-4 sm:w-6 sm:h-6" />
+                <div className="flex items-center gap-2 md:gap-3">
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <CogIcon className="w-4 h-4 md:w-5 md:h-5" />
                   </div>
-                  <div>
-                    <h2 className="text-lg sm:text-xl font-bold">PARÂMETROS DA ECLUSA</h2>
-                    <p className="text-gray-300 text-xs sm:text-sm hidden sm:block">Configurações e Monitoramento de Níveis</p>
+                  <div className="min-w-0">
+                    <h2 className="text-sm md:text-base font-bold truncate">PARÂMETROS</h2>
+                    <p className="text-gray-300 text-xs md:text-sm mt-0.5 hidden md:block">Configurações e Monitoramento</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setMenuParametrosOpen(false)}
-                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                  className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-white/20 hover:bg-white/30 active:bg-white/40 flex items-center justify-center transition-colors flex-shrink-0"
+                  style={{ touchAction: 'manipulation' }}
                 >
-                  <XMarkIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <XMarkIcon className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
               </div>
             </div>
 
             {/* Conteúdo com scroll */}
-            <div className="p-3 sm:p-6 overflow-y-auto max-h-[calc(95vh-80px)] sm:max-h-[calc(90vh-120px)]">
-              <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
+            <div 
+              className="flex-1 overflow-y-auto overscroll-contain" 
+              style={{ 
+                WebkitOverflowScrolling: 'touch',
+                touchAction: 'pan-y',
+                overscrollBehavior: 'contain'
+              }}
+            >
+              <div className="p-3 md:p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                 
                 {/* IGUALDADE DE NÍVEIS MONTANTE */}
                 <Card 
@@ -662,25 +688,25 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
                   variant="default"
                   className="h-fit"
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-2 md:space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium">Tolerância:</span>
-                      <span className="text-xl font-mono font-bold text-gray-900">0.05 m</span>
+                      <span className="text-gray-600 font-medium text-xs md:text-sm">Tolerância:</span>
+                      <span className="text-sm md:text-lg font-mono font-bold text-gray-900">0.05 m</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium">Tempo Estabilização:</span>
-                      <span className="text-xl font-mono font-bold text-gray-900">30 s</span>
+                      <span className="text-gray-600 font-medium text-xs md:text-sm">Tempo Estab.:</span>
+                      <span className="text-sm md:text-lg font-mono font-bold text-gray-900">30 s</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium">Status:</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span className="text-green-600 font-semibold">OK</span>
+                      <span className="text-gray-600 font-medium text-xs md:text-sm">Status:</span>
+                      <div className="flex items-center gap-1 md:gap-2">
+                        <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-green-500"></div>
+                        <span className="text-green-600 font-semibold text-xs md:text-sm">OK</span>
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium">Bypass:</span>
-                      <button className="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded text-sm transition-colors">
+                      <span className="text-gray-600 font-medium text-xs md:text-sm">Bypass:</span>
+                      <button className="px-2 py-1 md:px-3 md:py-1.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white rounded text-xs transition-colors font-medium">
                         Desabilitado
                       </button>
                     </div>
@@ -694,25 +720,25 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
                   variant="default"
                   className="h-fit"
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-2 md:space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium">Tolerância:</span>
-                      <span className="text-xl font-mono font-bold text-gray-900">0.03 m</span>
+                      <span className="text-gray-600 font-medium text-xs md:text-sm">Tolerância:</span>
+                      <span className="text-sm md:text-lg font-mono font-bold text-gray-900">0.03 m</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium">Tempo Estabilização:</span>
-                      <span className="text-xl font-mono font-bold text-gray-900">25 s</span>
+                      <span className="text-gray-600 font-medium text-xs md:text-sm">Tempo Estab.:</span>
+                      <span className="text-sm md:text-lg font-mono font-bold text-gray-900">25 s</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium">Status:</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span className="text-green-600 font-semibold">OK</span>
+                      <span className="text-gray-600 font-medium text-xs md:text-sm">Status:</span>
+                      <div className="flex items-center gap-1 md:gap-2">
+                        <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-green-500"></div>
+                        <span className="text-green-600 font-semibold text-xs md:text-sm">OK</span>
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium">Bypass:</span>
-                      <button className="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded text-sm transition-colors">
+                      <span className="text-gray-600 font-medium text-xs md:text-sm">Bypass:</span>
+                      <button className="px-2 py-1 md:px-3 md:py-1.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white rounded text-xs transition-colors font-medium">
                         Desabilitado
                       </button>
                     </div>
@@ -724,36 +750,36 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
                   title="COTAS DOS NÍVEIS" 
                   icon={<BeakerIcon className="w-5 h-5" />}
                   variant="default"
-                  className="h-fit lg:col-span-2"
+                  className="h-fit md:col-span-2"
                 >
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-3 md:space-y-4">
+                    <div className="grid grid-cols-3 gap-2 md:gap-3">
                       <div className="text-center">
-                        <div className="text-sm text-blue-600 font-medium">MONTANTE</div>
-                        <div className="text-xl font-mono font-bold text-blue-800">{nivelMontante.toFixed(2)} m</div>
+                        <div className="text-xs text-blue-600 font-medium mb-1">MONTANTE</div>
+                        <div className="text-sm md:text-lg font-mono font-bold text-blue-800">{nivelMontante.toFixed(2)} m</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-sm text-green-600 font-medium">CALDEIRA</div>
-                        <div className="text-xl font-mono font-bold text-green-800">{nivelCaldeira.toFixed(2)} m</div>
+                        <div className="text-xs text-green-600 font-medium mb-1">CALDEIRA</div>
+                        <div className="text-sm md:text-lg font-mono font-bold text-green-800">{nivelCaldeira.toFixed(2)} m</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-sm text-orange-600 font-medium">JUSANTE</div>
-                        <div className="text-xl font-mono font-bold text-orange-800">{nivelJusante.toFixed(2)} m</div>
+                        <div className="text-xs text-orange-600 font-medium mb-1">JUSANTE</div>
+                        <div className="text-sm md:text-lg font-mono font-bold text-orange-800">{nivelJusante.toFixed(2)} m</div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-200">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 pt-2 md:pt-3 border-t border-gray-200">
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-600 text-sm">Mont-Cald:</span>
-                        <div className="flex items-center gap-2">
+                        <span className="text-gray-600 text-xs font-medium">Mont-Cald:</span>
+                        <div className="flex items-center gap-1 md:gap-2">
                           <div className={`w-2 h-2 rounded-full ${Math.abs(nivelMontante - nivelCaldeira) <= 0.05 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                          <span className="text-sm font-mono">{Math.abs(nivelMontante - nivelCaldeira).toFixed(3)}m</span>
+                          <span className="text-xs font-mono font-medium">{Math.abs(nivelMontante - nivelCaldeira).toFixed(3)}m</span>
                         </div>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-600 text-sm">Cald-Jus:</span>
-                        <div className="flex items-center gap-2">
+                        <span className="text-gray-600 text-xs font-medium">Cald-Jus:</span>
+                        <div className="flex items-center gap-1 md:gap-2">
                           <div className={`w-2 h-2 rounded-full ${Math.abs(nivelCaldeira - nivelJusante) <= 0.03 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                          <span className="text-sm font-mono">{Math.abs(nivelCaldeira - nivelJusante).toFixed(3)}m</span>
+                          <span className="text-xs font-mono font-medium">{Math.abs(nivelCaldeira - nivelJusante).toFixed(3)}m</span>
                         </div>
                       </div>
                     </div>
@@ -761,18 +787,23 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
                 </Card>
 
               </div>
+              </div>
             </div>
 
-            {/* Footer com ações */}
-            <div className="bg-gray-50 px-3 py-3 sm:px-6 sm:py-4 border-t border-gray-200">
-              <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
+            {/* Footer com ações - Fixed no mobile */}
+            <div className="bg-gray-50 px-3 py-3 md:px-4 md:py-4 border-t border-gray-200 flex-shrink-0 safe-area-bottom">
+              <div className="flex flex-col-reverse gap-2 md:flex-row md:justify-end md:gap-3">
                 <button
                   onClick={() => setMenuParametrosOpen(false)}
-                  className="px-4 py-2 sm:px-6 sm:py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors font-medium text-sm sm:text-base"
+                  className="w-full md:w-auto px-4 py-2.5 md:px-6 md:py-2.5 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-700 rounded-lg transition-colors font-medium text-sm md:text-base"
+                  style={{ touchAction: 'manipulation' }}
                 >
                   Fechar
                 </button>
-                <button className="px-4 py-2 sm:px-6 sm:py-2 bg-green-500 hover:bg-green-600 text-[#212E3E] rounded-lg transition-colors font-bold text-sm sm:text-base">
+                <button 
+                  className="w-full md:w-auto px-4 py-2.5 md:px-6 md:py-2.5 bg-green-500 hover:bg-green-600 active:bg-green-700 text-white rounded-lg transition-colors font-medium text-sm md:text-base shadow-lg"
+                  style={{ touchAction: 'manipulation' }}
+                >
                   Salvar Configurações
                 </button>
               </div>
