@@ -5,12 +5,11 @@ import NivelMontante from '../components/Eclusa/caldeira/Nivel_Montante';
 import PortaJusante from '../components/Eclusa/caldeira/PortaJusante';
 import PortaMontante from '../components/Eclusa/caldeira/PortaMontante';
 import SemaforoSimples from '../components/Eclusa/caldeira/SemaforoSimples';
-import EclusaStatusCard from '../components/Eclusa/caldeira/EclusaStatusCard';
-import NiveisChart from '../components/Eclusa/caldeira/NiveisChart';
-import VelocidadeRadares from '../components/Eclusa/caldeira/VelocidadeRadares';
 import TrendDialog from '../components/Eclusa/caldeira/TrendDialog';
 import TubulacaoValvulas from '../components/Eclusa/caldeira/TubulacaoValvulas';
 import { usePLC } from '../contexts/PLCContext';
+import { CogIcon, XMarkIcon, BeakerIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
+import { Card } from '../components/ui/Card';
 
 // 🎯 CONFIGURAÇÕES DOS COMPONENTES DE NÍVEL - Edite aqui para salvar permanentemente
 const NIVEL_CONFIG = {
@@ -100,13 +99,12 @@ interface EclusaReguaProps {
 
 const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [containerDimensions, setContainerDimensions] = React.useState({ width: 0, height: 0 });
   const [windowDimensions, setWindowDimensions] = React.useState({ width: 0, height: 0 });
   const [isInitialized, setIsInitialized] = React.useState(false);
   const [paredeOffsetPercent] = React.useState(-50.5); // Posição ajustada para encaixe perfeito
   const [showTrendDialog, setShowTrendDialog] = React.useState(false);
-  const [currentCardIndex, setCurrentCardIndex] = React.useState(0);
+  const [menuParametrosOpen, setMenuParametrosOpen] = React.useState(false);
   
   const caldeiraScale = 99.4;
   
@@ -253,45 +251,6 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
     };
   }, []);
 
-  // Funções de navegação melhoradas
-  const scrollToCard = (index: number) => {
-    if (scrollContainerRef.current) {
-      const cardWidth = scrollContainerRef.current.clientWidth;
-      scrollContainerRef.current.scrollTo({
-        left: index * cardWidth,
-        behavior: 'smooth'
-      });
-      setCurrentCardIndex(index);
-    }
-  };
-
-  const nextCard = () => {
-    const nextIndex = (currentCardIndex + 1) % 3;
-    scrollToCard(nextIndex);
-  };
-
-  const prevCard = () => {
-    const prevIndex = currentCardIndex === 0 ? 2 : currentCardIndex - 1;
-    scrollToCard(prevIndex);
-  };
-
-  // Detectar scroll no mobile
-  const handleScroll = () => {
-    if (scrollContainerRef.current) {
-      const { scrollLeft, clientWidth } = scrollContainerRef.current;
-      const cardIndex = Math.round(scrollLeft / clientWidth);
-      setCurrentCardIndex(cardIndex);
-    }
-  };
-
-  // Auto-scroll indicators
-  React.useEffect(() => {
-    const scrollContainer = scrollContainerRef.current;
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll);
-      return () => scrollContainer.removeEventListener('scroll', handleScroll);
-    }
-  }, []);
 
   // Cálculo das proporções baseado nos viewBoxes originais
   const caldeiraAspectRatio = 1168 / 253; // width/height do Caldeira_Eclusa.svg
@@ -314,262 +273,18 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
 
   // Detectar se é mobile - otimizado para evitar recálculos
   const isMobile = React.useMemo(() => windowDimensions.width < 1024, [windowDimensions.width]);
-
-  // 🎯 CÁLCULO CORRETO - ESPAÇO APÓS A PAREDE DA ECLUSA (ÚLTIMO COMPONENTE)
-  const calculateVerticalSpace = () => {
-    const { width, height } = windowDimensions;
-    const cardsHeight = controlLayout.areaHeight;
-    
-    // 📊 CÁLCULO REAL DAS POSIÇÕES DOS COMPONENTES
-    const headerHeight = 64; // Header fixo
-    
-    // Posição real da parede (último componente visual)
-    const paredeBottomPosition = caldeiraHeight + paredeOffsetPx + paredeHeight;
-    
-    // Espaço usado até agora: header + cards + posição final da parede
-    const usedSpaceUntilWall = headerHeight + cardsHeight + paredeBottomPosition;
-    
-    // 📐 ESPAÇO REALMENTE DISPONÍVEL APÓS A PAREDE
-    const realAvailableSpace = height - usedSpaceUntilWall;
-    const freeAreaHeight = Math.max(20, realAvailableSpace); // Mínimo 20px
-
-    // 🔍 DEBUG - Log dos cálculos
-    console.log('📐 Cálculo de espaço vertical:', {
-      altura_janela: height,
-      largura_janela: width,
-      header: headerHeight,
-      cards: cardsHeight,
-      caldeira: caldeiraHeight,
-      parede_offset: paredeOffsetPx,
-      parede_altura: paredeHeight,
-      parede_bottom: paredeBottomPosition,
-      espaco_usado: usedSpaceUntilWall,
-      espaco_livre: freeAreaHeight
-    });
-    
-    // 🔍 CLASSIFICAÇÃO POR ALTURA
-    let screenType = '';
-    if (height <= 480) screenType = 'Muito Baixa';
-    else if (height <= 640) screenType = 'Baixa';
-    else if (height <= 800) screenType = 'Média';
-    else if (height <= 1024) screenType = 'Alta';
-    else if (height <= 1366) screenType = 'Muito Alta';
-    else screenType = 'Gigante';
-    
-    // 📋 PERCENTUAIS REAIS
-    const utilizationPercent = Math.round((usedSpaceUntilWall / height) * 100);
-    const freePercent = Math.round((freeAreaHeight / height) * 100);
-    
-    return {
-      freeAreaHeight,
-      eclusaHeight: paredeBottomPosition, // Altura real até o fim da parede
-      screenType,
-      aspectRatio: Math.round((width / height) * 100) / 100,
-      orientation: width / height < 1 ? 'Portrait' : 'Landscape',
-      utilizationPercent,
-      freePercent,
-      paredeBottomPosition, // Nova propriedade para debug
-      breakdown: {
-        total: height,
-        cards: cardsHeight,
-        eclusa: paredeBottomPosition,
-        header: headerHeight,
-        margins: 0,
-        free: freeAreaHeight
-      }
-    };
-  };
-
-  // ÁREA DE CONTROLE COM SCROLL MOBILE MELHORADO
-  const calculateControlAreas = () => {
-    const areas = 3;
-    
-    // Altura fixa baseada no tamanho da tela
-    let areaHeight = 150;
-    if (windowDimensions.height > 800) areaHeight = 180;
-    if (windowDimensions.height > 1000) areaHeight = 200;
-    
-    return { areas, areaHeight };
-  };
-
-  const controlLayout = calculateControlAreas();
-  const verticalSpace = calculateVerticalSpace();
-
-  // 🟢 CÁLCULO DO TRACEJADO RESPONSIVO - CENTRALIZADO E ALINHADO COM OS CARDS
-  const calculateTracejado = () => {
-    if (verticalSpace.freeAreaHeight < 50) return null; // Não mostrar se muito pequeno
-    
-    const { width, height } = windowDimensions;
-    const headerHeight = 64;
-    const contentPadding = isMobile ? 16 : 32;
-    const margemAposEclusa = isMobile ? 60 : 20; // Margem maior no mobile para afastar do componente
-    
-    let tracejadoX, tracejadoWidth, alturaMaxima;
-    
-    if (isMobile) {
-      // MOBILE: alinhado com a área dos cards no mobile
-      const mobileBottomNav = 64;
-      tracejadoX = contentPadding;
-      tracejadoWidth = width - (contentPadding * 2);
-      alturaMaxima = height - mobileBottomNav - headerHeight - contentPadding;
-    } else {
-      // DESKTOP: alinhado exatamente com os cards
-      const sidebarWidth = sidebarOpen ? 256 : 64;
-      const availableWidth = width - sidebarWidth - (contentPadding * 2);
-      const containerMaxWidth = Math.min(availableWidth, 1920);
-      
-      // Calcular posição X exata - mesmo cálculo que os cards usam
-      const centeredX = sidebarWidth + contentPadding + ((availableWidth - containerMaxWidth) / 2);
-      
-      tracejadoX = centeredX;
-      tracejadoWidth = containerMaxWidth;
-      alturaMaxima = height - headerHeight - contentPadding;
-    }
-    
-    // Calcular posição Y considerando mobile vs desktop
-    let tracejadoY;
-    if (isMobile) {
-      // MOBILE: usar a posição real da parede + margem
-      tracejadoY = headerHeight + contentPadding + verticalSpace.breakdown.cards + verticalSpace.paredeBottomPosition + margemAposEclusa;
-    } else {
-      // DESKTOP: usar o cálculo original
-      tracejadoY = headerHeight + contentPadding + verticalSpace.breakdown.cards + verticalSpace.breakdown.eclusa + margemAposEclusa;
-    }
-    const espacoRestante = alturaMaxima - (verticalSpace.breakdown.cards + verticalSpace.breakdown.eclusa + margemAposEclusa);
-    const tracejadoHeight = Math.max(40, Math.min(verticalSpace.freeAreaHeight - 40, espacoRestante - 20));
-    
-    return {
-      x: tracejadoX,
-      y: tracejadoY,
-      width: tracejadoWidth,
-      height: tracejadoHeight,
-      show: tracejadoHeight > 40
-    };
-  };
-
-  const tracejado = calculateTracejado();
   
-  // Cards data
-  const cards = [
-    { component: EclusaStatusCard, title: "Status da Eclusa" },
-    { component: NiveisChart, title: "Níveis" },
-    { component: VelocidadeRadares, title: "Radares" }
-  ];
 
   return (
-    <div className="w-full h-auto flex flex-col items-center">
+    <div className="w-full h-screen flex flex-col items-center justify-end">
         
-        {/* ÁREAS DE CONTROLE COM SCROLL HORIZONTAL MELHORADO */}
-        <div className="w-full max-w-[1920px] mb-8">
-          {isMobile ? (
-            // Layout mobile: scroll horizontal moderno com snap
-            <div className="relative">
-              
-              {/* Container de scroll com snap e indicadores visuais */}
-              <div className="relative">
-                {/* Gradiente esquerda - indica que há cards anteriores */}
-                {currentCardIndex > 0 && (
-                  <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white/60 to-transparent z-10 pointer-events-none" />
-                )}
-                
-                {/* Gradiente direita - indica que há mais cards */}
-                {currentCardIndex < cards.length - 1 && (
-                  <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white/60 to-transparent z-10 pointer-events-none" />
-                )}
-
-                <div 
-                  ref={scrollContainerRef}
-                  className="flex overflow-x-auto snap-x snap-mandatory"
-                  style={{ 
-                    scrollbarWidth: 'none', 
-                    msOverflowStyle: 'none',
-                    WebkitOverflowScrolling: 'touch'
-                  }}
-                >
-                  <style>{`
-                    div::-webkit-scrollbar {
-                      display: none;
-                    }
-                  `}</style>
-                  
-                  {cards.map((card, index) => {
-                    const Component = card.component;
-                    return (
-                      <div 
-                        key={index}
-                        className="flex-shrink-0 w-full snap-center px-4"
-                      >
-                        <Component height={controlLayout.areaHeight} />
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Setas de navegação modernas - posicionadas fora dos cards */}
-              <button
-                onClick={prevCard}
-                className="absolute -left-14 top-1/2 transform -translate-y-1/2 z-20 bg-white/70 backdrop-blur-sm text-slate-600 p-2 rounded-full shadow-md hover:bg-white/90 hover:text-slate-800 hover:scale-105 transition-all duration-300 border border-gray-300"
-                style={{ height: '36px', width: '36px' }}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-
-              <button
-                onClick={nextCard}
-                className="absolute -right-14 top-1/2 transform -translate-y-1/2 z-20 bg-white/70 backdrop-blur-sm text-slate-600 p-2 rounded-full shadow-md hover:bg-white/90 hover:text-slate-800 hover:scale-105 transition-all duration-300 border border-gray-300"
-                style={{ height: '36px', width: '36px' }}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-
-              {/* Indicadores de posição - pontos discretos */}
-              <div className="flex justify-center mt-3 gap-1.5">
-                {cards.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => scrollToCard(index)}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      index === currentCardIndex
-                        ? 'bg-slate-700 w-6'
-                        : 'bg-gray-300 hover:bg-gray-400'
-                    }`}
-                  />
-                ))}
-              </div>
-
-            </div>
-          ) : (
-            // Layout desktop: grid tradicional
-            <div 
-              className="grid gap-4"
-              style={{
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gridTemplateRows: `${controlLayout.areaHeight}px`
-              }}
-            >
-              {cards.map((card, index) => {
-                const Component = card.component;
-                return (
-                  <div key={index}>
-                    <Component height={controlLayout.areaHeight} />
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
 
         <div 
           ref={containerRef}
           className="w-full max-w-[1920px] flex flex-col items-center relative"
           style={{
-            height: '100%', // Ocupa toda altura disponível
-            overflow: 'hidden'
+            height: 'auto',
+            minHeight: '70vh'
           }}
         >
 
@@ -579,7 +294,7 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
               className="relative w-full flex flex-col items-center"
               style={{
                 maxWidth: `${maxWidth}px`,
-                height: `${verticalSpace.eclusaHeight}px` // Altura calculada dinamicamente
+                height: `${caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx) + 100}px` // Altura baseada nos componentes + margem
               }}
             >
               {/* Caldeira - Posição superior */}
@@ -866,69 +581,205 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
 
         </div>
 
-      {/* 🟢 TRACEJADO DO ESPAÇO LIVRE - INTEGRADO E RESPONSIVO */}
-      {tracejado && tracejado.show && (
-        <>
-          {/* Retângulo tracejado verde */}
-          <div
-            className="fixed pointer-events-none z-30 transition-all duration-300 ease-out"
-            style={{
-              left: `${tracejado.x}px`,
-              top: `${tracejado.y}px`,
-              width: `${tracejado.width}px`,
-              height: `${tracejado.height}px`,
-              border: '3px dashed #22c55e',
-              backgroundColor: 'rgba(34, 197, 94, 0.05)',
-              borderRadius: '8px',
-              boxShadow: '0 0 20px rgba(34, 197, 94, 0.15)',
-            }}
-          />
-          
-          {/* Label central */}
-          <div
-            className="fixed pointer-events-none z-31 transition-all duration-300 ease-out"
-            style={{
-              left: `${tracejado.x + tracejado.width/2}px`,
-              top: `${tracejado.y + 20}px`,
-              transform: 'translateX(-50%)',
-            }}
-          >
-            <div className="bg-green-500 text-white text-sm px-4 py-2 rounded-full font-bold shadow-lg">
-              ESPAÇO LIVRE: {Math.round(verticalSpace.freeAreaHeight)}px
-            </div>
-          </div>
-          
-          {/* Medida altura - lateral esquerda */}
-          <div
-            className="fixed pointer-events-none z-31 text-green-600 text-xs font-mono bg-white/90 px-2 py-1 rounded shadow transition-all duration-300 ease-out"
-            style={{
-              left: `${tracejado.x - 55}px`,
-              top: `${tracejado.y + tracejado.height/2}px`,
-              transform: 'translateY(-50%)',
-            }}
-          >
-            {Math.round(verticalSpace.freeAreaHeight)}px
-          </div>
-          
-          {/* Medida largura - lateral direita */}
-          <div
-            className="fixed pointer-events-none z-31 text-green-600 text-xs font-mono bg-white/90 px-2 py-1 rounded shadow transition-all duration-300 ease-out"
-            style={{
-              right: `${windowDimensions.width - (tracejado.x + tracejado.width) - 55}px`,
-              top: `${tracejado.y + tracejado.height/2}px`,
-              transform: 'translateY(-50%)',
-            }}
-          >
-            {Math.round(tracejado.width)}px
-          </div>
-        </>
-      )}
-
       {/* Dialog de Trend */}
       <TrendDialog 
         isOpen={showTrendDialog}
         onClose={() => setShowTrendDialog(false)}
       />
+
+
+      {/* BOTÃO PARÂMETROS - TOTALMENTE RESPONSIVO */}
+      <button
+        onClick={() => setMenuParametrosOpen(!menuParametrosOpen)}
+        className={`fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-30 transition-all duration-300 ${
+          menuParametrosOpen 
+            ? 'bg-[#212E3E] text-white scale-105' 
+            : 'bg-[#212E3E] text-white hover:scale-105'
+        } ${
+          // Mobile: botão pequeno e circular
+          'w-12 h-12 rounded-full shadow-lg sm:w-auto sm:h-auto sm:px-8 sm:py-5 sm:rounded-2xl sm:shadow-2xl'
+        } flex items-center justify-center sm:gap-5`}
+      >
+        {/* Ícone sempre visível */}
+        <div className={`transition-all duration-300 ${
+          menuParametrosOpen ? 'bg-white/20' : 'bg-green-400/20'
+        } ${
+          // Mobile: sem container de fundo
+          'sm:w-12 sm:h-12 sm:rounded-xl sm:flex sm:items-center sm:justify-center'
+        }`}>
+          <CogIcon className={`w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 text-white ${
+            menuParametrosOpen ? 'rotate-90' : ''
+          }`} />
+        </div>
+        
+        {/* Texto apenas no desktop */}
+        <div className="text-left hidden sm:block">
+          <div className="font-bold text-lg">PARÂMETROS</div>
+          <div className="text-sm opacity-80">Sistema de Eclusa</div>
+        </div>
+      </button>
+
+      {/* MODAL DE PARÂMETROS */}
+      {menuParametrosOpen && (
+        <div 
+          className="fixed inset-0 z-30 flex items-center justify-center p-2 sm:p-4"
+          onClick={() => setMenuParametrosOpen(false)}
+        >
+          {/* Dialog Container */}
+          <div 
+            className="bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header azul escuro EDP */}
+            <div className="bg-[#212E3E] p-4 sm:p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-12 sm:h-12 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center">
+                    <CogIcon className="w-4 h-4 sm:w-6 sm:h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-bold">PARÂMETROS DA ECLUSA</h2>
+                    <p className="text-gray-300 text-xs sm:text-sm hidden sm:block">Configurações e Monitoramento de Níveis</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setMenuParametrosOpen(false)}
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                >
+                  <XMarkIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Conteúdo com scroll */}
+            <div className="p-3 sm:p-6 overflow-y-auto max-h-[calc(95vh-80px)] sm:max-h-[calc(90vh-120px)]">
+              <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
+                
+                {/* IGUALDADE DE NÍVEIS MONTANTE */}
+                <Card 
+                  title="IGUALDADE NÍVEIS MONTANTE" 
+                  icon={<ArrowUpIcon className="w-5 h-5" />}
+                  variant="default"
+                  className="h-fit"
+                >
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Tolerância:</span>
+                      <span className="text-xl font-mono font-bold text-gray-900">0.05 m</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Tempo Estabilização:</span>
+                      <span className="text-xl font-mono font-bold text-gray-900">30 s</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Status:</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span className="text-green-600 font-semibold">OK</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Bypass:</span>
+                      <button className="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded text-sm transition-colors">
+                        Desabilitado
+                      </button>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* IGUALDADE DE NÍVEIS JUSANTE */}
+                <Card 
+                  title="IGUALDADE NÍVEIS JUSANTE" 
+                  icon={<ArrowDownIcon className="w-5 h-5" />}
+                  variant="default"
+                  className="h-fit"
+                >
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Tolerância:</span>
+                      <span className="text-xl font-mono font-bold text-gray-900">0.03 m</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Tempo Estabilização:</span>
+                      <span className="text-xl font-mono font-bold text-gray-900">25 s</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Status:</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span className="text-green-600 font-semibold">OK</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Bypass:</span>
+                      <button className="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded text-sm transition-colors">
+                        Desabilitado
+                      </button>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* DEMONSTRAÇÃO DAS COTAS */}
+                <Card 
+                  title="COTAS DOS NÍVEIS" 
+                  icon={<BeakerIcon className="w-5 h-5" />}
+                  variant="default"
+                  className="h-fit lg:col-span-2"
+                >
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center">
+                        <div className="text-sm text-blue-600 font-medium">MONTANTE</div>
+                        <div className="text-xl font-mono font-bold text-blue-800">{nivelMontante.toFixed(2)} m</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-sm text-green-600 font-medium">CALDEIRA</div>
+                        <div className="text-xl font-mono font-bold text-green-800">{nivelCaldeira.toFixed(2)} m</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-sm text-orange-600 font-medium">JUSANTE</div>
+                        <div className="text-xl font-mono font-bold text-orange-800">{nivelJusante.toFixed(2)} m</div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-200">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 text-sm">Mont-Cald:</span>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${Math.abs(nivelMontante - nivelCaldeira) <= 0.05 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                          <span className="text-sm font-mono">{Math.abs(nivelMontante - nivelCaldeira).toFixed(3)}m</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 text-sm">Cald-Jus:</span>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${Math.abs(nivelCaldeira - nivelJusante) <= 0.03 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                          <span className="text-sm font-mono">{Math.abs(nivelCaldeira - nivelJusante).toFixed(3)}m</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+              </div>
+            </div>
+
+            {/* Footer com ações */}
+            <div className="bg-gray-50 px-3 py-3 sm:px-6 sm:py-4 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
+                <button
+                  onClick={() => setMenuParametrosOpen(false)}
+                  className="px-4 py-2 sm:px-6 sm:py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors font-medium text-sm sm:text-base"
+                >
+                  Fechar
+                </button>
+                <button className="px-4 py-2 sm:px-6 sm:py-2 bg-green-500 hover:bg-green-600 text-[#212E3E] rounded-lg transition-colors font-bold text-sm sm:text-base">
+                  Salvar Configurações
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

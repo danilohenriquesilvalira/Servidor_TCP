@@ -363,68 +363,64 @@ const PortaMontante: React.FC<PortaMontanteProps> = ({ sidebarOpen = true }) => 
       )}
 
 
-      {/* MENU PARÂMETROS - CANTO INFERIOR DIREITO */}
-      {!isMobile && (
-        <button
-          onClick={() => setMenuParametrosOpen(!menuParametrosOpen)}
-          className={`fixed bottom-6 right-6 z-30 px-8 py-5 rounded-2xl shadow-2xl transition-all duration-300 flex items-center gap-5 ${
-            menuParametrosOpen 
-              ? 'bg-[#212E3E] text-white scale-105' 
-              : 'bg-[#212E3E] text-white hover:scale-102'
-          }`}
-        >
-          {/* Ícone */}
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
-            menuParametrosOpen ? 'bg-white/20' : 'bg-green-400/20'
-          }`}>
-            <CogIcon className={`w-6 h-6 transition-transform duration-300 text-white ${
-              menuParametrosOpen ? 'rotate-90' : ''
-            }`} />
-          </div>
-          
-          {/* Texto */}
-          <div className="text-left">
-            <div className="text-sm font-semibold uppercase">PARÂMETROS</div>
-            <div className="text-xs uppercase">Porta Montante</div>
-          </div>
-        </button>
-      )}
+      {/* BOTÃO PARÂMETROS - RESPONSIVO */}
+      <button
+        onClick={() => setMenuParametrosOpen(!menuParametrosOpen)}
+        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 px-4 py-3 sm:px-8 sm:py-5 rounded-xl sm:rounded-2xl shadow-2xl transition-all duration-300 flex items-center gap-2 sm:gap-5 ${
+          menuParametrosOpen 
+            ? 'bg-[#212E3E] text-white scale-105' 
+            : 'bg-[#212E3E] text-white hover:scale-102'
+        }`}
+      >
+        <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-300 ${
+          menuParametrosOpen ? 'bg-white/20' : 'bg-green-400/20'
+        }`}>
+          <CogIcon className={`w-4 h-4 sm:w-6 sm:h-6 transition-transform duration-300 text-white ${
+            menuParametrosOpen ? 'rotate-90' : ''
+          }`} />
+        </div>
+        
+        <div className="text-left hidden sm:block">
+          <div className="text-sm font-semibold uppercase">PARÂMETROS</div>
+          <div className="text-xs uppercase">Porta Montante</div>
+        </div>
+      </button>
 
-      {/* DIALOG PARÂMETROS - FLUTUANTE E MODERNO */}
+      {/* DIALOG PARÂMETROS - RESPONSIVO */}
       {menuParametrosOpen && (
         <div 
-          className="fixed inset-0 z-30 flex items-center justify-center p-4"
+          className="fixed inset-0 z-30 flex items-center justify-center p-2 sm:p-4"
           onClick={() => setMenuParametrosOpen(false)}
         >
           {/* Dialog Container */}
           <div 
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-300"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-300"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header azul escuro EDP */}
-            <div className="bg-[#212E3E] p-6 text-white">
+            <div className="bg-[#212E3E] p-4 sm:p-6 text-white">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                    <CogIcon className="w-6 h-6" />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-12 sm:h-12 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center">
+                    <CogIcon className="w-4 h-4 sm:w-6 sm:h-6" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold">PARÂMETROS DA PORTA</h2>
-                    <p className="text-gray-300 text-sm">Configurações e Monitoramento Industrial</p>
+                    <h2 className="text-lg sm:text-xl font-bold">PARÂMETROS DA PORTA</h2>
+                    <p className="text-gray-300 text-xs sm:text-sm hidden sm:block">Configurações e Monitoramento Industrial</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setMenuParametrosOpen(false)}
-                  className="w-10 h-10 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
                 >
-                  <XMarkIcon className="w-5 h-5" />
+                  <XMarkIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
 
             {/* Conteúdo com scroll */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="p-3 sm:p-6 overflow-y-auto max-h-[calc(95vh-80px)] sm:max-h-[calc(90vh-120px)]">
+              <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
                 
                 {/* PROGRAMA ABERTURA AUTOMÁTICA */}
                 <Card 
@@ -559,15 +555,15 @@ const PortaMontante: React.FC<PortaMontanteProps> = ({ sidebarOpen = true }) => 
             </div>
 
             {/* Footer com ações */}
-            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-              <div className="flex justify-end gap-3">
+            <div className="bg-gray-50 px-3 py-3 sm:px-6 sm:py-4 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
                 <button
                   onClick={() => setMenuParametrosOpen(false)}
-                  className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors font-medium"
+                  className="px-4 py-2 sm:px-6 sm:py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors font-medium text-sm sm:text-base"
                 >
                   Fechar
                 </button>
-                <button className="px-6 py-2 bg-green-500 hover:bg-green-600 text-[#212E3E] rounded-lg transition-colors font-bold">
+                <button className="px-4 py-2 sm:px-6 sm:py-2 bg-green-500 hover:bg-green-600 text-[#212E3E] rounded-lg transition-colors font-bold text-sm sm:text-base">
                   Salvar Configurações
                 </button>
               </div>

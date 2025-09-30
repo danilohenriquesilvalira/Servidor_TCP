@@ -35,16 +35,16 @@ const BASE_PISTAO_CONFIG = {
   },
   mobile: {
     direito: {
-      verticalPercent: 50,
-      horizontalPercent: 70,
+      verticalPercent: 144,
+      horizontalPercent: 78,
       widthPercent: 21.84, // 31.2 * 0.7 (redução de 30%)
-      heightPercent: 43.68, // 62.4 * 0.7 (redução de 30%)
+      heightPercent: 55, // 62.4 * 0.7 (redução de 30%)
     },
     esquerdo: {
-      verticalPercent: 50,
-      horizontalPercent: 5,
+      verticalPercent: 144,
+      horizontalPercent: 0.2,
       widthPercent: 21.84, // 31.2 * 0.7 (redução de 30%)
-      heightPercent: 43.68, // 62.4 * 0.7 (redução de 30%)
+      heightPercent: 55, // 62.4 * 0.7 (redução de 30%)
     }
   }
 };
@@ -67,16 +67,16 @@ const PISTAO_CONFIG = {
   },
   mobile: {
     direito: {
-      verticalPercent: 50,
-      horizontalPercent: 70,
+      verticalPercent: 125,
+      horizontalPercent: 71.2,
       widthPercent: 35.378, // 50.54 * 0.7 (redução de 30%)
-      heightPercent: 60.648, // 86.64 * 0.7 (redução de 30%)
+      heightPercent: 82, // 86.64 * 0.7 (redução de 30%)
     },
     esquerdo: {
-      verticalPercent: 50,
-      horizontalPercent: 5,
+      verticalPercent: 125,
+      horizontalPercent: -6.5,
       widthPercent: 35.378, // 50.54 * 0.7 (redução de 30%)
-      heightPercent: 60.648, // 86.64 * 0.7 (redução de 30%)
+      heightPercent: 82, // 86.64 * 0.7 (redução de 30%)
     }
   }
 };
@@ -99,16 +99,16 @@ const CILINDRO_CONFIG = {
   },
   mobile: {
     direito: {
-      verticalPercent: 20,
-      horizontalPercent: 75,
-      widthPercent: 21.892115, // 22.338893 * 0.98 (redução adicional de 2%)
-      heightPercent: 63.85199,  // 65.15509 * 0.98 (redução adicional de 2%)
+      verticalPercent: 63.8,
+      horizontalPercent: 77.6,
+      widthPercent: 22.7, // 22.338893 * 0.98 (redução adicional de 2%)
+      heightPercent: 68.9,  // 65.15509 * 0.98 (redução adicional de 2%)
     },
     esquerdo: {
-      verticalPercent: 20,
-      horizontalPercent: 8,
-      widthPercent: 21.892115, // 22.338893 * 0.98 (redução adicional de 2%)
-      heightPercent: 63.85199,  // 65.15509 * 0.98 (redução adicional de 2%)
+      verticalPercent: 63.8,
+      horizontalPercent: -0.3,
+      widthPercent: 22.7, // 22.338893 * 0.98 (redução adicional de 2%)
+      heightPercent: 68.9,  // 65.15509 * 0.98 (redução adicional de 2%)
     }
   }
 };
@@ -122,7 +122,7 @@ const PIPE_SYSTEM_CONFIG = {
     heightPercent: 94,      // % da altura total (tamanho) - ajustável
   },
   mobile: {
-    verticalPercent: 0,      // % da altura total (posição Y) - ajustável
+    verticalPercent: 50,      // % da altura total (posição Y) - ajustável
     horizontalPercent: 0,    // % da largura total (posição X) - ajustável
     widthPercent: 100,       // % da largura total (tamanho) - ajustável
     heightPercent: 100,      // % da altura total (tamanho) - ajustável
@@ -147,16 +147,16 @@ const SUPORTE_PISTA_CONFIG = {
   },
   mobile: {
     esquerdo: {
-      verticalPercent: 75,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 5,     // % da largura total (posição X) - ajustável
+      verticalPercent: 117,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: -14,     // % da largura total (posição X) - ajustável
       widthPercent: 50,         // % da largura total (tamanho) - ajustável
-      heightPercent: 30,        // % da altura total (tamanho) - ajustável
+      heightPercent: 26,        // % da altura total (tamanho) - ajustável
     },
     direito: {
-      verticalPercent: 75,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 45,    // % da largura total (posição X) - ajustável
+      verticalPercent: 117.1,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 63.8,    // % da largura total (posição X) - ajustável
       widthPercent: 50,         // % da largura total (tamanho) - ajustável
-      heightPercent: 30,        // % da altura total (tamanho) - ajustável
+      heightPercent: 26.5,        // % da altura total (tamanho) - ajustável
     }
   }
 };
@@ -170,10 +170,10 @@ const BASE_FUNDO_ENCHIMENTO_CONFIG = {
     heightPercent: 120,       // % da altura total (tamanho) - ajustável
   },
   mobile: {
-    verticalPercent: 0,       // % da altura total (posição Y) - ajustável
-    horizontalPercent: 0,     // % da largura total (posição X) - ajustável
-    widthPercent: 100,        // % da largura total (tamanho) - ajustável
-    heightPercent: 100,       // % da altura total (tamanho) - ajustável
+    verticalPercent: 87,       // % da altura total (posição Y) - ajustável
+    horizontalPercent: -5,     // % da largura total (posição X) - ajustável
+    widthPercent: 110,        // % da largura total (tamanho) - ajustável
+    heightPercent: 115,       // % da altura total (tamanho) - ajustável
   }
 };
 
@@ -306,41 +306,41 @@ const VALVULA_FLANGE_CONFIG = {
   mobile: {
     // LADO ESQUERDO - 3 válvulas flange
     esquerda1: {
-      verticalPercent: 50,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 25,    // % da largura total (posição X) - ajustável
-      widthPercent: 4,          // % da largura total (tamanho) - ajustável
-      heightPercent: 10,        // % da altura total (tamanho) - ajustável
+      verticalPercent: 65,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 34.28,    // % da largura total (posição X) - ajustável
+      widthPercent: 4.3,          // % da largura total (tamanho) - ajustável
+      heightPercent: 5.2,        // % da altura total (tamanho) - ajustável
     },
     esquerda2: {
-      verticalPercent: 50,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 30,    // % da largura total (posição X) - ajustável
-      widthPercent: 4,          // % da largura total (tamanho) - ajustável
-      heightPercent: 10,        // % da altura total (tamanho) - ajustável
+      verticalPercent: 65,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 37.8,    // % da largura total (posição X) - ajustável
+      widthPercent: 4.7,          // % da largura total (tamanho) - ajustável
+      heightPercent: 5.2,        // % da altura total (tamanho) - ajustável
     },
     esquerda3: {
-      verticalPercent: 50,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 35,    // % da largura total (posição X) - ajustável
-      widthPercent: 4,          // % da largura total (tamanho) - ajustável
-      heightPercent: 10,        // % da altura total (tamanho) - ajustável
+      verticalPercent: 65,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 41.5,    // % da largura total (posição X) - ajustável
+      widthPercent: 4.4,          // % da largura total (tamanho) - ajustável
+      heightPercent: 5.2,        // % da altura total (tamanho) - ajustável
     },
     // LADO DIREITO - 3 válvulas flange
     direita1: {
-      verticalPercent: 50,      // % da altura total (posição Y) - ajustável
+      verticalPercent: 65,      // % da altura total (posição Y) - ajustável
       horizontalPercent: 60,    // % da largura total (posição X) - ajustável
-      widthPercent: 4,          // % da largura total (tamanho) - ajustável
-      heightPercent: 10,        // % da altura total (tamanho) - ajustável
+      widthPercent: 4.3,          // % da largura total (tamanho) - ajustável
+      heightPercent: 5.2,        // % da altura total (tamanho) - ajustável
     },
     direita2: {
-      verticalPercent: 50,      // % da altura total (posição Y) - ajustável
+      verticalPercent: 65,      // % da altura total (posição Y) - ajustável
       horizontalPercent: 65,    // % da largura total (posição X) - ajustável
-      widthPercent: 4,          // % da largura total (tamanho) - ajustável
-      heightPercent: 10,        // % da altura total (tamanho) - ajustável
+      widthPercent: 4.3,          // % da largura total (tamanho) - ajustável
+      heightPercent: 5.2,        // % da altura total (tamanho) - ajustável
     },
     direita3: {
-      verticalPercent: 50,      // % da altura total (posição Y) - ajustável
+      verticalPercent: 65,      // % da altura total (posição Y) - ajustável
       horizontalPercent: 70,    // % da largura total (posição X) - ajustável
-      widthPercent: 4,          // % da largura total (tamanho) - ajustável
-      heightPercent: 10,        // % da altura total (tamanho) - ajustável
+      widthPercent: 4.3,          // % da largura total (tamanho) - ajustável
+      heightPercent: 5.2,        // % da altura total (tamanho) - ajustável
     }
   }
 };
@@ -354,10 +354,10 @@ const TANQUE_OLEO_CONFIG = {
     heightPercent: 54,         // % da altura total (tamanho) - ajustável
   },
   mobile: {
-    verticalPercent: 80,       // % da altura total (posição Y) - ajustável
-    horizontalPercent: 35,     // % da largura total (posição X) - ajustável
-    widthPercent: 30,          // % da largura total (tamanho) - ajustável
-    heightPercent: 20,         // % da altura total (tamanho) - ajustável
+    verticalPercent: 77,       // % da altura total (posição Y) - ajustável
+    horizontalPercent: 32.5,     // % da largura total (posição X) - ajustável
+    widthPercent: 35,          // % da largura total (tamanho) - ajustável
+    heightPercent: 100,         // % da altura total (tamanho) - ajustável
   }
 };
 
@@ -379,14 +379,14 @@ const MOTOR_CONFIG = {
   },
   mobile: {
     esquerdo: {
-      verticalPercent: 90,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 10,    // % da largura total (posição X) - ajustável
+      verticalPercent: 106,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 29.2,    // % da largura total (posição X) - ajustável
       widthPercent: 20,         // % da largura total (tamanho) - ajustável
       heightPercent: 10,        // % da altura total (tamanho) - ajustável
     },
     direito: {
-      verticalPercent: 90,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 70,    // % da largura total (posição X) - ajustável
+      verticalPercent: 106,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 50.8,    // % da largura total (posição X) - ajustável
       widthPercent: 20,         // % da largura total (tamanho) - ajustável
       heightPercent: 10,        // % da altura total (tamanho) - ajustável
     }
@@ -438,41 +438,41 @@ const VALVULA_GAVETA_CONFIG = {
   mobile: {
     // LADO ESQUERDO - 3 válvulas gaveta
     esquerda1: {
-      verticalPercent: 65,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 15,    // % da largura total (posição X) - ajustável
-      widthPercent: 12,         // % da largura total (tamanho) - ajustável
-      heightPercent: 20,        // % da altura total (tamanho) - ajustável
+      verticalPercent: 115.2,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 14.2,    // % da largura total (posição X) - ajustável
+      widthPercent: 6,         // % da largura total (tamanho) - ajustável
+      heightPercent: 6,        // % da altura total (tamanho) - ajustável
     },
     esquerda2: {
-      verticalPercent: 65,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 30,    // % da largura total (posição X) - ajustável
-      widthPercent: 12,         // % da largura total (tamanho) - ajustável
-      heightPercent: 20,        // % da altura total (tamanho) - ajustável
+      verticalPercent: 121.5,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 17.5,    // % da largura total (posição X) - ajustável
+      widthPercent: 6,         // % da largura total (tamanho) - ajustável
+      heightPercent: 6,        // % da altura total (tamanho) - ajustável
     },
     esquerda3: {
-      verticalPercent: 65,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 45,    // % da largura total (posição X) - ajustável
-      widthPercent: 12,         // % da largura total (tamanho) - ajustável
-      heightPercent: 20,        // % da altura total (tamanho) - ajustável
+      verticalPercent: 108.5,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 25,    // % da largura total (posição X) - ajustável
+      widthPercent: 6,         // % da largura total (tamanho) - ajustável
+      heightPercent: 6,        // % da altura total (tamanho) - ajustável
     },
     // LADO DIREITO - 3 válvulas gaveta
     direita1: {
-      verticalPercent: 65,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 60,    // % da largura total (posição X) - ajustável
-      widthPercent: 12,         // % da largura total (tamanho) - ajustável
-      heightPercent: 20,        // % da altura total (tamanho) - ajustável
+      verticalPercent: 115.2,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 79.7,    // % da largura total (posição X) - ajustável
+      widthPercent: 6,         // % da largura total (tamanho) - ajustável
+      heightPercent: 6,        // % da altura total (tamanho) - ajustável
     },
     direita2: {
-      verticalPercent: 65,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 75,    // % da largura total (posição X) - ajustável
-      widthPercent: 12,         // % da largura total (tamanho) - ajustável
-      heightPercent: 20,        // % da altura total (tamanho) - ajustável
+      verticalPercent: 121.5,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 76.5,    // % da largura total (posição X) - ajustável
+      widthPercent: 6,         // % da largura total (tamanho) - ajustável
+      heightPercent: 6,        // % da altura total (tamanho) - ajustável
     },
     direita3: {
-      verticalPercent: 65,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 90,    // % da largura total (posição X) - ajustável
-      widthPercent: 12,         // % da largura total (tamanho) - ajustável
-      heightPercent: 20,        // % da altura total (tamanho) - ajustável
+      verticalPercent: 108.5,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 68.5,    // % da largura total (posição X) - ajustável
+      widthPercent: 6,         // % da largura total (tamanho) - ajustável
+      heightPercent: 6,        // % da altura total (tamanho) - ajustável
     }
   }
 };
@@ -522,41 +522,41 @@ const VALVE_DIRECIONAL_CONFIG = {
   mobile: {
     // LADO ESQUERDO - 3 válvulas direcionais
     esquerda1: {
-      verticalPercent: 30,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 15,    // % da largura total (posição X) - ajustável
-      widthPercent: 10,         // % da largura total (tamanho) - ajustável
-      heightPercent: 12,        // % da altura total (tamanho) - ajustável
+      verticalPercent: 90,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 23.4,    // % da largura total (posição X) - ajustável
+      widthPercent: 9,         // % da largura total (tamanho) - ajustável
+      heightPercent: 7.3,        // % da altura total (tamanho) - ajustável
     },
     esquerda2: {
-      verticalPercent: 45,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 20,    // % da largura total (posição X) - ajustável
-      widthPercent: 10,         // % da largura total (tamanho) - ajustável
-      heightPercent: 12,        // % da altura total (tamanho) - ajustável
+      verticalPercent: 83.6,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 31.6,    // % da largura total (posição X) - ajustável
+      widthPercent: 9,         // % da largura total (tamanho) - ajustável
+      heightPercent: 7.3,        // % da altura total (tamanho) - ajustável
     },
     esquerda3: {
-      verticalPercent: 60,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 25,    // % da largura total (posição X) - ajustável
-      widthPercent: 10,         // % da largura total (tamanho) - ajustável
-      heightPercent: 12,        // % da altura total (tamanho) - ajustável
+      verticalPercent: 97.2,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 31.6,    // % da largura total (posição X) - ajustável
+      widthPercent: 9,         // % da largura total (tamanho) - ajustável
+      heightPercent: 7.3,        // % da altura total (tamanho) - ajustável
     },
     // LADO DIREITO - 3 válvulas direcionais
     direita1: {
-      verticalPercent: 30,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 75,    // % da largura total (posição X) - ajustável
-      widthPercent: 10,         // % da largura total (tamanho) - ajustável
-      heightPercent: 12,        // % da altura total (tamanho) - ajustável
+      verticalPercent: 90,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 67.6,    // % da largura total (posição X) - ajustável
+      widthPercent: 9,         // % da largura total (tamanho) - ajustável
+      heightPercent: 7.3,        // % da altura total (tamanho) - ajustável
     },
     direita2: {
-      verticalPercent: 45,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 70,    // % da largura total (posição X) - ajustável
-      widthPercent: 10,         // % da largura total (tamanho) - ajustável
-      heightPercent: 12,        // % da altura total (tamanho) - ajustável
+      verticalPercent: 83.6,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 59.4,    // % da largura total (posição X) - ajustável
+      widthPercent: 9,         // % da largura total (tamanho) - ajustável
+      heightPercent: 7.3,        // % da altura total (tamanho) - ajustável
     },
     direita3: {
-      verticalPercent: 60,      // % da altura total (posição Y) - ajustável
-      horizontalPercent: 65,    // % da largura total (posição X) - ajustável
-      widthPercent: 10,         // % da largura total (tamanho) - ajustável
-      heightPercent: 12,        // % da altura total (tamanho) - ajustável
+      verticalPercent: 97.2,      // % da altura total (posição Y) - ajustável
+      horizontalPercent: 59.4,    // % da largura total (posição X) - ajustável
+      widthPercent: 9,         // % da largura total (tamanho) - ajustável
+      heightPercent: 7.3,        // % da altura total (tamanho) - ajustável
     }
   }
 };
@@ -1613,24 +1613,24 @@ const Enchimento: React.FC<EnchimentoProps> = () => {
         )}
       </div>
 
-      {/* BOTÃO PARÂMETROS - POSIÇÃO FIXA */}
+      {/* BOTÃO PARÂMETROS - RESPONSIVO */}
       <button
         onClick={() => setMenuParametrosOpen(!menuParametrosOpen)}
-        className={`fixed bottom-6 right-6 z-30 px-8 py-5 rounded-2xl shadow-2xl transition-all duration-300 flex items-center gap-5 ${
+        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 px-4 py-3 sm:px-8 sm:py-5 rounded-xl sm:rounded-2xl shadow-2xl transition-all duration-300 flex items-center gap-2 sm:gap-5 ${
           menuParametrosOpen 
             ? 'bg-[#212E3E] text-white scale-105' 
             : 'bg-[#212E3E] text-white hover:scale-102'
         }`}
       >
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+        <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-300 ${
           menuParametrosOpen ? 'bg-white/20' : 'bg-green-400/20'
         }`}>
-          <CogIcon className={`w-6 h-6 transition-transform duration-300 text-white ${
+          <CogIcon className={`w-4 h-4 sm:w-6 sm:h-6 transition-transform duration-300 text-white ${
             menuParametrosOpen ? 'rotate-90' : ''
           }`} />
         </div>
         
-        <div className="text-left">
+        <div className="text-left hidden sm:block">
           <div className="font-bold text-lg">PARÂMETROS</div>
           <div className="text-sm opacity-80">Sistema de Enchimento</div>
         </div>
@@ -1639,38 +1639,38 @@ const Enchimento: React.FC<EnchimentoProps> = () => {
       {/* MODAL DE PARÂMETROS */}
       {menuParametrosOpen && (
         <div 
-          className="fixed inset-0 z-30 flex items-center justify-center p-4"
+          className="fixed inset-0 z-30 flex items-center justify-center p-2 sm:p-4"
           onClick={() => setMenuParametrosOpen(false)}
         >
           {/* Dialog Container */}
           <div 
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-300"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-300"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header azul escuro EDP */}
-            <div className="bg-[#212E3E] p-6 text-white">
+            <div className="bg-[#212E3E] p-4 sm:p-6 text-white">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                    <CogIcon className="w-6 h-6" />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-12 sm:h-12 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center">
+                    <CogIcon className="w-4 h-4 sm:w-6 sm:h-6" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold">PARÂMETROS DO ENCHIMENTO</h2>
-                    <p className="text-gray-300 text-sm">Configurações e Monitoramento Industrial</p>
+                    <h2 className="text-lg sm:text-xl font-bold">PARÂMETROS DO ENCHIMENTO</h2>
+                    <p className="text-gray-300 text-xs sm:text-sm hidden sm:block">Configurações e Monitoramento Industrial</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setMenuParametrosOpen(false)}
-                  className="w-10 h-10 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
                 >
-                  <XMarkIcon className="w-5 h-5" />
+                  <XMarkIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
 
             {/* Conteúdo com scroll */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div className="p-3 sm:p-6 overflow-y-auto max-h-[calc(95vh-80px)] sm:max-h-[calc(90vh-120px)]">
+              <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
                 
                 {/* VELOCIDADE DE ABERTURA */}
                 <Card 
@@ -1679,134 +1679,133 @@ const Enchimento: React.FC<EnchimentoProps> = () => {
                   variant="default"
                   className="h-fit"
                 >
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium">Abertura Lenta:</span>
-                      <span className="text-xl font-mono font-bold text-gray-900">0.15 m/min</span>
+                      <span className="text-gray-600 font-medium">Patamar 1 - Velocidade Alta:</span>
+                      <span className="text-xl font-mono font-bold text-gray-900">0.25 m/min</span>
                     </div>
-                    
-                    <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                      <h4 className="font-semibold text-gray-700">PATAMAR 1</h4>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Setpoint Alarme Velocidade Alta</label>
-                          <input type="number" className="w-full px-3 py-2 border border-gray-300 rounded-lg" defaultValue="0.25" step="0.01" />
-                          <span className="text-xs text-gray-500">m/min</span>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Setpoint Velocidade Baixa</label>
-                          <input type="number" className="w-full px-3 py-2 border border-gray-300 rounded-lg" defaultValue="0.05" step="0.01" />
-                          <span className="text-xs text-gray-500">m/min</span>
-                        </div>
-                      </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Patamar 1 - Velocidade Baixa:</span>
+                      <span className="text-xl font-mono font-bold text-gray-900">0.05 m/min</span>
                     </div>
-
-                    <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                      <h4 className="font-semibold text-gray-700">PATAMAR 2</h4>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Setpoint Alarme Velocidade Alta</label>
-                          <input type="number" className="w-full px-3 py-2 border border-gray-300 rounded-lg" defaultValue="0.30" step="0.01" />
-                          <span className="text-xs text-gray-500">m/min</span>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Setpoint Velocidade Baixa</label>
-                          <input type="number" className="w-full px-3 py-2 border border-gray-300 rounded-lg" defaultValue="0.08" step="0.01" />
-                          <span className="text-xs text-gray-500">m/min</span>
-                        </div>
-                      </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Patamar 2 - Velocidade Alta:</span>
+                      <span className="text-xl font-mono font-bold text-gray-900">0.30 m/min</span>
                     </div>
-
-                    {/* Espaçamento adicional para alinhar altura */}
-                    <div className="h-4"></div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Patamar 2 - Velocidade Baixa:</span>
+                      <span className="text-xl font-mono font-bold text-gray-900">0.08 m/min</span>
+                    </div>
                   </div>
                 </Card>
 
-                {/* COLUNA DIREITA - VELOCIDADE DE FECHAMENTO E QUADRO DE POTÊNCIA */}
-                <div className="space-y-6">
-                  {/* VELOCIDADE DE FECHAMENTO */}
-                  <Card 
-                    title="VELOCIDADE DE FECHAMENTO" 
-                    icon={<ArrowDownIcon className="w-5 h-5" />}
-                    variant="default"
-                    className="h-fit"
-                  >
-                    <div className="space-y-6">
-                      <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                        <h4 className="font-semibold text-gray-700">PARÂMETROS DE FECHAMENTO</h4>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-1">Setpoint Alarme Velocidade Alta</label>
-                            <input type="number" className="w-full px-3 py-2 border border-gray-300 rounded-lg" defaultValue="0.20" step="0.01" />
-                            <span className="text-xs text-gray-500">m/min</span>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-1">Setpoint Alarme Velocidade Baixa</label>
-                            <input type="number" className="w-full px-3 py-2 border border-gray-300 rounded-lg" defaultValue="0.03" step="0.01" />
-                            <span className="text-xs text-gray-500">m/min</span>
-                          </div>
+                {/* VELOCIDADE DE FECHAMENTO */}
+                <Card 
+                  title="VELOCIDADE DE FECHAMENTO" 
+                  icon={<ArrowDownIcon className="w-5 h-5" />}
+                  variant="default"
+                  className="h-fit"
+                >
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Velocidade Alta:</span>
+                      <span className="text-xl font-mono font-bold text-gray-900">0.20 m/min</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Velocidade Baixa:</span>
+                      <span className="text-xl font-mono font-bold text-gray-900">0.03 m/min</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Status Atual:</span>
+                      <span className="text-xl font-mono font-bold text-green-600">Normal</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Tempo Operação:</span>
+                      <span className="text-xl font-mono font-bold text-gray-900">125 min</span>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* QUADRO DE POTÊNCIA - Ocupa as duas colunas */}
+                <Card 
+                  title="QUADRO DE POTÊNCIA" 
+                  icon={<BoltIcon className="w-5 h-5" />}
+                  variant="default"
+                  className="lg:col-span-2"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* L1-L2 */}
+                    <div className="text-center">
+                      <h4 className="font-semibold text-gray-700 mb-3">L1-L2</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Tensão:</span>
+                          <span className="font-bold text-blue-600">220V</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Corrente:</span>
+                          <span className="font-bold text-green-600">5.2A</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Potência:</span>
+                          <span className="font-bold text-orange-600">1.1kW</span>
                         </div>
                       </div>
                     </div>
-                  </Card>
-
-                  {/* QUADRO DE POTÊNCIA */}
-                  <Card 
-                    title="QUADRO DE POTÊNCIA" 
-                    icon={<BoltIcon className="w-5 h-5" />}
-                    variant="default"
-                    className="h-fit"
-                  >
-                    <div className="space-y-4">
-                      {/* L1-L2 */}
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <h4 className="font-semibold text-gray-700 mb-3">L1-L2</h4>
-                        <div className="grid grid-cols-3 gap-3 text-sm">
-                          <div className="text-center">
-                            <div className="text-xs text-gray-500 mb-1">Tensão</div>
-                            <div className="font-bold text-blue-600">220V</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xs text-gray-500 mb-1">Corrente</div>
-                            <div className="font-bold text-green-600">5.2A</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xs text-gray-500 mb-1">Potência</div>
-                            <div className="font-bold text-orange-600">1.1kW</div>
-                          </div>
+                    
+                    {/* Parâmetros Gerais */}
+                    <div className="text-center">
+                      <h4 className="font-semibold text-gray-700 mb-3">PARÂMETROS GERAIS</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Potência Total:</span>
+                          <span className="font-bold text-gray-900">1.15 kW</span>
                         </div>
-                      </div>
-
-                      {/* Parâmetros Gerais */}
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600 font-medium">Potência Total:</span>
-                          <span className="text-lg font-mono font-bold text-gray-900">1.15 kW</span>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Fator de Potência:</span>
+                          <span className="font-bold text-gray-900">0.85</span>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600 font-medium">Fator de Potência:</span>
-                          <span className="text-lg font-mono font-bold text-gray-900">0.85</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600 font-medium">Frequência:</span>
-                          <span className="text-lg font-mono font-bold text-gray-900">60.0 Hz</span>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Frequência:</span>
+                          <span className="font-bold text-gray-900">60.0 Hz</span>
                         </div>
                       </div>
                     </div>
-                  </Card>
-                </div>
+                    
+                    {/* Status Operacional */}
+                    <div className="text-center">
+                      <h4 className="font-semibold text-gray-700 mb-3">STATUS OPERACIONAL</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Estado:</span>
+                          <span className="font-bold text-green-600">Operando</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Temperatura:</span>
+                          <span className="font-bold text-blue-600">65°C</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Vibração:</span>
+                          <span className="font-bold text-green-600">Normal</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
 
               </div>
+            </div>
 
-              {/* Botões de ação */}
-              <div className="flex justify-end gap-3">
+            {/* Footer com ações */}
+            <div className="bg-gray-50 px-3 py-3 sm:px-6 sm:py-4 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
                 <button
                   onClick={() => setMenuParametrosOpen(false)}
-                  className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors font-medium"
+                  className="px-4 py-2 sm:px-6 sm:py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors font-medium text-sm sm:text-base"
                 >
                   Fechar
                 </button>
-                <button className="px-6 py-2 bg-green-500 hover:bg-green-600 text-[#212E3E] rounded-lg transition-colors font-bold">
+                <button className="px-4 py-2 sm:px-6 sm:py-2 bg-green-500 hover:bg-green-600 text-[#212E3E] rounded-lg transition-colors font-bold text-sm sm:text-base">
                   Salvar Configurações
                 </button>
               </div>
