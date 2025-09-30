@@ -8,7 +8,8 @@
       "Bash(mv:*)",
       "Bash(npm run build:*)",
       "Bash(cp:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(cat:*)"
     ],
     "defaultMode": "acceptEdits"
   }

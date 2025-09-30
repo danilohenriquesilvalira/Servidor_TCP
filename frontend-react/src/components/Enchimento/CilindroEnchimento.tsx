@@ -21,7 +21,7 @@ const CilindroEnchimento: React.FC<CilindroEnchimentoProps> = ({
       <svg 
         width="100%" 
         height="100%" 
-        viewBox="0 0 108 378" 
+        viewBox="0 0 108 371" 
         fill="none" 
         xmlns="http://www.w3.org/2000/svg"
         className="w-full h-full"
@@ -31,14 +31,10 @@ const CilindroEnchimento: React.FC<CilindroEnchimentoProps> = ({
         }}
       >
         {/* Retângulo central - muda de cor conforme o bit */}
-        <rect 
-          x="16" 
-          y="25" 
-          width="76" 
-          height="263" 
+        <path 
+          d="M96 24.5V288.5H12.001L12.499 24.5H96Z" 
           fill={corRetangulo} 
-          stroke="black" 
-          strokeWidth="2"
+          stroke="black"
           style={{
             transition: 'fill 0.3s ease-in-out'
           }}
@@ -48,8 +44,7 @@ const CilindroEnchimento: React.FC<CilindroEnchimentoProps> = ({
         <path d="M96 24.5V20.5H99.5V5H96V1H12V5H8.5V20.5H12.5L12.5 24.5H90.0001H96Z" fill="black" stroke="black"/>
         <path d="M8 20.5V5H1V20.5H8Z" fill="#900000" stroke="#900000"/>
         <path d="M107 20.5V5H100V20.5H107Z" fill="#900000" stroke="#900000"/>
-        <path d="M12.5 377.5V313H96L96.5 377.5H12.5Z" fill="black" stroke="#737373"/>
-        <path d="M96 312.5V308.5H99.5V293H96V289H12V293H8.5V308.5H12.5L12.5 312.5H90.0001H96Z" fill="black" stroke="black"/>
+        <path d="M96 370.5V308.5H99.5V293H96V289H12V293H8.5V308.5H12.5L12.5 370.5H90.0001H96Z" fill="black" stroke="black"/>
         <path d="M8 308.5V293H1V308.5H8Z" fill="#900000" stroke="#900000"/>
         <path d="M107 308.5V293H100V308.5H107Z" fill="#900000" stroke="#900000"/>
       </svg>
