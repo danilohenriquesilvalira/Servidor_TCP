@@ -15,7 +15,7 @@ const PistaoEnchimento: React.FC<PistaoEnchimentoProps> = ({
   const valor = websocketValue;
   
   // Movimento vertical - PROPORCIONAL À ALTURA DO CONTAINER
-  const maxDeslocamentoPercent = 30; // 30% da altura do container (movimento +10%)
+  const maxDeslocamentoPercent = 47.52; // 47.52% da altura do container (movimento aumentado em mais 10%)
   const deslocamentoVertical = (valor / 100) * maxDeslocamentoPercent;
 
   return (

@@ -1,5 +1,7 @@
 import React from 'react';
 import { usePLC } from '../contexts/PLCContext';
+import { CogIcon, XMarkIcon, ArrowUpIcon, ArrowDownIcon, BoltIcon } from '@heroicons/react/24/outline';
+import { Card } from '../components/ui/Card';
 import BasePistaoEnchimento from '../components/Enchimento/BasePistaoEnchimento';
 import PistaoEnchimento from '../components/Enchimento/PistaoEnchimento';
 import CilindroEnchimento from '../components/Enchimento/CilindroEnchimento';
@@ -596,6 +598,7 @@ const Enchimento: React.FC<EnchimentoProps> = () => {
   const [containerDimensions, setContainerDimensions] = React.useState({ width: 0, height: 0 });
   const [windowDimensions, setWindowDimensions] = React.useState({ width: 0, height: 0 });
   const [isInitialized, setIsInitialized] = React.useState(false);
+  const [menuParametrosOpen, setMenuParametrosOpen] = React.useState(false);
 
   // UseLayoutEffect para calcular dimensões ANTES da renderização visual
   React.useLayoutEffect(() => {
@@ -1609,6 +1612,208 @@ const Enchimento: React.FC<EnchimentoProps> = () => {
           </div>
         )}
       </div>
+
+      {/* BOTÃO PARÂMETROS - POSIÇÃO FIXA */}
+      <button
+        onClick={() => setMenuParametrosOpen(!menuParametrosOpen)}
+        className={`fixed bottom-6 right-6 z-30 px-8 py-5 rounded-2xl shadow-2xl transition-all duration-300 flex items-center gap-5 ${
+          menuParametrosOpen 
+            ? 'bg-[#212E3E] text-white scale-105' 
+            : 'bg-[#212E3E] text-white hover:scale-102'
+        }`}
+      >
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+          menuParametrosOpen ? 'bg-white/20' : 'bg-green-400/20'
+        }`}>
+          <CogIcon className={`w-6 h-6 transition-transform duration-300 text-white ${
+            menuParametrosOpen ? 'rotate-90' : ''
+          }`} />
+        </div>
+        
+        <div className="text-left">
+          <div className="font-bold text-lg">PARÂMETROS</div>
+          <div className="text-sm opacity-80">Sistema de Enchimento</div>
+        </div>
+      </button>
+
+      {/* MODAL DE PARÂMETROS */}
+      {menuParametrosOpen && (
+        <div 
+          className="fixed inset-0 z-30 flex items-center justify-center p-4"
+          onClick={() => setMenuParametrosOpen(false)}
+        >
+          {/* Dialog Container */}
+          <div 
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header azul escuro EDP */}
+            <div className="bg-[#212E3E] p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    <CogIcon className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">PARÂMETROS DO ENCHIMENTO</h2>
+                    <p className="text-gray-300 text-sm">Configurações e Monitoramento Industrial</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setMenuParametrosOpen(false)}
+                  className="w-10 h-10 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Conteúdo com scroll */}
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                
+                {/* VELOCIDADE DE ABERTURA */}
+                <Card 
+                  title="VELOCIDADE DE ABERTURA" 
+                  icon={<ArrowUpIcon className="w-5 h-5" />}
+                  variant="default"
+                  className="h-fit"
+                >
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Abertura Lenta:</span>
+                      <span className="text-xl font-mono font-bold text-gray-900">0.15 m/min</span>
+                    </div>
+                    
+                    <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                      <h4 className="font-semibold text-gray-700">PATAMAR 1</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Setpoint Alarme Velocidade Alta</label>
+                          <input type="number" className="w-full px-3 py-2 border border-gray-300 rounded-lg" defaultValue="0.25" step="0.01" />
+                          <span className="text-xs text-gray-500">m/min</span>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Setpoint Velocidade Baixa</label>
+                          <input type="number" className="w-full px-3 py-2 border border-gray-300 rounded-lg" defaultValue="0.05" step="0.01" />
+                          <span className="text-xs text-gray-500">m/min</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                      <h4 className="font-semibold text-gray-700">PATAMAR 2</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Setpoint Alarme Velocidade Alta</label>
+                          <input type="number" className="w-full px-3 py-2 border border-gray-300 rounded-lg" defaultValue="0.30" step="0.01" />
+                          <span className="text-xs text-gray-500">m/min</span>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Setpoint Velocidade Baixa</label>
+                          <input type="number" className="w-full px-3 py-2 border border-gray-300 rounded-lg" defaultValue="0.08" step="0.01" />
+                          <span className="text-xs text-gray-500">m/min</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Espaçamento adicional para alinhar altura */}
+                    <div className="h-4"></div>
+                  </div>
+                </Card>
+
+                {/* COLUNA DIREITA - VELOCIDADE DE FECHAMENTO E QUADRO DE POTÊNCIA */}
+                <div className="space-y-6">
+                  {/* VELOCIDADE DE FECHAMENTO */}
+                  <Card 
+                    title="VELOCIDADE DE FECHAMENTO" 
+                    icon={<ArrowDownIcon className="w-5 h-5" />}
+                    variant="default"
+                    className="h-fit"
+                  >
+                    <div className="space-y-6">
+                      <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                        <h4 className="font-semibold text-gray-700">PARÂMETROS DE FECHAMENTO</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-600 mb-1">Setpoint Alarme Velocidade Alta</label>
+                            <input type="number" className="w-full px-3 py-2 border border-gray-300 rounded-lg" defaultValue="0.20" step="0.01" />
+                            <span className="text-xs text-gray-500">m/min</span>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-600 mb-1">Setpoint Alarme Velocidade Baixa</label>
+                            <input type="number" className="w-full px-3 py-2 border border-gray-300 rounded-lg" defaultValue="0.03" step="0.01" />
+                            <span className="text-xs text-gray-500">m/min</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* QUADRO DE POTÊNCIA */}
+                  <Card 
+                    title="QUADRO DE POTÊNCIA" 
+                    icon={<BoltIcon className="w-5 h-5" />}
+                    variant="default"
+                    className="h-fit"
+                  >
+                    <div className="space-y-4">
+                      {/* L1-L2 */}
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-gray-700 mb-3">L1-L2</h4>
+                        <div className="grid grid-cols-3 gap-3 text-sm">
+                          <div className="text-center">
+                            <div className="text-xs text-gray-500 mb-1">Tensão</div>
+                            <div className="font-bold text-blue-600">220V</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-gray-500 mb-1">Corrente</div>
+                            <div className="font-bold text-green-600">5.2A</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-gray-500 mb-1">Potência</div>
+                            <div className="font-bold text-orange-600">1.1kW</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Parâmetros Gerais */}
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 font-medium">Potência Total:</span>
+                          <span className="text-lg font-mono font-bold text-gray-900">1.15 kW</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 font-medium">Fator de Potência:</span>
+                          <span className="text-lg font-mono font-bold text-gray-900">0.85</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 font-medium">Frequência:</span>
+                          <span className="text-lg font-mono font-bold text-gray-900">60.0 Hz</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+
+              </div>
+
+              {/* Botões de ação */}
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setMenuParametrosOpen(false)}
+                  className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors font-medium"
+                >
+                  Fechar
+                </button>
+                <button className="px-6 py-2 bg-green-500 hover:bg-green-600 text-[#212E3E] rounded-lg transition-colors font-bold">
+                  Salvar Configurações
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
