@@ -55,8 +55,8 @@ type WSClient struct {
 	closed        bool
 	closeMutex    sync.Mutex
 	writeMutex    sync.Mutex // NOVO: Mutex para proteger escritas WebSocket
-	remoteAddr    string // Para identificar clientes duplicados
-	userAgent     string // Para identificar origem
+	remoteAddr    string     // Para identificar clientes duplicados
+	userAgent     string     // Para identificar origem
 }
 
 // NewWSClient cria um novo cliente WebSocket com configurações de segurança
@@ -192,12 +192,12 @@ func (s *Server) WriteToPLC(req WriteRequest) {
 func (s *Server) AddClient(conn *websocket.Conn, remoteAddr, userAgent string) *WSClient {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	
+
 	// Verificar se já existe cliente do mesmo IP/User-Agent
 	duplicateCount := 0
 	sameIPCount := 0
 	sameUACount := 0
-	
+
 	for existingClient := range s.clients {
 		if existingClient.remoteAddr == remoteAddr {
 			sameIPCount++
@@ -209,13 +209,13 @@ func (s *Server) AddClient(conn *websocket.Conn, remoteAddr, userAgent string) *
 			duplicateCount++
 		}
 	}
-	
+
 	if duplicateCount > 0 {
 		log.Printf("🚨 CLIENTE DUPLICADO EXATO detectado!")
 		log.Printf("   📍 IP: %s (já tem %d conexões)", remoteAddr, sameIPCount)
 		log.Printf("   🖥️ User-Agent: %s (já tem %d conexões)", userAgent, sameUACount)
 		log.Printf("   🔄 Duplicados exatos: %d", duplicateCount)
-		
+
 		// Fechar conexões duplicadas antigas do mesmo IP/User-Agent
 		var clientsToRemove []*WSClient
 		for existingClient := range s.clients {
@@ -224,7 +224,7 @@ func (s *Server) AddClient(conn *websocket.Conn, remoteAddr, userAgent string) *
 				clientsToRemove = append(clientsToRemove, existingClient)
 			}
 		}
-		
+
 		// Remover clientes duplicados
 		for _, client := range clientsToRemove {
 			delete(s.clients, client)
@@ -239,7 +239,7 @@ func (s *Server) AddClient(conn *websocket.Conn, remoteAddr, userAgent string) *
 		log.Printf("   📍 Mesmo IP (%s): %d conexões existentes", remoteAddr, sameIPCount)
 		log.Printf("   🖥️ Mesmo User-Agent: %d conexões existentes", sameUACount)
 	}
-	
+
 	client := NewWSClient(conn, remoteAddr, userAgent)
 	s.clients[client] = true
 
@@ -286,18 +286,18 @@ func (s *Server) handleBroadcast() {
 		bitExtractor := plcdata.ExtractBitsFromWords(data.Words)
 		// Payload organizado: incluindo words, bit_data e outros dados
 		payload := map[string]interface{}{
-			"words":       data.Words,              // Words brutas para debug
-			"ints":        data.Ints,               // Inteiros
-			"reals":       data.Reals,              // Reais
-			"strings":     data.Strings,            // Strings
+			"words":   data.Words,   // Words brutas para debug
+			"ints":    data.Ints,    // Inteiros
+			"reals":   data.Reals,   // Reais
+			"strings": data.Strings, // Strings
 			"bit_data": map[string]interface{}{
 				"status_bits": bitExtractor.StatusBits, // Words 0-16 (Status/Animações)
 				"alarm_bits":  bitExtractor.AlarmBits,  // Words 17-47 (Alarmes)
 				"event_bits":  bitExtractor.EventBits,  // Words 48-64 (Eventos)
 			},
-			"counts":      data.Counts,             // Contadores
-			"timestamp":   data.Timestamp,          // Timestamp
-			"bytes_size":  data.BytesSize,          // Tamanho dos dados
+			"counts":     data.Counts,    // Contadores
+			"timestamp":  data.Timestamp, // Timestamp
+			"bytes_size": data.BytesSize, // Tamanho dos dados
 		}
 		dataBytes, err := json.Marshal(payload)
 		if err != nil {
@@ -398,7 +398,7 @@ func (s *Server) handleClientWrites(client *WSClient) {
 			client.conn.SetWriteDeadline(time.Now().Add(client.writeTimeout))
 			err := client.conn.WriteMessage(websocket.TextMessage, message)
 			client.writeMutex.Unlock()
-			
+
 			if err != nil {
 				log.Printf("❌ Erro enviando para cliente: %v", err)
 				return
@@ -433,7 +433,7 @@ func (s *Server) handleClientHealth(client *WSClient) {
 			client.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 			err := client.conn.WriteMessage(websocket.PingMessage, nil)
 			client.writeMutex.Unlock()
-			
+
 			if err != nil {
 				log.Printf("🚨 Erro enviando ping para %s: %v - removendo", client.remoteAddr, err)
 				client.isHealthy = false
@@ -444,7 +444,7 @@ func (s *Server) handleClientHealth(client *WSClient) {
 			// Verificar se recebemos pong recentemente (mais tolerante para mobile)
 			timeSinceLastPong := time.Since(client.lastPong)
 			if timeSinceLastPong > 600*time.Second { // 10 minutos sem pong
-				log.Printf("🚨 Cliente %s não responde a ping há %v - removendo", 
+				log.Printf("🚨 Cliente %s não responde a ping há %v - removendo",
 					client.remoteAddr, timeSinceLastPong)
 				client.isHealthy = false
 				s.RemoveClient(client)

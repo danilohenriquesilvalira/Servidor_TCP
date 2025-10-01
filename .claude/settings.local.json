@@ -9,7 +9,13 @@
       "Bash(npm run build:*)",
       "Bash(cp:*)",
       "Bash(find:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(del database_falhas_schema.sql import_falhas_data.sql install_faults_system.sql)",
+      "Bash(git checkout:*)",
+      "Bash(psql:*)",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\16\\bin\\psql.exe\" --version)",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe\" --version)",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe\" -h localhost -U danilo -d postgres)"
     ],
     "defaultMode": "acceptEdits"
   }

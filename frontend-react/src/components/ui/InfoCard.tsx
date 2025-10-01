@@ -14,28 +14,28 @@ export const InfoCard: React.FC<InfoCardProps> = ({
   variant = 'industrial',
   className = ''
 }) => {
-  // Estilos baseados no padrão industrial EDP
+  // Estilos modernos baseados no padrão EDP
   const getVariantStyles = () => {
     switch (variant) {
       case 'status':
         return {
-          container: 'bg-slate-800 border-slate-600',
-          header: 'text-[#00A3E0] border-slate-600'
+          container: 'bg-gradient-to-br from-white via-gray-50 to-gray-100 border-gray-200/60',
+          header: 'text-white'
         };
       case 'motor':
         return {
-          container: 'bg-slate-800 border-slate-600',
-          header: 'text-[#00A3E0] border-slate-600'
+          container: 'bg-gradient-to-br from-white via-gray-50 to-gray-100 border-gray-200/60',
+          header: 'text-white'
         };
       case 'system':
         return {
-          container: 'bg-slate-800 border-slate-600',
-          header: 'text-[#00A3E0] border-slate-600'
+          container: 'bg-gradient-to-br from-white via-gray-50 to-gray-100 border-gray-200/60',
+          header: 'text-white'
         };
       default: // industrial
         return {
-          container: 'bg-slate-800 border-slate-600',
-          header: 'text-[#00A3E0] border-slate-600'
+          container: 'bg-gradient-to-br from-white via-gray-50 to-gray-100 border-gray-200/60',
+          header: 'text-white'
         };
     }
   };
@@ -43,14 +43,16 @@ export const InfoCard: React.FC<InfoCardProps> = ({
   const styles = getVariantStyles();
 
   return (
-    <div className={`${styles.container} border rounded-lg p-6 ${className}`}>
-      {/* Header com título padrão industrial */}
-      <div className={`text-base font-bold ${styles.header} uppercase tracking-wide mb-5 border-b pb-3`}>
-        {title}
+    <div className={`${styles.container} border rounded-xl shadow-lg backdrop-blur-sm ${className} overflow-hidden`}>
+      {/* Header Moderno com Gradiente */}
+      <div className={`bg-edp-marine text-white px-6 py-4`}>
+        <h3 className="text-lg font-edp font-bold uppercase tracking-wide">
+          {title}
+        </h3>
       </div>
       
-      {/* Conteúdo */}
-      <div>
+      {/* Conteúdo com Padding Melhorado */}
+      <div className="p-6 space-y-4">
         {children}
       </div>
     </div>

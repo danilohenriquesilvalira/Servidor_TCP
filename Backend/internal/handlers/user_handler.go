@@ -285,4 +285,3 @@ func (h *UserHandler) respondWithJSON(w http.ResponseWriter, code int, payload i
 func (h *UserHandler) respondWithError(w http.ResponseWriter, code int, message string) {
 	h.respondWithJSON(w, code, map[string]string{"error": message})
 }
-

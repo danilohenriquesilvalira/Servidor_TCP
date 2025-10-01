@@ -11,19 +11,19 @@ export const StatusCard: React.FC<StatusCardProps> = ({
   variant,
   className = ''
 }) => {
-  // Estilos baseados nos status industriais EDP
+  // Estilos baseados no padrão EDP - cores suaves e delicadas
   const getVariantStyles = () => {
     switch (variant) {
       case 'automatic':
-        return 'bg-[#00A3E0] border-blue-500'; // Azul EDP
+        return 'bg-gray-200 border-gray-300 text-edp-marine'; // Cinza suave como cards de usuários
       case 'success':
-        return 'bg-green-600 border-green-500';
+        return 'bg-gray-200 border-gray-300 text-edp-marine';
       case 'warning':
-        return 'bg-yellow-600 border-yellow-500';
+        return 'bg-gray-200 border-gray-300 text-edp-marine';
       case 'error':
-        return 'bg-red-600 border-red-500';
+        return 'bg-gray-200 border-gray-300 text-edp-marine';
       default:
-        return 'bg-gray-600 border-gray-500';
+        return 'bg-gray-200 border-gray-300 text-edp-marine';
     }
   };
 
@@ -32,7 +32,7 @@ export const StatusCard: React.FC<StatusCardProps> = ({
   return (
     <div className={`${styles} border rounded-md p-4 ${className}`}>
       <div className="text-center">
-        <div className="text-sm font-bold text-white uppercase tracking-wide">
+        <div className="text-sm font-edp font-bold uppercase tracking-wide">
           {title}
         </div>
       </div>
