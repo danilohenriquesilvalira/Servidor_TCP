@@ -8,8 +8,16 @@ import SemaforoSimples from '../components/Eclusa/caldeira/SemaforoSimples';
 import TrendDialog from '../components/Eclusa/caldeira/TrendDialog';
 import TubulacaoValvulas from '../components/Eclusa/caldeira/TubulacaoValvulas';
 import { usePLC } from '../contexts/PLCContext';
-import { CogIcon, XMarkIcon, BeakerIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
+import { 
+  CogIcon, 
+  XMarkIcon, 
+  ArrowUpIcon, 
+  ArrowDownIcon,
+  WrenchScrewdriverIcon
+} from '@heroicons/react/24/outline';
 import { Card } from '../components/ui/Card';
+import { InfoCard } from '../components/ui/InfoCard';
+import { StatusCard } from '../components/ui/StatusCard';
 
 // 🎯 CONFIGURAÇÕES DOS COMPONENTES DE NÍVEL - Edite aqui para salvar permanentemente
 const NIVEL_CONFIG = {
@@ -146,6 +154,12 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
     const wordData = statusBits[wordIndex] || [];
     return wordData[bitIndex] || false;
   };
+
+  // Extrair dados de status operacional do PLC para os novos cards (valores simulados por enquanto)
+  const statusOperacional = 1; // 1 = Telecomando, 2 = Local, 0 = Desligado (simulado)
+  const emergenciaAtivada = false; // Simulado até ter o bit real
+  const paragemRapida = false; // Simulado até ter o bit real
+  const alarmeInundacao = false; // Simulado até ter o bit real
   
   // Extrair bits das válvulas da tubulação do PLC - USANDO A FUNÇÃO CORRETA
   const bitMontanteCaldeira = getBitFromPosition(132); // Bit 132 - Word 8 Bit 4
@@ -276,9 +290,33 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
   
 
   return (
-    <div className="w-full h-screen flex flex-col items-center justify-end pb-8">
+    <div className="w-full h-screen flex flex-col items-center justify-end pb-8 relative">
         
-
+        {/* DEMARCAÇÃO DO ESPAÇO SUPERIOR DISPONÍVEL - RESPONSIVA */}
+        {isInitialized && containerDimensions.width > 100 && (
+          <div 
+            className="absolute border-2 border-blue-500 bg-blue-100/20"
+            style={{
+              top: isMobile ? '16px' : '20px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: `${Math.min(containerDimensions.width - (isMobile ? 16 : 32), 1920)}px`,
+              height: isMobile ? '60px' : '100px',
+              zIndex: 30
+            }}
+          >
+            <div className="text-blue-600 font-bold p-2">
+              <div className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
+                🔵 ESPAÇO SUPERIOR DISPONÍVEL
+              </div>
+              <div className="text-xs mt-1">
+                L: {Math.min(containerDimensions.width - (isMobile ? 16 : 32), 1920)}px | 
+                A: {isMobile ? '60px' : '100px'}
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div 
           ref={containerRef}
           className="w-full max-w-[1920px] flex flex-col items-center relative"
@@ -556,6 +594,22 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
                 />
               </div>
 
+
+
+              {/* ESPAÇO INFERIOR - Abaixo da tubulação - MANTIDO COMO CONFIRMADO */}
+              <div 
+                className="absolute border-2 border-yellow-500 bg-yellow-100/20"
+                style={{
+                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * 65) / 100}px`, // Começar em 65%
+                  left: '0px',
+                  width: `${maxWidth}px`,
+                  height: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * 35) / 100}px`, // 35% da altura
+                  zIndex: 50
+                }}
+              >
+                <div className="text-yellow-600 font-bold text-xs p-2">✅ ESPAÇO INFERIOR DISPONÍVEL CONFIRMADO</div>
+              </div>
+
             </div>
           ) : (
             /* Loading otimizado - mantém proporções corretas */
@@ -603,10 +657,10 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
         </div>
       </button>
 
-      {/* BOTÃO DESKTOP - Grande com texto NO FUNDO (acima de 1024px) */}
+      {/* BOTÃO DESKTOP - MESMO ESTILO DAS OUTRAS PÁGINAS */}
       <button
         onClick={() => setMenuParametrosOpen(!menuParametrosOpen)}
-        className="hidden xl:flex fixed bottom-6 right-6 z-50 px-8 py-5 bg-[#212E3E] text-white rounded-2xl shadow-2xl items-center gap-5 hover:scale-105 transition-all duration-200 touch-manipulation"
+        className="hidden xl:flex fixed top-20 right-6 z-50 px-8 py-5 bg-[#212E3E] text-white rounded-2xl shadow-2xl items-center gap-5 hover:scale-105 transition-all duration-200 touch-manipulation"
         style={{ touchAction: 'manipulation' }}
       >
         <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
@@ -614,7 +668,7 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
         </div>
         <div className="text-left">
           <div className="font-bold text-lg">PARÂMETROS</div>
-          <div className="text-sm opacity-80">Sistema de Eclusa</div>
+          <div className="text-sm opacity-80">Eclusa Régua</div>
         </div>
       </button>
 
@@ -745,42 +799,28 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
                   </div>
                 </Card>
 
-                {/* DEMONSTRAÇÃO DAS COTAS */}
+                {/* CONFIGURAÇÕES ADICIONAIS DE SISTEMA */}
                 <Card 
-                  title="COTAS DOS NÍVEIS" 
-                  icon={<BeakerIcon className="w-5 h-5" />}
+                  title="CONFIGURAÇÕES SISTEMA" 
+                  icon={<WrenchScrewdriverIcon className="w-5 h-5" />}
                   variant="default"
                   className="h-fit md:col-span-2"
                 >
                   <div className="space-y-3 md:space-y-4">
-                    <div className="grid grid-cols-3 gap-2 md:gap-3">
+                    <div className="grid grid-cols-2 gap-3 md:gap-4">
                       <div className="text-center">
-                        <div className="text-xs text-blue-600 font-medium mb-1">MONTANTE</div>
-                        <div className="text-sm md:text-lg font-mono font-bold text-blue-800">{nivelMontante.toFixed(2)} m</div>
+                        <div className="text-xs text-blue-600 font-medium mb-1">TIMEOUT OPERAÇÃO</div>
+                        <div className="text-sm md:text-lg font-mono font-bold text-blue-800">30 <span className="text-xs">seg</span></div>
                       </div>
                       <div className="text-center">
-                        <div className="text-xs text-green-600 font-medium mb-1">CALDEIRA</div>
-                        <div className="text-sm md:text-lg font-mono font-bold text-green-800">{nivelCaldeira.toFixed(2)} m</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-xs text-orange-600 font-medium mb-1">JUSANTE</div>
-                        <div className="text-sm md:text-lg font-mono font-bold text-orange-800">{nivelJusante.toFixed(2)} m</div>
+                        <div className="text-xs text-green-600 font-medium mb-1">CICLO AUTOMÁTICO</div>
+                        <div className="text-sm md:text-lg font-mono font-bold text-green-800">ATIVO</div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 pt-2 md:pt-3 border-t border-gray-200">
+                    <div className="pt-2 md:pt-3 border-t border-gray-200">
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-600 text-xs font-medium">Mont-Cald:</span>
-                        <div className="flex items-center gap-1 md:gap-2">
-                          <div className={`w-2 h-2 rounded-full ${Math.abs(nivelMontante - nivelCaldeira) <= 0.05 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                          <span className="text-xs font-mono font-medium">{Math.abs(nivelMontante - nivelCaldeira).toFixed(3)}m</span>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600 text-xs font-medium">Cald-Jus:</span>
-                        <div className="flex items-center gap-1 md:gap-2">
-                          <div className={`w-2 h-2 rounded-full ${Math.abs(nivelCaldeira - nivelJusante) <= 0.03 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                          <span className="text-xs font-mono font-medium">{Math.abs(nivelCaldeira - nivelJusante).toFixed(3)}m</span>
-                        </div>
+                        <span className="text-gray-600 text-xs font-medium">Manutenção Programada:</span>
+                        <span className="text-xs font-mono font-medium text-orange-600">15 dias</span>
                       </div>
                     </div>
                   </div>

@@ -12,6 +12,7 @@ import EclusaRegua from './pages/Eclusa_Regua';
 import PortaMontante from './pages/PortaMontante';
 import PortaJusante from './pages/PortaJusante';
 import Enchimento from './pages/Enchimento';
+import Falhas from './pages/Falhas';
 
 const App: React.FC = () => {
   return (
@@ -85,6 +86,17 @@ const App: React.FC = () => {
                   <ProtectedRoute>
                     <Layout>
                       <Enchimento />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/falhas"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Falhas />
                     </Layout>
                   </ProtectedRoute>
                 }

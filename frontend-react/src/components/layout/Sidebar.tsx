@@ -7,11 +7,12 @@ import {
   Cog6ToothIcon,
   RectangleStackIcon,
   UsersIcon,
+  ExclamationTriangleIcon,
   ChevronLeftIcon,
   ChevronRightIcon
 } from '@heroicons/react/24/outline';
 
-type NavItem = 'dashboard' | 'eclusa' | 'enchimento' | 'porta_jusante' | 'porta_montante' | 'usuarios';
+type NavItem = 'dashboard' | 'eclusa' | 'enchimento' | 'porta_jusante' | 'porta_montante' | 'usuarios' | 'falhas';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -51,6 +52,8 @@ export const Sidebar = ({ isOpen, onToggle, onClose }: SidebarProps) => {
       setActiveItem('porta_montante');
     } else if (pathname.includes('enchimento')) {
       setActiveItem('enchimento');
+    } else if (pathname.includes('falhas')) {
+      setActiveItem('falhas');
     } else if (pathname.includes('usuarios')) {
       setActiveItem('usuarios');
     } else {
@@ -98,6 +101,12 @@ export const Sidebar = ({ isOpen, onToggle, onClose }: SidebarProps) => {
       label: 'Porta Montante',
       icon: Cog6ToothIcon,
       path: '/porta-montante'
+    },
+    {
+      id: 'falhas' as NavItem,
+      label: 'Falhas',
+      icon: ExclamationTriangleIcon,
+      path: '/falhas'
     },
     {
       id: 'usuarios' as NavItem,
@@ -224,7 +233,7 @@ export const Sidebar = ({ isOpen, onToggle, onClose }: SidebarProps) => {
       {/* Mobile Bottom Navigation */}
       {isMobile && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-edp-marine border-t border-edp-neutral-darker h-16">
-          <div className="grid grid-cols-6 gap-0 h-full">
+          <div className="grid grid-cols-7 gap-0 h-full">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeItem === item.id;

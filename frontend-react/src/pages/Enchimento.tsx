@@ -164,10 +164,10 @@ const SUPORTE_PISTA_CONFIG = {
 // Configuração responsiva do BASE FUNDO ENCHIMENTO - SVG DE FUNDO
 const BASE_FUNDO_ENCHIMENTO_CONFIG = {
   desktop: {
-    verticalPercent: 24,       // % da altura total (posição Y) - ajustável
-    horizontalPercent: -12,     // % da largura total (posição X) - ajustável
-    widthPercent: 120,        // % da largura total (tamanho) - ajustável
-    heightPercent: 120,       // % da altura total (tamanho) - ajustável
+    verticalPercent: 33,       // % da altura total (posição Y) - ajustável
+    horizontalPercent: 0,     // % da largura total (posição X) - ajustável
+    widthPercent: 100,        // % da largura total (tamanho) - ajustável
+    heightPercent: 100,       // % da altura total (tamanho) - ajustável
   },
   mobile: {
     verticalPercent: 87,       // % da altura total (posição Y) - ajustável

@@ -27,6 +27,8 @@ export const Header = () => {
       return 'Porta Montante';
     } else if (pathname.includes('enchimento')) {
       return 'Enchimento';
+    } else if (pathname.includes('falhas')) {
+      return 'Falhas';
     } else if (pathname.includes('usuarios')) {
       return 'Usuários';
     } else {
