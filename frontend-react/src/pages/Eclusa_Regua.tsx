@@ -16,88 +16,207 @@ import {
   WrenchScrewdriverIcon
 } from '@heroicons/react/24/outline';
 import { Card } from '../components/ui/Card';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
 
-// 🎯 CONFIGURAÇÕES DOS COMPONENTES DE NÍVEL - Edite aqui para salvar permanentemente
+// 🎯 CONFIGURAÇÕES DOS COMPONENTES DE NÍVEL - Separação Desktop/Mobile
 const NIVEL_CONFIG = {
   caldeira: {
-    verticalPercent: 36.2,  // % da altura da caldeira (posição Y)
-    horizontalPercent: 25.6, // % da largura da caldeira (posição X)
-    widthPercent: 64.6,     // % da largura da caldeira (tamanho)
-    heightPercent: 61.7,    // % da altura da caldeira (tamanho)
+    desktop: {
+      verticalPercent: 37.5,  // % da altura da caldeira (posição Y)
+      horizontalPercent: 25.3, // % da largura da caldeira (posição X)
+      widthPercent: 64.6,     // % da largura da caldeira (tamanho)
+      heightPercent: 62,    // % da altura da caldeira (tamanho)
+    },
+    mobile: {
+      verticalPercent: 38.5,  // Ajuste para mobile
+      horizontalPercent: 22.0,
+      widthPercent: 68.0,
+      heightPercent: 58.0,
+    }
   },
   jusante: {
-    verticalPercent: 29.4,  // % da altura total
-    horizontalPercent: 89.4, // % da largura total
-    widthPercent: 10.2,     // % da largura total
-    heightPercent: 15    // % da altura total
+    desktop: {
+      verticalPercent: 44.9,  // Posicionado na parte inferior
+      horizontalPercent: 88.0, // Lado direito
+      widthPercent: 12.0,     // Largura ajustada
+      heightPercent: 6.5      // Altura ajustada
+    },
+    mobile: {
+      verticalPercent: 42.0,
+      horizontalPercent: 83.0,
+      widthPercent: 14.0,
+      heightPercent: 10.0
+    }
   },
   montante: {
-    verticalPercent: 15.5,  // % da altura total
-    horizontalPercent: 0.4, // % da largura total
-    widthPercent: 25,       // % da largura total
-    heightPercent: 28,      // % da altura total
+    desktop: {
+      verticalPercent: 38.1,  // Posicionado na parte superior esquerda
+      horizontalPercent: 0.0, // Lado esquerdo
+      widthPercent: 25.4,     // Largura ajustada
+      heightPercent: 11.0,    // Altura ajustada
+    },
+    mobile: {
+      verticalPercent: 28.0,
+      horizontalPercent: 1.0,
+      widthPercent: 22.0,
+      heightPercent: 14.0,
+    }
   }
 };
 
-// 🚪 CONFIGURAÇÕES DOS COMPONENTES DE PORTA - Edite aqui para salvar permanentemente
+// 🚪 CONFIGURAÇÕES DOS COMPONENTES DE PORTA - Separação Desktop/Mobile
 const PORTA_CONFIG = {
   jusante: {
-    verticalPercent: 26.5,    // % da altura total (posição Y)
-    horizontalPercent: 78.1,  // % da largura total (posição X)
-    widthPercent: 8,          // % da largura total (tamanho)
-    heightPercent: 20,      // % da altura total (tamanho)
+    desktop: {
+      verticalPercent: 38.2,    // % da altura total (posição Y)
+      horizontalPercent: 79.5,  // % da largura total (posição X)
+      widthPercent: 5,          // % da largura total (tamanho)
+      heightPercent: 16,        // % da altura total (tamanho)
+    },
+    mobile: {
+      verticalPercent: 28.0,
+      horizontalPercent: 76.5,
+      widthPercent: 10,
+      heightPercent: 18,
+    }
   },
   montante: {
-    verticalPercent: 14.6,  // % da altura total (posição Y)
-    horizontalPercent: 25.5, // % da largura total (posição X)
-    widthPercent: 1.5,      // % da largura total (tamanho)
-    heightPercent: 18,      // % da altura total (tamanho)
+    desktop: {
+      verticalPercent: 36.8,  // % da altura total (posição Y)
+      horizontalPercent: 25.5, // % da largura total (posição X)
+      widthPercent: 1.5,      // % da largura total (tamanho)
+      heightPercent: 18,      // % da altura total (tamanho)
+    },
+    mobile: {
+      verticalPercent: 16.0,
+      horizontalPercent: 24.0,
+      widthPercent: 2.5,
+      heightPercent: 16,
+    }
   }
 };
 
-// 🚦 CONFIGURAÇÕES DOS SEMÁFOROS - Posições finais ajustadas
+// 🚦 CONFIGURAÇÕES DOS SEMÁFOROS - Separação Desktop/Mobile
 const SEMAFORO_CONFIG = {
   semaforo1: {
-    verticalPercent: 5.7,  // % da altura total (posição Y)
-    horizontalPercent: 22.4, // % da largura total (posição X)
-    widthPercent: 3,        // % da largura total (tamanho)
-    heightPercent: 8,      // % da altura total (tamanho)
+    desktop: {
+      verticalPercent: 32.0,  // Parte superior
+      horizontalPercent: 22.0, // Esquerda
+      widthPercent: 3.5,        // Tamanho ajustado
+      heightPercent: 4.0,      // Altura ajustada
+    },
+    mobile: {
+      verticalPercent: 12.0,
+      horizontalPercent: 20.0,
+      widthPercent: 4.5,
+      heightPercent: 4.0,
+    }
   },
   semaforo2: {
-    verticalPercent: 7.5,  // % da altura total (posição Y)
-    horizontalPercent: 37.9, // % da largura total (posição X)
-    widthPercent: 3,        // % da largura total (tamanho)
-    heightPercent: 8,      // % da altura total (tamanho)
+    desktop: {
+      verticalPercent: 32.9,  // Ligeiramente abaixo
+      horizontalPercent: 38.0, // Centro-esquerda
+      widthPercent: 3.5,        // Tamanho ajustado
+      heightPercent: 4.0,      // Altura ajustada
+    },
+    mobile: {
+      verticalPercent: 14.0,
+      horizontalPercent: 36.0,
+      widthPercent: 4.5,
+      heightPercent: 4.0,
+    }
   },
   semaforo3: {
-    verticalPercent: 7.5,  // % da altura total (posição Y)
-    horizontalPercent: 67.3, // % da largura total (posição X)
-    widthPercent: 3,        // % da largura total (tamanho)
-    heightPercent: 8,      // % da altura total (tamanho)
+    desktop: {
+      verticalPercent: 32.9,  // Mesmo nível do 2
+      horizontalPercent: 65.0, // Centro-direita
+      widthPercent: 3.5,        // Tamanho ajustado
+      heightPercent: 4.0,      // Altura ajustada
+    },
+    mobile: {
+      verticalPercent: 14.0,
+      horizontalPercent: 63.0,
+      widthPercent: 4.5,
+      heightPercent: 4.0,
+    }
   },
   semaforo4: {
-    verticalPercent: 6.6,  // % da altura total (posição Y)
-    horizontalPercent: 86.3, // % da largura total (posição X)
-    widthPercent: 3,        // % da largura total (tamanho)
-    heightPercent: 8,      // % da altura total (tamanho)
+    desktop: {
+      verticalPercent: 32.5,  // Parte superior
+      horizontalPercent: 85.0, // Direita
+      widthPercent: 3.5,        // Tamanho ajustado
+      heightPercent: 4.0,      // Altura ajustada
+    },
+    mobile: {
+      verticalPercent: 12.0,
+      horizontalPercent: 82.0,
+      widthPercent: 4.5,
+      heightPercent: 6.0,
+    }
   }
 };
 
-// 🏗️ CONFIGURAÇÃO DA BASE PORTA JUSANTE
+// 🏗️ CONFIGURAÇÃO DA BASE PORTA JUSANTE - Separação Desktop/Mobile
 const BASE_PORTA_JUSANTE_CONFIG = {
-  verticalPercent: 13.5,    // % da altura total (posição Y inicial para ajuste)
-  horizontalPercent: 48.8,  // % da largura total (posição X inicial para ajuste)
-  widthPercent: 70,       // % da largura total (tamanho inicial)
-  heightPercent: 36.3,      // % da altura total (tamanho inicial)
+  desktop: {
+    verticalPercent: 36.8,    // Posicionado no meio-inferior
+    horizontalPercent: 64.3,  // Centro horizontal
+    widthPercent: 40,       // Largura reduzida
+    heightPercent: 14.6,      // Altura reduzida
+  },
+  mobile: {
+    verticalPercent: 37.0,
+    horizontalPercent: 46.0,
+    widthPercent: 55,
+    heightPercent: 22.0,
+  }
 };
 
-// 🔧 CONFIGURAÇÃO DA TUBULAÇÃO E VÁLVULAS
+// 🔧 CONFIGURAÇÃO DA TUBULAÇÃO E VÁLVULAS - Separação Desktop/Mobile
 const TUBULACAO_CONFIG = {
-  verticalPercent: 37.2,    // % da altura total (posição Y)
-  horizontalPercent: 5,   // % da largura total (posição X)
-  widthPercent: 90,       // % da largura total (tamanho)
-  heightPercent: 22,      // % da altura total (tamanho)
+  desktop: {
+    verticalPercent: 45.8,    // Parte inferior
+    horizontalPercent: 5,   // Margem esquerda
+    widthPercent: 90,       // Largura total
+    heightPercent: 15,      // Altura ajustada
+  },
+  mobile: {
+    verticalPercent: 52.0,
+    horizontalPercent: 3,
+    widthPercent: 94,
+    heightPercent: 18,
+  }
+};
+
+// 🏢 CONFIGURAÇÃO DA CALDEIRA_ECLUSA.SVG (SVG Principal) - Separação Desktop/Mobile
+const CALDEIRA_ECLUSA_CONFIG = {
+  desktop: {
+    verticalPercent: 30.0,    // Posição vertical baseada no maxWidth (30% da largura)
+    horizontalPercent: 50.0,  // Centro horizontal
+    widthPercent: 100,         // 85% da largura disponível
+    heightPercent: 100,       // Altura calculada pelo aspect ratio
+  },
+  mobile: {
+    verticalPercent: 35.0,    // Posição vertical ajustada para mobile
+    horizontalPercent: 50.0,  // Centro horizontal
+    widthPercent: 95,         // 95% da largura no mobile
+    heightPercent: 100,       // Altura calculada pelo aspect ratio
+  }
+};
+
+// 🧱 CONFIGURAÇÃO DA PAREDE_ECLUSA.SVG (SVG Principal) - Separação Desktop/Mobile  
+const PAREDE_ECLUSA_CONFIG = {
+  desktop: {
+    verticalPercent: 41.1,    // Posição abaixo da caldeira (45% da largura)
+    horizontalPercent: 50.0,  // Centro horizontal
+    widthPercent: 100.60,         // 90% da largura disponível
+    heightPercent: 100.0,       // Altura calculada pelo aspect ratio
+  },
+  mobile: {
+    verticalPercent: 50.0,    // Posição ajustada para mobile
+    horizontalPercent: 50.0,  // Centro horizontal
+    widthPercent: 98,         // 98% da largura no mobile
+    heightPercent: 100,       // Altura calculada pelo aspect ratio
+  }
 };
 
 interface EclusaReguaProps {
@@ -107,28 +226,49 @@ interface EclusaReguaProps {
 const EclusaRegua: React.FC<EclusaReguaProps> = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [containerDimensions, setContainerDimensions] = React.useState({ width: 0, height: 0 });
-  const [windowDimensions, setWindowDimensions] = React.useState({ width: 0, height: 0 });
+  const [windowDimensions, setWindowDimensions] = React.useState({ width: 1200, height: 800 }); // Valores iniciais estáveis
   const [isInitialized, setIsInitialized] = React.useState(false);
   const [paredeOffsetPercent] = React.useState(-50.5); // Posição ajustada para encaixe perfeito
   const [showTrendDialog, setShowTrendDialog] = React.useState(false);
   const [menuParametrosOpen, setMenuParametrosOpen] = React.useState(false);
   
+  // ✅ DETECÇÃO MOBILE ESTÁVEL - baseada no viewport, não na window (padrão PortaJusante)
+  const [isMobile, setIsMobile] = React.useState(false);
+  
+  React.useEffect(() => {
+    const checkMobile = () => {
+      const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+      setIsMobile(vw < 1024);
+    };
+    
+    checkMobile();
+    const mediaQuery = window.matchMedia('(max-width: 1023px)');
+    mediaQuery.addListener(checkMobile);
+    
+    return () => mediaQuery.removeListener(checkMobile);
+  }, []);
+  
   const caldeiraScale = 99.4;
   
-  const caldeiraConfig = NIVEL_CONFIG.caldeira;
-  const jusanteConfig = NIVEL_CONFIG.jusante;
-  const montanteConfig = NIVEL_CONFIG.montante;
+  // ✅ SELEÇÃO DINÂMICA DAS CONFIGURAÇÕES BASEADA NO DEVICE (padrão PortaJusante)
+  const caldeiraConfig = isMobile ? NIVEL_CONFIG.caldeira.mobile : NIVEL_CONFIG.caldeira.desktop;
+  const jusanteConfig = isMobile ? NIVEL_CONFIG.jusante.mobile : NIVEL_CONFIG.jusante.desktop;
+  const montanteConfig = isMobile ? NIVEL_CONFIG.montante.mobile : NIVEL_CONFIG.montante.desktop;
   
-  const portaJusanteConfig = PORTA_CONFIG.jusante;
-  const portaMontanteConfig = PORTA_CONFIG.montante;
+  const portaJusanteConfig = isMobile ? PORTA_CONFIG.jusante.mobile : PORTA_CONFIG.jusante.desktop;
+  const portaMontanteConfig = isMobile ? PORTA_CONFIG.montante.mobile : PORTA_CONFIG.montante.desktop;
   
-  const semaforo1Config = SEMAFORO_CONFIG.semaforo1;
-  const semaforo2Config = SEMAFORO_CONFIG.semaforo2;
-  const semaforo3Config = SEMAFORO_CONFIG.semaforo3;
-  const semaforo4Config = SEMAFORO_CONFIG.semaforo4;
+  const semaforo1Config = isMobile ? SEMAFORO_CONFIG.semaforo1.mobile : SEMAFORO_CONFIG.semaforo1.desktop;
+  const semaforo2Config = isMobile ? SEMAFORO_CONFIG.semaforo2.mobile : SEMAFORO_CONFIG.semaforo2.desktop;
+  const semaforo3Config = isMobile ? SEMAFORO_CONFIG.semaforo3.mobile : SEMAFORO_CONFIG.semaforo3.desktop;
+  const semaforo4Config = isMobile ? SEMAFORO_CONFIG.semaforo4.mobile : SEMAFORO_CONFIG.semaforo4.desktop;
   
-  const basePortaJusanteConfig = BASE_PORTA_JUSANTE_CONFIG;
-  const tubulacaoConfig = TUBULACAO_CONFIG;
+  const basePortaJusanteConfig = isMobile ? BASE_PORTA_JUSANTE_CONFIG.mobile : BASE_PORTA_JUSANTE_CONFIG.desktop;
+  const tubulacaoConfig = isMobile ? TUBULACAO_CONFIG.mobile : TUBULACAO_CONFIG.desktop;
+  
+  // ✅ CONFIGURAÇÕES DOS SVGs PRINCIPAIS (Caldeira_Eclusa.svg e Parede_Eclusa.svg)
+  const caldeiraEclusaConfig = isMobile ? CALDEIRA_ECLUSA_CONFIG.mobile : CALDEIRA_ECLUSA_CONFIG.desktop;
+  const paredeEclusaConfig = isMobile ? PAREDE_ECLUSA_CONFIG.mobile : PAREDE_ECLUSA_CONFIG.desktop;
   
   
   // 📡 USAR O SISTEMA PLC EXISTENTE (sem criar nova conexão!)
@@ -144,11 +284,6 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
   const radarJusante = plcData?.reals?.[118] || 0;    // Radar Jusante (índice 118)
   const radarCaldeira = plcData?.reals?.[119] || 0;   // Radar Caldeira (índice 119)
   
-  
-  // Calcular diferenciais críticos
-  const diferencialMontanteCaldeira = Math.abs(nivelMontante - nivelCaldeira);
-  const diferencialCaldeiraJusante = Math.abs(nivelCaldeira - nivelJusante);
-  const diferencialMontanteJusante = Math.abs(nivelMontante - nivelJusante);
   
   // Inteligência ISA-104: Detectar status dos níveis
   const toleranciaNormal = 0.05; // 5cm conforme ISA-104
@@ -190,45 +325,7 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
     }
   };
   
-  // Buffer histórico FIXO - valores constantes
-  const dadosHistorico = React.useMemo(() => {
-    const agora = new Date();
-    const dados = [];
-    
-    // Valores base realistas para eclusa
-    const baseMontante = 8.5;
-    const baseCaldeira = 8.2;
-    const baseJusante = 7.8;
-    
-    for (let i = 19; i >= 0; i--) {
-      const tempo = new Date(agora.getTime() - i * 2 * 60000); // Cada 2 minutos
-      const timeStr = tempo.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-      
-      dados.push({
-        time: timeStr,
-        montante: baseMontante + (Math.sin(i * 0.3) * 0.15),
-        caldeira: baseCaldeira + (Math.cos(i * 0.2) * 0.12),
-        jusante: baseJusante + (Math.sin(i * 0.4) * 0.10)
-      });
-    }
-    
-    // ÚLTIMO PONTO: valores REAIS do WebSocket
-    dados[dados.length - 1] = {
-      time: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      montante: nivelMontante || baseMontante,
-      caldeira: nivelCaldeira || baseCaldeira,
-      jusante: nivelJusante || baseJusante
-    };
-    
-    return dados;
-  }, [nivelMontante, nivelCaldeira, nivelJusante]);
-  
-  // Status operacional (simulado - pode ser real via WebSocket)
-  const modoOperacao = 'AUTOMÁTICO'; // MANUAL, AUTOMÁTICO, TELECOMANDO
-  const sequenciaAtual = 'EQUALIZAÇÃO'; // REPOUSO, ENCHIMENTO, EQUALIZAÇÃO, ABERTURA
-  const tempoOperacao = '00:04:32'; // Tempo atual da operação
-  const eclusagensHoje = 24;
-  const tempoMedioEclusagem = '00:12:45';
+
   
   // Extrair dados das portas do PLC (do sistema existente)
   const portaJusanteValue = plcData?.ints?.[42] || 0;   // MOVIMENTO_PORTA_JUSANTE_CALDEIRA (índice 42)
@@ -370,8 +467,7 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
   // Calcular offset em pixels baseado na porcentagem da altura da caldeira
   const paredeOffsetPx = (caldeiraHeight * paredeOffsetPercent) / 100;
 
-  // Detectar se é mobile - otimizado para evitar recálculos
-  const isMobile = React.useMemo(() => windowDimensions.width < 1024, [windowDimensions.width]);
+  // ✅ DETECÇÃO MOBILE JÁ IMPLEMENTADA ACIMA COM USEEFFECT ESTÁVEL
   
 
   return (
@@ -495,15 +591,18 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
               className="relative w-full flex flex-col items-center"
               style={{
                 maxWidth: `${maxWidth}px`,
-                height: `${caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx) + 100}px` // Altura baseada nos componentes + margem
+                height: `${maxWidth * 0.7}px` // Altura proporcional ao maxWidth (70% da largura)
               }}
             >
-              {/* Caldeira - Posição superior */}
+              {/* Caldeira - Posição configurada individualmente por device */}
               <div 
-                className="absolute top-0 left-1/2 transform -translate-x-1/2 cursor-pointer"
+                className="absolute cursor-pointer"
                 style={{
-                  width: `${caldeiraWidth}px`,
-                  height: `${caldeiraHeight}px`,
+                  top: `${(maxWidth * caldeiraEclusaConfig.verticalPercent) / 100}px`,
+                  left: `${(maxWidth * caldeiraEclusaConfig.horizontalPercent) / 100}px`,
+                  transform: `translateX(-50%)`,
+                  width: `${(maxWidth * caldeiraEclusaConfig.widthPercent) / 100}px`,
+                  height: `${((maxWidth * caldeiraEclusaConfig.widthPercent) / 100) / caldeiraAspectRatio}px`,
                   zIndex: 1
                 }}
                 onClick={() => setShowTrendDialog(true)}
@@ -524,14 +623,16 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
                 </svg>
               </div>
               
-              {/* Parede - Posição inferior com sobreposição controlada dinamicamente */}
+              {/* Parede - Posição configurada individualmente por device */}
               <div 
-                className="absolute left-1/2 transform -translate-x-1/2"
+                className="absolute"
                 style={{
-                  top: `${caldeiraHeight + paredeOffsetPx}px`,
-                  width: `${paredeWidth}px`,
-                  height: `${paredeHeight}px`,
-                  zIndex: 10,
+                  top: `${(maxWidth * paredeEclusaConfig.verticalPercent) / 100}px`,
+                  left: `${(maxWidth * paredeEclusaConfig.horizontalPercent) / 100}px`,
+                  transform: `translateX(-50%)`,
+                  width: `${(maxWidth * paredeEclusaConfig.widthPercent) / 100}px`,
+                  height: `${((maxWidth * paredeEclusaConfig.widthPercent) / 100) / paredeAspectRatio}px`,
+                  zIndex: 15, // Por cima dos níveis (zIndex: 10)
                   clipPath: 'inset(0)', // Força o SVG a respeitar os limites
                   transition: 'all 0.2s ease-in-out' // Agora sempre tem transição suave
                 }}
@@ -559,11 +660,11 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
               <div 
                 className="absolute transition-all duration-200 ease-in-out"
                 style={{
-                  top: `${(caldeiraHeight * caldeiraConfig.verticalPercent) / 100}px`,
-                  left: `${(caldeiraWidth * caldeiraConfig.horizontalPercent) / 100}px`,
-                  width: `${(caldeiraWidth * caldeiraConfig.widthPercent) / 100}px`,
-                  height: `${(caldeiraHeight * caldeiraConfig.heightPercent) / 100}px`,
-                  zIndex: 5 // Entre caldeira (10) e parede (1)
+                  top: `${((maxWidth * caldeiraEclusaConfig.verticalPercent) / 100) + (((maxWidth * caldeiraEclusaConfig.widthPercent) / 100) / caldeiraAspectRatio * caldeiraConfig.verticalPercent) / 100}px`,
+                  left: `${((maxWidth * caldeiraEclusaConfig.horizontalPercent) / 100) + (((maxWidth * caldeiraEclusaConfig.widthPercent) / 100 * caldeiraConfig.horizontalPercent) / 100) - ((maxWidth * caldeiraEclusaConfig.widthPercent) / 200)}px`,
+                  width: `${((maxWidth * caldeiraEclusaConfig.widthPercent) / 100 * caldeiraConfig.widthPercent) / 100}px`,
+                  height: `${(((maxWidth * caldeiraEclusaConfig.widthPercent) / 100) / caldeiraAspectRatio * caldeiraConfig.heightPercent) / 100}px`,
+                  zIndex: 10 // Camada intermediária - embaixo das estruturas
                 }}
               >
                 <NivelCaldeira 
@@ -576,11 +677,11 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
               <div 
                 className="absolute transition-all duration-200 ease-in-out"
                 style={{
-                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * jusanteConfig.verticalPercent) / 100}px`,
+                  top: `${(maxWidth * jusanteConfig.verticalPercent) / 100}px`,
                   left: `${(maxWidth * jusanteConfig.horizontalPercent) / 100}px`,
                   width: `${(maxWidth * jusanteConfig.widthPercent) / 100}px`,
-                  height: `${((caldeiraHeight + paredeHeight) * jusanteConfig.heightPercent) / 100}px`,
-                  zIndex: 5 // Entre caldeira (10) e parede (1)
+                  height: `${(maxWidth * jusanteConfig.heightPercent) / 100}px`,
+                  zIndex: 10 // Abaixo das estruturas (Parede: 15, Portas: 18)
                 }}
               >
                 <NivelJusante 
@@ -593,11 +694,11 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
               <div 
                 className="absolute transition-all duration-200 ease-in-out"
                 style={{
-                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * montanteConfig.verticalPercent) / 100}px`,
+                  top: `${(maxWidth * montanteConfig.verticalPercent) / 100}px`,
                   left: `${(maxWidth * montanteConfig.horizontalPercent) / 100}px`,
                   width: `${(maxWidth * montanteConfig.widthPercent) / 100}px`,
-                  height: `${((caldeiraHeight + paredeHeight) * montanteConfig.heightPercent) / 100}px`,
-                  zIndex: 5 // Entre caldeira (10) e parede (1)
+                  height: `${(maxWidth * montanteConfig.heightPercent) / 100}px`,
+                  zIndex: 10 // Abaixo das estruturas (Parede: 15, Portas: 18)
                 }}
               >
                 <NivelMontante 
@@ -610,11 +711,11 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
               <div 
                 className="absolute transition-all duration-200 ease-in-out"
                 style={{
-                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * portaJusanteConfig.verticalPercent) / 100}px`,
+                  top: `${(maxWidth * portaJusanteConfig.verticalPercent) / 100}px`,
                   left: `${(maxWidth * portaJusanteConfig.horizontalPercent) / 100}px`,
                   width: `${(maxWidth * portaJusanteConfig.widthPercent) / 100}px`,
-                  height: `${((caldeiraHeight + paredeHeight) * portaJusanteConfig.heightPercent) / 100}px`,
-                  zIndex: 8 // Acima de tudo para animação
+                  height: `${(maxWidth * portaJusanteConfig.heightPercent) / 100}px`,
+                  zIndex: 18 // Por cima dos níveis (zIndex: 10)
                 }}
               >
                 <PortaJusante 
@@ -627,11 +728,11 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
               <div 
                 className="absolute transition-all duration-200 ease-in-out"
                 style={{
-                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * portaMontanteConfig.verticalPercent) / 100}px`,
+                  top: `${(maxWidth * portaMontanteConfig.verticalPercent) / 100}px`,
                   left: `${(maxWidth * portaMontanteConfig.horizontalPercent) / 100}px`,
                   width: `${(maxWidth * portaMontanteConfig.widthPercent) / 100}px`,
-                  height: `${((caldeiraHeight + paredeHeight) * portaMontanteConfig.heightPercent) / 100}px`,
-                  zIndex: 9 // Mais alto para animação vertical
+                  height: `${(maxWidth * portaMontanteConfig.heightPercent) / 100}px`,
+                  zIndex: 18 // Por cima dos níveis (zIndex: 10)
                 }}
               >
                 <PortaMontante 
@@ -644,10 +745,10 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
               <div 
                 className="absolute transition-all duration-200 ease-in-out"
                 style={{
-                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * semaforo1Config.verticalPercent) / 100}px`,
+                  top: `${(maxWidth * semaforo1Config.verticalPercent) / 100}px`,
                   left: `${(maxWidth * semaforo1Config.horizontalPercent) / 100}px`,
                   width: `${(maxWidth * semaforo1Config.widthPercent) / 100}px`,
-                  height: `${((caldeiraHeight + paredeHeight) * semaforo1Config.heightPercent) / 100}px`,
+                  height: `${(maxWidth * semaforo1Config.heightPercent) / 100}px`,
                   zIndex: 15
                 }}
               >
@@ -662,10 +763,10 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
               <div 
                 className="absolute transition-all duration-200 ease-in-out"
                 style={{
-                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * semaforo2Config.verticalPercent) / 100}px`,
+                  top: `${(maxWidth * semaforo2Config.verticalPercent) / 100}px`,
                   left: `${(maxWidth * semaforo2Config.horizontalPercent) / 100}px`,
                   width: `${(maxWidth * semaforo2Config.widthPercent) / 100}px`,
-                  height: `${((caldeiraHeight + paredeHeight) * semaforo2Config.heightPercent) / 100}px`,
+                  height: `${(maxWidth * semaforo2Config.heightPercent) / 100}px`,
                   zIndex: 15
                 }}
               >
@@ -680,10 +781,10 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
               <div 
                 className="absolute transition-all duration-200 ease-in-out"
                 style={{
-                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * semaforo3Config.verticalPercent) / 100}px`,
+                  top: `${(maxWidth * semaforo3Config.verticalPercent) / 100}px`,
                   left: `${(maxWidth * semaforo3Config.horizontalPercent) / 100}px`,
                   width: `${(maxWidth * semaforo3Config.widthPercent) / 100}px`,
-                  height: `${((caldeiraHeight + paredeHeight) * semaforo3Config.heightPercent) / 100}px`,
+                  height: `${(maxWidth * semaforo3Config.heightPercent) / 100}px`,
                   zIndex: 15
                 }}
               >
@@ -698,10 +799,10 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
               <div 
                 className="absolute transition-all duration-200 ease-in-out"
                 style={{
-                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * semaforo4Config.verticalPercent) / 100}px`,
+                  top: `${(maxWidth * semaforo4Config.verticalPercent) / 100}px`,
                   left: `${(maxWidth * semaforo4Config.horizontalPercent) / 100}px`,
                   width: `${(maxWidth * semaforo4Config.widthPercent) / 100}px`,
-                  height: `${((caldeiraHeight + paredeHeight) * semaforo4Config.heightPercent) / 100}px`,
+                  height: `${(maxWidth * semaforo4Config.heightPercent) / 100}px`,
                   zIndex: 15
                 }}
               >
@@ -716,11 +817,11 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
               <div 
                 className="absolute transition-all duration-200 ease-in-out"
                 style={{
-                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * basePortaJusanteConfig.verticalPercent) / 100}px`,
+                  top: `${(maxWidth * basePortaJusanteConfig.verticalPercent) / 100}px`,
                   left: `${(maxWidth * basePortaJusanteConfig.horizontalPercent) / 100}px`,
                   width: `${(maxWidth * basePortaJusanteConfig.widthPercent) / 100}px`,
-                  height: `${((caldeiraHeight + paredeHeight) * basePortaJusanteConfig.heightPercent) / 100}px`,
-                  zIndex: 12
+                  height: `${(maxWidth * basePortaJusanteConfig.heightPercent) / 100}px`,
+                  zIndex: 18 // Por cima dos níveis (zIndex: 10)
                 }}
               >
                 <svg
@@ -743,10 +844,10 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
               <div 
                 className="absolute transition-all duration-200 ease-in-out"
                 style={{
-                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * tubulacaoConfig.verticalPercent) / 100}px`,
+                  top: `${(maxWidth * tubulacaoConfig.verticalPercent) / 100}px`,
                   left: `${(maxWidth * tubulacaoConfig.horizontalPercent) / 100}px`,
                   width: `${(maxWidth * tubulacaoConfig.widthPercent) / 100}px`,
-                  height: `${((caldeiraHeight + paredeHeight) * tubulacaoConfig.heightPercent) / 100}px`,
+                  height: `${(maxWidth * tubulacaoConfig.heightPercent) / 100}px`,
                   zIndex: 20 // Mais alto que todos os outros componentes
                 }}
               >
@@ -759,199 +860,7 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
 
 
 
-              {/* CARDS INDIVIDUAIS DE MONITORAMENTO */}
-              <div 
-                className="absolute"
-                style={{
-                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * 66) / 100}px`, // Começar em 66%
-                  left: '16px',
-                  width: `${maxWidth - 32}px`,
-                  height: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * 32) / 100}px`, // 32% da altura
-                  zIndex: 50
-                }}
-              >
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-full">
-                      
-                  {/* SEÇÃO 1: DIFERENCIAIS CRÍTICOS (ESQUERDA) */}
-                  <div className="bg-white rounded-xl shadow-lg drop-shadow-lg border border-gray-100 p-3">
-                        <h4 className="text-sm font-bold text-[#212E3E] mb-3 font-mulish">DIFERENCIAIS CRÍTICOS</h4>
-                        <div className="space-y-3">
-                          
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-gray-600 font-medium">Mont. ↔ Cald.:</span>
-                            <span className={`text-sm font-mono font-bold ${diferencialMontanteCaldeira > 0.05 ? 'text-red-600' : 'text-green-600'}`}>
-                              {diferencialMontanteCaldeira.toFixed(3)}m
-                            </span>
-                          </div>
-                          
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-gray-600 font-medium">Cald. ↔ Jus.:</span>
-                            <span className={`text-sm font-mono font-bold ${diferencialCaldeiraJusante > 0.05 ? 'text-red-600' : 'text-green-600'}`}>
-                              {diferencialCaldeiraJusante.toFixed(3)}m
-                            </span>
-                          </div>
-                          
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-gray-600 font-medium">Mont. ↔ Jus.:</span>
-                            <span className={`text-sm font-mono font-bold ${diferencialMontanteJusante > 0.10 ? 'text-red-600' : 'text-green-600'}`}>
-                              {diferencialMontanteJusante.toFixed(3)}m
-                            </span>
-                          </div>
 
-                          <div className="pt-2 border-t border-gray-200">
-                            <div className="text-xs text-gray-500 text-center">
-                              {diferencialMontanteCaldeira <= 0.05 && diferencialCaldeiraJusante <= 0.05 ? 
-                                <span className="text-green-600 font-medium">✓ NÍVEIS EQUALIZADOS</span> :
-                                <span className="text-orange-600 font-medium">⚠ EQUALIZANDO...</span>
-                              }
-                            </div>
-                          </div>
-
-                        </div>
-                      </div>
-
-                  {/* SEÇÃO 2: NÍVEIS EM TEMPO REAL (CENTRO - 2 COLUNAS) */}
-                  <div className="lg:col-span-2 bg-white rounded-xl shadow-lg drop-shadow-lg border border-gray-100 p-3">
-                        <h4 className="text-sm font-bold text-[#212E3E] mb-2 font-mulish">NÍVEIS EM TEMPO REAL</h4>
-                        <div className="h-full">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart
-                              data={dadosHistorico}
-                              margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                            >
-                              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" opacity={0.6} />
-                              
-                              {/* Linhas de Referência Horizontais Modernas */}
-                              <ReferenceLine y={12} stroke="#e2e8f0" strokeDasharray="5 5" strokeWidth={1} opacity={0.7} />
-                              <ReferenceLine y={10} stroke="#e2e8f0" strokeDasharray="5 5" strokeWidth={1} opacity={0.7} />
-                              <ReferenceLine y={8} stroke="#e2e8f0" strokeDasharray="5 5" strokeWidth={1} opacity={0.7} />
-                              <ReferenceLine y={6} stroke="#e2e8f0" strokeDasharray="5 5" strokeWidth={1} opacity={0.7} />
-                              <ReferenceLine y={4} stroke="#e2e8f0" strokeDasharray="5 5" strokeWidth={1} opacity={0.7} />
-                              <ReferenceLine y={2} stroke="#e2e8f0" strokeDasharray="5 5" strokeWidth={1} opacity={0.7} />
-                              
-                              <XAxis 
-                                dataKey="time" 
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fontSize: 11, fill: '#64748b' }}
-                                interval={0}
-                              />
-                              <YAxis 
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fontSize: 11, fill: '#64748b' }}
-                                domain={['dataMin - 0.5', 'dataMax + 0.5']}
-                                tickFormatter={(value: number) => `${value.toFixed(1)}m`}
-                              />
-                              <Tooltip 
-                                contentStyle={{ 
-                                  backgroundColor: 'white', 
-                                  border: '1px solid #e5e7eb', 
-                                  borderRadius: '8px',
-                                  fontSize: '12px'
-                                }}
-                                formatter={(value: any, name: string) => [
-                                  `${Number(value).toFixed(2)}m`, 
-                                  name === 'montante' ? 'Montante' :
-                                  name === 'caldeira' ? 'Caldeira' : 'Jusante'
-                                ]}
-                              />
-                              
-                              <Line 
-                                type="monotone" 
-                                dataKey="montante" 
-                                stroke="#212E3E" 
-                                strokeWidth={2}
-                                dot={false}
-                                activeDot={{ r: 4, stroke: '#212E3E', strokeWidth: 2, fill: '#ffffff' }}
-                                connectNulls={true}
-                                isAnimationActive={false}
-                              />
-                              
-                              <Line 
-                                type="monotone" 
-                                dataKey="caldeira" 
-                                stroke="#976FF3" 
-                                strokeWidth={2}
-                                dot={false}
-                                activeDot={{ r: 4, stroke: '#976FF3', strokeWidth: 2, fill: '#ffffff' }}
-                                connectNulls={true}
-                                isAnimationActive={false}
-                              />
-                              
-                              <Line 
-                                type="monotone" 
-                                dataKey="jusante" 
-                                stroke="#739397" 
-                                strokeWidth={2}
-                                dot={false}
-                                activeDot={{ r: 4, stroke: '#739397', strokeWidth: 2, fill: '#ffffff' }}
-                                connectNulls={true}
-                                isAnimationActive={false}
-                              />
-                            </LineChart>
-                          </ResponsiveContainer>
-                          
-                          {/* Valores Atuais */}
-                          <div className="flex justify-center gap-6 mt-2 text-xs">
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 bg-[#212E3E] rounded-full"></div>
-                              <span className="font-medium">Montante: <span className="font-bold">{nivelMontante.toFixed(2)}m</span></span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 bg-[#976FF3] rounded-full"></div>
-                              <span className="font-medium">Caldeira: <span className="font-bold">{nivelCaldeira.toFixed(2)}m</span></span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 bg-[#739397] rounded-full"></div>
-                              <span className="font-medium">Jusante: <span className="font-bold">{nivelJusante.toFixed(2)}m</span></span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                  {/* SEÇÃO 3: STATUS OPERACIONAL (DIREITA) */}
-                  <div className="bg-white rounded-xl shadow-lg drop-shadow-lg border border-gray-100 p-3">
-                        <h4 className="text-sm font-bold text-[#212E3E] mb-3 font-mulish">STATUS OPERACIONAL</h4>
-                        <div className="space-y-3">
-                          
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-gray-600 font-medium">Modo:</span>
-                            <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded font-bold">
-                              {modoOperacao}
-                            </span>
-                          </div>
-                          
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-gray-600 font-medium">Sequência:</span>
-                            <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded font-bold">
-                              {sequenciaAtual}
-                            </span>
-                          </div>
-                          
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-gray-600 font-medium">Tempo Op.:</span>
-                            <span className="text-sm font-mono font-bold text-[#212E3E]">
-                              {tempoOperacao}
-                            </span>
-                          </div>
-
-                          <div className="pt-2 border-t border-gray-200">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-gray-600 font-medium">Hoje:</span>
-                              <span className="text-sm font-bold text-[#212E3E]">{eclusagensHoje} ecl.</span>
-                            </div>
-                            <div className="flex justify-between items-center mt-1">
-                              <span className="text-xs text-gray-600 font-medium">Tempo Médio:</span>
-                              <span className="text-xs font-mono text-gray-700">{tempoMedioEclusagem}</span>
-                            </div>
-                          </div>
-
-                        </div>
-                  </div>
-
-                </div>
-              </div>
 
             </div>
           ) : (
