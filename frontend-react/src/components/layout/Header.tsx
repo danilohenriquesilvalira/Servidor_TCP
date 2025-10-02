@@ -6,7 +6,7 @@ import { ProfileModal } from '@/components/profile/ProfileModal';
 import { FaultIcon } from '@/components/Falhas/FaultIcon';
 import { EQUIPMENT_CATEGORIES } from '@/types/faults';
 import { useFaultDetector } from '@/hooks/useFaultDetector';
-import { WifiIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { GlobeAltIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -74,7 +74,7 @@ export const Header = () => {
   };
 
   const getConnectionStatusColor = () => {
-    return connectionStatus.connected ? 'text-green-500' : 'text-red-500';
+    return connectionStatus.connected ? 'text-[#212E3E]' : 'text-red-500';
   };
 
   return (
@@ -88,18 +88,27 @@ export const Header = () => {
       {/* Actions Area */}
       <div className="flex items-center gap-2 sm:gap-3">
         
-        {/* WebSocket Connection Status Icon */}
-        <button
-          className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center ${getConnectionStatusColor()} hover:text-edp-electric hover:bg-edp-electric/10 rounded-lg transition-colors duration-200`}
-          aria-label="Status da Conexão WebSocket"
-          title={getConnectionStatusText()}
-        >
-          <WifiIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-        </button>
+        {/* WebSocket Connection Status */}
+        <div className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200 ${
+          connectionStatus.connected 
+            ? 'bg-[#212E3E]/10 text-[#212E3E]' 
+            : 'bg-red-50 text-red-600'
+        }`}>
+          <div className={`w-2 h-2 rounded-full ${
+            connectionStatus.connected ? 'bg-[#212E3E]' : 'bg-red-500'
+          } ${connectionStatus.connected ? '' : 'animate-pulse'}`}></div>
+          <span className="text-xs font-medium hidden sm:block">
+            {connectionStatus.connected ? 'Conectado' : 'Desconectado'}
+          </span>
+        </div>
         
         {/* Sistema de Falhas - Sino */}
-        <div className="relative group" ref={faultDropdownRef} onMouseEnter={() => setIsFaultDropdownOpen(true)} onMouseLeave={() => setIsFaultDropdownOpen(false)}>
+        <div 
+          className="relative" 
+          ref={faultDropdownRef}
+        >
           <button 
+            onClick={() => setIsFaultDropdownOpen(!isFaultDropdownOpen)}
             className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center transition-all duration-200 ${
               faultCount > 0 
                 ? 'text-red-600 hover:text-red-700' 
@@ -109,7 +118,7 @@ export const Header = () => {
             title={faultCount > 0 ? `${faultCount} falhas ativas` : 'Nenhuma falha ativa'}
           >
             <svg 
-              className={`w-5 h-5 sm:w-6 sm:h-6 ${faultCount > 0 ? 'animate-bounce' : ''}`} 
+              className="w-5 h-5 sm:w-6 sm:h-6" 
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -131,8 +140,8 @@ export const Header = () => {
           {/* Dropdown Ultra Moderno */}
           {isFaultDropdownOpen && (
             <div className="absolute right-0 top-full mt-3 w-[420px] bg-white/95 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl ring-1 ring-black/5 z-50 overflow-hidden animate-in slide-in-from-top-2 duration-300">
-              {/* Header Simples */}
-              <div className="px-6 py-4 bg-edp-neutral-darkest">
+              {/* Header com cor EDP */}
+              <div className="px-6 py-4 bg-[#212E3E]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-white/10 rounded-lg">
@@ -156,7 +165,7 @@ export const Header = () => {
                 </div>
               </div>
               
-              {/* Lista Ultra Moderna */}
+              {/* Lista Ultra Moderna - Scroll fixo */}
               <div className="h-72 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                 {activeFaults.length === 0 ? (
                   <div className="flex flex-col items-center justify-center px-6 py-12">

@@ -16,8 +16,7 @@ import {
   WrenchScrewdriverIcon
 } from '@heroicons/react/24/outline';
 import { Card } from '../components/ui/Card';
-import { InfoCard } from '../components/ui/InfoCard';
-import { StatusCard } from '../components/ui/StatusCard';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
 
 // 🎯 CONFIGURAÇÕES DOS COMPONENTES DE NÍVEL - Edite aqui para salvar permanentemente
 const NIVEL_CONFIG = {
@@ -105,7 +104,7 @@ interface EclusaReguaProps {
   sidebarOpen?: boolean; // Prop para detectar estado do sidebar
 }
 
-const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
+const EclusaRegua: React.FC<EclusaReguaProps> = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [containerDimensions, setContainerDimensions] = React.useState({ width: 0, height: 0 });
   const [windowDimensions, setWindowDimensions] = React.useState({ width: 0, height: 0 });
@@ -140,6 +139,97 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
   const nivelCaldeira = plcData?.reals?.[108] || 0;   // NIV.NIV_CALD_COTA (índice 108)  
   const nivelMontante = plcData?.reals?.[109] || 0;   // NIV.NIV_MONT_COTA (índice 109)
   
+  // Extrair dados dos radares de velocidade do PLC
+  const radarMontante = plcData?.reals?.[117] || 0;   // Radar Montante (índice 117)
+  const radarJusante = plcData?.reals?.[118] || 0;    // Radar Jusante (índice 118)
+  const radarCaldeira = plcData?.reals?.[119] || 0;   // Radar Caldeira (índice 119)
+  
+  
+  // Calcular diferenciais críticos
+  const diferencialMontanteCaldeira = Math.abs(nivelMontante - nivelCaldeira);
+  const diferencialCaldeiraJusante = Math.abs(nivelCaldeira - nivelJusante);
+  const diferencialMontanteJusante = Math.abs(nivelMontante - nivelJusante);
+  
+  // Inteligência ISA-104: Detectar status dos níveis
+  const toleranciaNormal = 0.05; // 5cm conforme ISA-104
+  const toleranciaCritica = 0.15; // 15cm limite crítico
+  
+  // Status individual de cada nível
+  const statusMontante = React.useMemo(() => {
+    const diffCaldeira = Math.abs(nivelMontante - nivelCaldeira);
+    if (diffCaldeira > toleranciaCritica) return 'critico';
+    if (diffCaldeira > toleranciaNormal) return 'alerta';
+    return 'normal';
+  }, [nivelMontante, nivelCaldeira, toleranciaNormal, toleranciaCritica]);
+  
+  const statusCaldeira = React.useMemo(() => {
+    const diffMontante = Math.abs(nivelCaldeira - nivelMontante);
+    const diffJusante = Math.abs(nivelCaldeira - nivelJusante);
+    const maxDiff = Math.max(diffMontante, diffJusante);
+    if (maxDiff > toleranciaCritica) return 'critico';
+    if (maxDiff > toleranciaNormal) return 'alerta';
+    return 'normal';
+  }, [nivelCaldeira, nivelMontante, nivelJusante, toleranciaNormal, toleranciaCritica]);
+  
+  const statusJusante = React.useMemo(() => {
+    const diffCaldeira = Math.abs(nivelJusante - nivelCaldeira);
+    if (diffCaldeira > toleranciaCritica) return 'critico';
+    if (diffCaldeira > toleranciaNormal) return 'alerta';
+    return 'normal';
+  }, [nivelJusante, nivelCaldeira, toleranciaNormal, toleranciaCritica]);
+  
+  // Função para obter classes de cor baseado no status
+  const getCardClasses = (status: string) => {
+    switch (status) {
+      case 'critico':
+        return 'bg-red-50 border-red-200 shadow-red-100'; // Vermelho clarinho EDP
+      case 'alerta':
+        return 'bg-amber-50 border-amber-200 shadow-amber-100'; // Amarelo clarinho EDP
+      default:
+        return 'bg-white border-gray-100 shadow-lg'; // Branco normal
+    }
+  };
+  
+  // Buffer histórico FIXO - valores constantes
+  const dadosHistorico = React.useMemo(() => {
+    const agora = new Date();
+    const dados = [];
+    
+    // Valores base realistas para eclusa
+    const baseMontante = 8.5;
+    const baseCaldeira = 8.2;
+    const baseJusante = 7.8;
+    
+    for (let i = 19; i >= 0; i--) {
+      const tempo = new Date(agora.getTime() - i * 2 * 60000); // Cada 2 minutos
+      const timeStr = tempo.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      
+      dados.push({
+        time: timeStr,
+        montante: baseMontante + (Math.sin(i * 0.3) * 0.15),
+        caldeira: baseCaldeira + (Math.cos(i * 0.2) * 0.12),
+        jusante: baseJusante + (Math.sin(i * 0.4) * 0.10)
+      });
+    }
+    
+    // ÚLTIMO PONTO: valores REAIS do WebSocket
+    dados[dados.length - 1] = {
+      time: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      montante: nivelMontante || baseMontante,
+      caldeira: nivelCaldeira || baseCaldeira,
+      jusante: nivelJusante || baseJusante
+    };
+    
+    return dados;
+  }, [nivelMontante, nivelCaldeira, nivelJusante]);
+  
+  // Status operacional (simulado - pode ser real via WebSocket)
+  const modoOperacao = 'AUTOMÁTICO'; // MANUAL, AUTOMÁTICO, TELECOMANDO
+  const sequenciaAtual = 'EQUALIZAÇÃO'; // REPOUSO, ENCHIMENTO, EQUALIZAÇÃO, ABERTURA
+  const tempoOperacao = '00:04:32'; // Tempo atual da operação
+  const eclusagensHoje = 24;
+  const tempoMedioEclusagem = '00:12:45';
+  
   // Extrair dados das portas do PLC (do sistema existente)
   const portaJusanteValue = plcData?.ints?.[42] || 0;   // MOVIMENTO_PORTA_JUSANTE_CALDEIRA (índice 42)
   const portaMontanteValue = plcData?.ints?.[59] || 0; // MOVIMENTAR_PORTA_MONTANTE_CALDEIRA (índice 59)
@@ -155,11 +245,6 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
     return wordData[bitIndex] || false;
   };
 
-  // Extrair dados de status operacional do PLC para os novos cards (valores simulados por enquanto)
-  const statusOperacional = 1; // 1 = Telecomando, 2 = Local, 0 = Desligado (simulado)
-  const emergenciaAtivada = false; // Simulado até ter o bit real
-  const paragemRapida = false; // Simulado até ter o bit real
-  const alarmeInundacao = false; // Simulado até ter o bit real
   
   // Extrair bits das válvulas da tubulação do PLC - USANDO A FUNÇÃO CORRETA
   const bitMontanteCaldeira = getBitFromPosition(132); // Bit 132 - Word 8 Bit 4
@@ -292,10 +377,10 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
   return (
     <div className="w-full h-screen flex flex-col items-center justify-end pb-8 relative">
         
-        {/* DEMARCAÇÃO DO ESPAÇO SUPERIOR DISPONÍVEL - RESPONSIVA */}
+        {/* CARDS SUPERIORES - 6 INFORMAÇÕES COMPACTAS */}
         {isInitialized && containerDimensions.width > 100 && (
           <div 
-            className="absolute border-2 border-blue-500 bg-blue-100/20"
+            className="absolute flex items-center justify-center gap-2"
             style={{
               top: isMobile ? '16px' : '20px',
               left: '50%',
@@ -305,14 +390,92 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
               zIndex: 30
             }}
           >
-            <div className="text-blue-600 font-bold p-2">
-              <div className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
-                🔵 ESPAÇO SUPERIOR DISPONÍVEL
+            {/* Layout moderno com separação entre grupos */}
+            <div className="flex items-center justify-center w-full h-full gap-6">
+              
+              {/* GRUPO 1: COTAS */}
+              <div className={`flex ${isMobile ? 'flex-col gap-1' : 'gap-2'} flex-1`}>
+                
+                {/* COTA MONTANTE - Com inteligência ISA-104 */}
+                <div className={`rounded-lg drop-shadow-lg p-2 flex flex-col justify-center items-center min-w-0 flex-1 transition-all duration-300 ${getCardClasses(statusMontante)}`}>
+                  <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-[#212E3E] font-mono leading-tight`}>
+                    {nivelMontante.toFixed(2)}
+                  </div>
+                  <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 font-medium text-center leading-tight`}>
+                    Cota Montante
+                  </div>
+                  <div className="text-xs text-gray-400 font-medium">m</div>
+                </div>
+
+                {/* COTA CALDEIRA - Com inteligência ISA-104 */}
+                <div className={`rounded-lg drop-shadow-lg p-2 flex flex-col justify-center items-center min-w-0 flex-1 transition-all duration-300 ${getCardClasses(statusCaldeira)}`}>
+                  <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-[#212E3E] font-mono leading-tight`}>
+                    {nivelCaldeira.toFixed(2)}
+                  </div>
+                  <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 font-medium text-center leading-tight`}>
+                    Cota Caldeira
+                  </div>
+                  <div className="text-xs text-gray-400 font-medium">m</div>
+                </div>
+
+                {/* COTA JUSANTE - Com inteligência ISA-104 */}
+                <div className={`rounded-lg drop-shadow-lg p-2 flex flex-col justify-center items-center min-w-0 flex-1 transition-all duration-300 ${getCardClasses(statusJusante)}`}>
+                  <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-[#212E3E] font-mono leading-tight`}>
+                    {nivelJusante.toFixed(2)}
+                  </div>
+                  <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 font-medium text-center leading-tight`}>
+                    Cota Jusante
+                  </div>
+                  <div className="text-xs text-gray-400 font-medium">m</div>
+                </div>
+
               </div>
-              <div className="text-xs mt-1">
-                L: {Math.min(containerDimensions.width - (isMobile ? 16 : 32), 1920)}px | 
-                A: {isMobile ? '60px' : '100px'}
+
+              {/* SEPARADOR VISUAL MODERNO */}
+              <div className="flex flex-col items-center justify-center px-2">
+                <div className="w-px h-8 bg-gradient-to-b from-transparent via-gray-300 to-transparent"></div>
+                <div className="w-2 h-2 bg-[#212E3E] rounded-full my-1 opacity-60"></div>
+                <div className="w-px h-8 bg-gradient-to-b from-transparent via-gray-300 to-transparent"></div>
               </div>
+
+              {/* GRUPO 2: RADARES */}
+              <div className={`flex ${isMobile ? 'flex-col gap-1' : 'gap-2'} flex-1`}>
+
+                {/* RADAR MONTANTE */}
+                <div className="bg-white rounded-lg shadow-lg border border-gray-100 p-2 flex flex-col justify-center items-center min-w-0 flex-1">
+                  <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-[#212E3E] font-mono leading-tight`}>
+                    {radarMontante.toFixed(1)}
+                  </div>
+                  <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 font-medium text-center leading-tight`}>
+                    Radar Montante
+                  </div>
+                  <div className="text-xs text-gray-400 font-medium">m/s</div>
+                </div>
+
+                {/* RADAR JUSANTE */}
+                <div className="bg-white rounded-lg shadow-lg border border-gray-100 p-2 flex flex-col justify-center items-center min-w-0 flex-1">
+                  <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-[#212E3E] font-mono leading-tight`}>
+                    {radarJusante.toFixed(1)}
+                  </div>
+                  <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 font-medium text-center leading-tight`}>
+                    Radar Jusante
+                  </div>
+                  <div className="text-xs text-gray-400 font-medium">m/s</div>
+                </div>
+
+                {/* RADAR CALDEIRA */}
+                <div className="bg-white rounded-lg shadow-lg border border-gray-100 p-2 flex flex-col justify-center items-center min-w-0 flex-1">
+                  <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-[#212E3E] font-mono leading-tight`}>
+                    {radarCaldeira.toFixed(1)}
+                  </div>
+                  <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 font-medium text-center leading-tight`}>
+                    Radar Caldeira
+                  </div>
+                  <div className="text-xs text-gray-400 font-medium">m/s</div>
+                </div>
+
+              </div>
+
             </div>
           </div>
         )}
@@ -596,18 +759,198 @@ const EclusaRegua: React.FC<EclusaReguaProps> = ({ sidebarOpen = true }) => {
 
 
 
-              {/* ESPAÇO INFERIOR - Abaixo da tubulação - MANTIDO COMO CONFIRMADO */}
+              {/* CARDS INDIVIDUAIS DE MONITORAMENTO */}
               <div 
-                className="absolute border-2 border-yellow-500 bg-yellow-100/20"
+                className="absolute"
                 style={{
-                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * 65) / 100}px`, // Começar em 65%
-                  left: '0px',
-                  width: `${maxWidth}px`,
-                  height: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * 35) / 100}px`, // 35% da altura
+                  top: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * 66) / 100}px`, // Começar em 66%
+                  left: '16px',
+                  width: `${maxWidth - 32}px`,
+                  height: `${((caldeiraHeight + paredeHeight + Math.abs(paredeOffsetPx)) * 32) / 100}px`, // 32% da altura
                   zIndex: 50
                 }}
               >
-                <div className="text-yellow-600 font-bold text-xs p-2">✅ ESPAÇO INFERIOR DISPONÍVEL CONFIRMADO</div>
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-full">
+                      
+                  {/* SEÇÃO 1: DIFERENCIAIS CRÍTICOS (ESQUERDA) */}
+                  <div className="bg-white rounded-xl shadow-lg drop-shadow-lg border border-gray-100 p-3">
+                        <h4 className="text-sm font-bold text-[#212E3E] mb-3 font-mulish">DIFERENCIAIS CRÍTICOS</h4>
+                        <div className="space-y-3">
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-600 font-medium">Mont. ↔ Cald.:</span>
+                            <span className={`text-sm font-mono font-bold ${diferencialMontanteCaldeira > 0.05 ? 'text-red-600' : 'text-green-600'}`}>
+                              {diferencialMontanteCaldeira.toFixed(3)}m
+                            </span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-600 font-medium">Cald. ↔ Jus.:</span>
+                            <span className={`text-sm font-mono font-bold ${diferencialCaldeiraJusante > 0.05 ? 'text-red-600' : 'text-green-600'}`}>
+                              {diferencialCaldeiraJusante.toFixed(3)}m
+                            </span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-600 font-medium">Mont. ↔ Jus.:</span>
+                            <span className={`text-sm font-mono font-bold ${diferencialMontanteJusante > 0.10 ? 'text-red-600' : 'text-green-600'}`}>
+                              {diferencialMontanteJusante.toFixed(3)}m
+                            </span>
+                          </div>
+
+                          <div className="pt-2 border-t border-gray-200">
+                            <div className="text-xs text-gray-500 text-center">
+                              {diferencialMontanteCaldeira <= 0.05 && diferencialCaldeiraJusante <= 0.05 ? 
+                                <span className="text-green-600 font-medium">✓ NÍVEIS EQUALIZADOS</span> :
+                                <span className="text-orange-600 font-medium">⚠ EQUALIZANDO...</span>
+                              }
+                            </div>
+                          </div>
+
+                        </div>
+                      </div>
+
+                  {/* SEÇÃO 2: NÍVEIS EM TEMPO REAL (CENTRO - 2 COLUNAS) */}
+                  <div className="lg:col-span-2 bg-white rounded-xl shadow-lg drop-shadow-lg border border-gray-100 p-3">
+                        <h4 className="text-sm font-bold text-[#212E3E] mb-2 font-mulish">NÍVEIS EM TEMPO REAL</h4>
+                        <div className="h-full">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                              data={dadosHistorico}
+                              margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" opacity={0.6} />
+                              
+                              {/* Linhas de Referência Horizontais Modernas */}
+                              <ReferenceLine y={12} stroke="#e2e8f0" strokeDasharray="5 5" strokeWidth={1} opacity={0.7} />
+                              <ReferenceLine y={10} stroke="#e2e8f0" strokeDasharray="5 5" strokeWidth={1} opacity={0.7} />
+                              <ReferenceLine y={8} stroke="#e2e8f0" strokeDasharray="5 5" strokeWidth={1} opacity={0.7} />
+                              <ReferenceLine y={6} stroke="#e2e8f0" strokeDasharray="5 5" strokeWidth={1} opacity={0.7} />
+                              <ReferenceLine y={4} stroke="#e2e8f0" strokeDasharray="5 5" strokeWidth={1} opacity={0.7} />
+                              <ReferenceLine y={2} stroke="#e2e8f0" strokeDasharray="5 5" strokeWidth={1} opacity={0.7} />
+                              
+                              <XAxis 
+                                dataKey="time" 
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fontSize: 11, fill: '#64748b' }}
+                                interval={0}
+                              />
+                              <YAxis 
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fontSize: 11, fill: '#64748b' }}
+                                domain={['dataMin - 0.5', 'dataMax + 0.5']}
+                                tickFormatter={(value: number) => `${value.toFixed(1)}m`}
+                              />
+                              <Tooltip 
+                                contentStyle={{ 
+                                  backgroundColor: 'white', 
+                                  border: '1px solid #e5e7eb', 
+                                  borderRadius: '8px',
+                                  fontSize: '12px'
+                                }}
+                                formatter={(value: any, name: string) => [
+                                  `${Number(value).toFixed(2)}m`, 
+                                  name === 'montante' ? 'Montante' :
+                                  name === 'caldeira' ? 'Caldeira' : 'Jusante'
+                                ]}
+                              />
+                              
+                              <Line 
+                                type="monotone" 
+                                dataKey="montante" 
+                                stroke="#212E3E" 
+                                strokeWidth={2}
+                                dot={false}
+                                activeDot={{ r: 4, stroke: '#212E3E', strokeWidth: 2, fill: '#ffffff' }}
+                                connectNulls={true}
+                                isAnimationActive={false}
+                              />
+                              
+                              <Line 
+                                type="monotone" 
+                                dataKey="caldeira" 
+                                stroke="#976FF3" 
+                                strokeWidth={2}
+                                dot={false}
+                                activeDot={{ r: 4, stroke: '#976FF3', strokeWidth: 2, fill: '#ffffff' }}
+                                connectNulls={true}
+                                isAnimationActive={false}
+                              />
+                              
+                              <Line 
+                                type="monotone" 
+                                dataKey="jusante" 
+                                stroke="#739397" 
+                                strokeWidth={2}
+                                dot={false}
+                                activeDot={{ r: 4, stroke: '#739397', strokeWidth: 2, fill: '#ffffff' }}
+                                connectNulls={true}
+                                isAnimationActive={false}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                          
+                          {/* Valores Atuais */}
+                          <div className="flex justify-center gap-6 mt-2 text-xs">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 bg-[#212E3E] rounded-full"></div>
+                              <span className="font-medium">Montante: <span className="font-bold">{nivelMontante.toFixed(2)}m</span></span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 bg-[#976FF3] rounded-full"></div>
+                              <span className="font-medium">Caldeira: <span className="font-bold">{nivelCaldeira.toFixed(2)}m</span></span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 bg-[#739397] rounded-full"></div>
+                              <span className="font-medium">Jusante: <span className="font-bold">{nivelJusante.toFixed(2)}m</span></span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                  {/* SEÇÃO 3: STATUS OPERACIONAL (DIREITA) */}
+                  <div className="bg-white rounded-xl shadow-lg drop-shadow-lg border border-gray-100 p-3">
+                        <h4 className="text-sm font-bold text-[#212E3E] mb-3 font-mulish">STATUS OPERACIONAL</h4>
+                        <div className="space-y-3">
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-600 font-medium">Modo:</span>
+                            <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded font-bold">
+                              {modoOperacao}
+                            </span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-600 font-medium">Sequência:</span>
+                            <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded font-bold">
+                              {sequenciaAtual}
+                            </span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-600 font-medium">Tempo Op.:</span>
+                            <span className="text-sm font-mono font-bold text-[#212E3E]">
+                              {tempoOperacao}
+                            </span>
+                          </div>
+
+                          <div className="pt-2 border-t border-gray-200">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-gray-600 font-medium">Hoje:</span>
+                              <span className="text-sm font-bold text-[#212E3E]">{eclusagensHoje} ecl.</span>
+                            </div>
+                            <div className="flex justify-between items-center mt-1">
+                              <span className="text-xs text-gray-600 font-medium">Tempo Médio:</span>
+                              <span className="text-xs font-mono text-gray-700">{tempoMedioEclusagem}</span>
+                            </div>
+                          </div>
+
+                        </div>
+                  </div>
+
+                </div>
               </div>
 
             </div>
