@@ -267,31 +267,41 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
         >
           {/* DADOS OPERACIONAIS - USANDO INFOCARD PADRÃO */}
           <InfoCard title="DADOS OPERACIONAIS" variant="industrial">
-            {/* POSIÇÃO */}
-            <div className="mb-3">
-              <div className="text-xs font-medium text-edp-marine uppercase tracking-wide mb-1">POSIÇÃO PORTA</div>
-              <div className="text-2xl font-mono font-bold text-edp-marine">
-                {(reguaPortaJusante * 12.5 / 100).toFixed(2)} <span className="text-sm text-slate-400">m</span>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Posição Porta:</span>
+                <span className="text-lg font-mono font-bold text-[#212E3E]">{(reguaPortaJusante * 12.5 / 100).toFixed(2)} <span className="text-xs text-gray-500">m</span></span>
               </div>
-              <div className="text-xs text-edp-marine">Abertura: {reguaPortaJusante}%</div>
-            </div>
-
-            {/* DIFERENÇA */}
-            <div className="mb-3">
-              <div className="text-xs font-medium text-edp-marine uppercase tracking-wide mb-1">DIFERENÇA E/D</div>
-              <div className="text-xl font-mono font-bold text-edp-marine">
-                {Math.abs(contrapesoEsquerdo - contrapesoDirecto).toFixed(1)} <span className="text-sm text-slate-400">mm</span>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Abertura:</span>
+                <span className="text-lg font-mono font-bold text-[#212E3E]">{reguaPortaJusante}<span className="text-xs text-gray-500">%</span></span>
               </div>
-              <div className="text-xs text-slate-400">E:{contrapesoEsquerdo}% D:{contrapesoDirecto}%</div>
-            </div>
-
-            {/* VELOCIDADE */}
-            <div>
-              <div className="text-xs font-medium text-edp-marine uppercase tracking-wide mb-1">VELOCIDADE</div>
-              <div className="text-xl font-mono font-bold text-edp-marine">
-                {(Math.random() * 0.5 + 0.1).toFixed(2)} <span className="text-sm text-slate-400">m/s</span>
+              
+              <div className="border-t border-gray-600 my-3"></div>
+              
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Diferença E/D:</span>
+                <span className="text-lg font-mono font-bold text-[#212E3E]">{Math.abs(contrapesoEsquerdo - contrapesoDirecto).toFixed(1)} <span className="text-xs text-gray-500">mm</span></span>
               </div>
-              <div className="text-xs text-slate-400">Nominal: 0.25 m/s</div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Contrapeso E:</span>
+                <span className="text-lg font-mono font-bold text-[#212E3E]">{contrapesoEsquerdo}<span className="text-xs text-gray-500">%</span></span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Contrapeso D:</span>
+                <span className="text-lg font-mono font-bold text-[#212E3E]">{contrapesoDirecto}<span className="text-xs text-gray-500">%</span></span>
+              </div>
+              
+              <div className="border-t border-gray-600 my-3"></div>
+              
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Velocidade:</span>
+                <span className="text-lg font-mono font-bold text-[#212E3E]">{(Math.random() * 0.5 + 0.1).toFixed(2)} <span className="text-xs text-gray-500">m/s</span></span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Velocidade Nominal:</span>
+                <span className="text-lg font-mono font-bold text-[#212E3E]">0.25 <span className="text-xs text-gray-500">m/s</span></span>
+              </div>
             </div>
           </InfoCard>
 
@@ -330,15 +340,15 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
             {/* MOTOR DIREITO */}
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
-                <div className="text-xs font-medium text-edp-marine uppercase tracking-wide">MOTOR DIREITO</div>
+                <div className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">MOTOR DIREITO</div>
                 <div className={`w-3 h-3 rounded-full ${motorDireito === 1 ? 'bg-green-500' : motorDireito === 2 ? 'bg-red-500' : 'bg-gray-500'}`}></div>
               </div>
               <div className="flex justify-between items-center">
-                <div className="text-lg font-mono font-bold text-edp-marine">
-                  {Math.round(1450 + Math.random() * 100)} <span className="text-xs text-slate-400">RPM</span>
+                <div className="text-lg font-mono font-bold text-[#212E3E]">
+                  {Math.round(1450 + Math.random() * 100)} <span className="text-xs text-gray-500">RPM</span>
                 </div>
-                <div className="text-lg font-mono font-bold text-edp-marine">
-                  {(12.5 + Math.random() * 2).toFixed(1)} <span className="text-xs text-slate-400">A</span>
+                <div className="text-lg font-mono font-bold text-[#212E3E]">
+                  {(12.5 + Math.random() * 2).toFixed(1)} <span className="text-xs text-gray-500">A</span>
                 </div>
               </div>
             </div>
@@ -348,15 +358,15 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
             {/* MOTOR ESQUERDO */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <div className="text-xs font-medium text-edp-marine uppercase tracking-wide">MOTOR ESQUERDO</div>
+                <div className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">MOTOR ESQUERDO</div>
                 <div className={`w-3 h-3 rounded-full ${motorEsquerdo === 1 ? 'bg-green-500' : motorEsquerdo === 2 ? 'bg-red-500' : 'bg-gray-500'}`}></div>
               </div>
               <div className="flex justify-between items-center">
-                <div className="text-lg font-mono font-bold text-edp-marine">
-                  {Math.round(1450 + Math.random() * 100)} <span className="text-xs text-slate-400">RPM</span>
+                <div className="text-lg font-mono font-bold text-[#212E3E]">
+                  {Math.round(1450 + Math.random() * 100)} <span className="text-xs text-gray-500">RPM</span>
                 </div>
-                <div className="text-lg font-mono font-bold text-edp-marine">
-                  {(12.5 + Math.random() * 2).toFixed(1)} <span className="text-xs text-slate-400">A</span>
+                <div className="text-lg font-mono font-bold text-[#212E3E]">
+                  {(12.5 + Math.random() * 2).toFixed(1)} <span className="text-xs text-gray-500">A</span>
                 </div>
               </div>
             </div>
@@ -365,21 +375,24 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
           {/* SISTEMA STATUS - USANDO INFOCARD PADRÃO */}
           <InfoCard title="SISTEMA" variant="system">
             <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Pressão:</span>
-                <span className="text-edp-marine font-mono font-bold">2.4 bar</span>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Pressão:</span>
+                <span className="text-lg font-mono font-bold text-[#212E3E]">2.4 <span className="text-xs text-gray-500">bar</span></span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Temperatura:</span>
-                <span className="text-edp-marine font-mono font-bold">24.5°C</span>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Temperatura:</span>
+                <span className="text-lg font-mono font-bold text-[#212E3E]">24.5<span className="text-xs text-gray-500">°C</span></span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Vibração:</span>
-                <span className="text-edp-marine font-mono font-bold">NORMAL</span>
+              
+              <div className="border-t border-gray-600 my-3"></div>
+              
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Vibração:</span>
+                <span className="text-lg font-mono font-bold text-[#212E3E]">NORMAL</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Status Geral:</span>
-                <span className="text-edp-marine font-mono font-bold">OPERACIONAL</span>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Status Geral:</span>
+                <span className="text-lg font-mono font-bold text-[#212E3E]">OPERACIONAL</span>
               </div>
             </div>
           </InfoCard>
@@ -423,10 +436,9 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
           className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center p-2 md:p-4"
           onClick={() => setMenuParametrosOpen(false)}
           style={{ 
-            touchAction: 'manipulation', // ✅ Permite touch básico mas impede zoom/pan
-            overscrollBehavior: 'none', // ✅ Impede scroll "vazando" para o body
-            WebkitOverflowScrolling: 'auto', // ✅ Scroll nativo, não touch
-            overflow: 'hidden' // ✅ Sem scrollbars no overlay
+            touchAction: 'none',
+            overscrollBehavior: 'contain',
+            WebkitOverflowScrolling: 'touch'
           }}
         >
           {/* Dialog Container */}
@@ -441,10 +453,10 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
             "
             onClick={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
             style={{ 
-              touchAction: 'auto', // ✅ Scroll natural no conteúdo
-              overscrollBehavior: 'auto', // ✅ Comportamento padrão
-              WebkitOverflowScrolling: 'touch' // ✅ Scroll suave no iOS
+              touchAction: 'pan-y',
+              overscrollBehavior: 'contain'
             }}
           >
             {/* Header azul escuro EDP */}
@@ -471,12 +483,11 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
 
             {/* Conteúdo com scroll */}
             <div 
-              className="flex-1 overflow-y-auto" 
+              className="flex-1 overflow-y-auto overscroll-contain" 
               style={{ 
-                WebkitOverflowScrolling: 'touch', // ✅ Scroll suave
-                touchAction: 'auto', // ✅ Touch natural
-                overscrollBehavior: 'auto', // ✅ Sem bloqueios
-                maxHeight: 'calc(75vh - 120px)' // ✅ Altura máxima definida
+                WebkitOverflowScrolling: 'touch',
+                touchAction: 'pan-y',
+                overscrollBehavior: 'contain'
               }}
             >
               <div className="p-1.5 md:p-4">
@@ -491,22 +502,22 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
                 >
                   <div className="space-y-1 md:space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium text-[9px] md:text-sm">Posição Alvo:</span>
-                      <span className="text-[9px] md:text-lg font-mono font-bold text-gray-900">8.50 m</span>
+                      <span className="text-gray-600 font-medium text-[8px] md:text-sm">Posição Alvo:</span>
+                      <span className="text-[8px] md:text-lg font-mono font-bold text-gray-900">8.50 m</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium text-[9px] md:text-sm">RPM Configurado:</span>
+                      <span className="text-gray-600 font-medium text-[8px] md:text-sm">RPM Configurado:</span>
                       <div className="flex items-center gap-0.5 md:gap-2">
                         <ArrowUpIcon className="w-2.5 h-2.5 md:w-4 md:h-4 text-slate-600" />
-                        <span className="text-[9px] md:text-lg font-mono font-bold text-gray-900">1450 RPM</span>
+                        <span className="text-[8px] md:text-lg font-mono font-bold text-gray-900">1450 RPM</span>
                       </div>
                     </div>
                     <div className="flex gap-1 md:gap-3 pt-1">
-                      <button className="flex-1 bg-slate-600 hover:bg-slate-700 text-edp-marine py-1 md:py-3 px-1 md:px-4 rounded transition-colors flex items-center justify-center gap-0.5 md:gap-2 font-medium text-[8px] md:text-sm">
+                      <button className="flex-1 bg-[#212E3E] hover:bg-[#2A3A4E] text-white py-1 md:py-3 px-1 md:px-4 rounded transition-colors flex items-center justify-center gap-0.5 md:gap-2 font-medium text-[8px] md:text-sm">
                         <PlayIcon className="w-2.5 h-2.5 md:w-4 md:h-4" />
                         INICIAR
                       </button>
-                      <button className="flex-1 bg-slate-500 hover:bg-slate-600 text-edp-marine py-1 md:py-3 px-1 md:px-4 rounded transition-colors flex items-center justify-center gap-0.5 md:gap-2 font-medium text-[8px] md:text-sm">
+                      <button className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-1 md:py-3 px-1 md:px-4 rounded transition-colors flex items-center justify-center gap-0.5 md:gap-2 font-medium text-[8px] md:text-sm">
                         <StopIcon className="w-2.5 h-2.5 md:w-4 md:h-4" />
                         PARAR
                       </button>
@@ -523,22 +534,22 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
                 >
                   <div className="space-y-1 md:space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium text-[9px] md:text-sm">Posição Alvo:</span>
-                      <span className="text-[9px] md:text-lg font-mono font-bold text-gray-900">0.00 m</span>
+                      <span className="text-gray-600 font-medium text-[8px] md:text-sm">Posição Alvo:</span>
+                      <span className="text-[8px] md:text-lg font-mono font-bold text-gray-900">0.00 m</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium text-[9px] md:text-sm">RPM Configurado:</span>
+                      <span className="text-gray-600 font-medium text-[8px] md:text-sm">RPM Configurado:</span>
                       <div className="flex items-center gap-0.5 md:gap-2">
                         <ArrowDownIcon className="w-2.5 h-2.5 md:w-4 md:h-4 text-slate-600" />
-                        <span className="text-[9px] md:text-lg font-mono font-bold text-gray-900">1200 RPM</span>
+                        <span className="text-[8px] md:text-lg font-mono font-bold text-gray-900">1200 RPM</span>
                       </div>
                     </div>
                     <div className="flex gap-1 md:gap-3 pt-1">
-                      <button className="flex-1 bg-slate-600 hover:bg-slate-700 text-edp-marine py-1 md:py-3 px-1 md:px-4 rounded transition-colors flex items-center justify-center gap-0.5 md:gap-2 font-medium text-[8px] md:text-sm">
+                      <button className="flex-1 bg-[#212E3E] hover:bg-[#2A3A4E] text-white py-1 md:py-3 px-1 md:px-4 rounded transition-colors flex items-center justify-center gap-0.5 md:gap-2 font-medium text-[8px] md:text-sm">
                         <PlayIcon className="w-2.5 h-2.5 md:w-4 md:h-4" />
                         INICIAR
                       </button>
-                      <button className="flex-1 bg-slate-500 hover:bg-slate-600 text-edp-marine py-1 md:py-3 px-1 md:px-4 rounded transition-colors flex items-center justify-center gap-0.5 md:gap-2 font-medium text-[8px] md:text-sm">
+                      <button className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-1 md:py-3 px-1 md:px-4 rounded transition-colors flex items-center justify-center gap-0.5 md:gap-2 font-medium text-[8px] md:text-sm">
                         <StopIcon className="w-2.5 h-2.5 md:w-4 md:h-4" />
                         PARAR
                       </button>
@@ -555,18 +566,18 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
                 >
                   <div className="space-y-1 md:space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium text-[9px] md:text-sm">Área Protegida:</span>
-                      <span className="text-[9px] md:text-lg font-mono font-bold text-gray-900">LIVRE</span>
+                      <span className="text-gray-600 font-medium text-[8px] md:text-sm">Área Protegida:</span>
+                      <span className="text-[8px] md:text-lg font-mono font-bold text-gray-900">LIVRE</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium text-[9px] md:text-sm">Leitura Cota:</span>
-                      <span className="text-[9px] md:text-lg font-mono font-bold text-gray-900">
+                      <span className="text-gray-600 font-medium text-[8px] md:text-sm">Leitura Cota:</span>
+                      <span className="text-[8px] md:text-lg font-mono font-bold text-gray-900">
                         {(reguaPortaJusante * 12.5 / 100 + 125.5).toFixed(2)} m
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium text-[9px] md:text-sm">Status:</span>
-                      <span className="text-[9px] md:text-lg font-mono font-bold text-gray-900">OPERACIONAL</span>
+                      <span className="text-gray-600 font-medium text-[8px] md:text-sm">Status:</span>
+                      <span className="text-[8px] md:text-lg font-mono font-bold text-gray-900">OPERACIONAL</span>
                     </div>
                   </div>
                 </Card>
@@ -604,8 +615,8 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
                     
                     <div className="pt-1 md:pt-3 border-t border-gray-200">
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-600 font-medium text-[9px] md:text-sm">Desnível Alarme:</span>
-                        <span className="text-gray-900 font-mono font-bold text-[9px] md:text-lg">±15 mm</span>
+                        <span className="text-gray-600 font-medium text-[8px] md:text-sm">Desnível Alarme:</span>
+                        <span className="text-gray-900 font-mono font-bold text-[8px] md:text-lg">±15 mm</span>
                       </div>
                     </div>
                   </div>
@@ -625,7 +636,7 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
                   Fechar
                 </button>
                 <button 
-                  className="w-full md:w-auto px-2 py-1.5 md:px-6 md:py-2.5 bg-green-500 hover:bg-green-600 active:bg-green-700 text-white rounded transition-colors font-medium text-[9px] md:text-base shadow-lg"
+                  className="w-full md:w-auto px-2 py-1.5 md:px-6 md:py-2.5 bg-green-500 hover:bg-green-600 active:bg-green-700 text-[#212E3E] rounded transition-colors font-medium text-[9px] md:text-base shadow-lg"
                   style={{ touchAction: 'manipulation' }}
                 >
                   Salvar Configurações
@@ -788,7 +799,7 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
               >
                 <div className="bg-green-600 border border-green-500 rounded-md p-3 w-full">
                   <div className="text-center">
-                    <div className="text-xs font-bold text-edp-marine uppercase tracking-wide">
+                    <div className="text-xs font-bold text-[#212E3E] uppercase tracking-wide">
                       PORTA ABERTA
                     </div>
                   </div>
@@ -808,7 +819,7 @@ const PortaJusante: React.FC<PortaJusanteProps> = ({ sidebarOpen = true }) => {
               >
                 <div className="bg-yellow-600 border border-yellow-500 rounded-md p-3 w-full">
                   <div className="text-center">
-                    <div className="text-xs font-bold text-edp-marine uppercase tracking-wide">
+                    <div className="text-xs font-bold text-[#212E3E] uppercase tracking-wide">
                       PORTA FECHADA
                     </div>
                   </div>

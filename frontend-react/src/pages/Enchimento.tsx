@@ -1842,7 +1842,7 @@ const Enchimento: React.FC<EnchimentoProps> = () => {
                   Fechar
                 </button>
                 <button 
-                  className="w-full md:w-auto px-2 py-1.5 md:px-6 md:py-2.5 bg-green-500 hover:bg-green-600 active:bg-green-700 text-white rounded transition-colors font-medium text-[9px] md:text-base shadow-lg"
+                  className="w-full md:w-auto px-2 py-1.5 md:px-6 md:py-2.5 bg-green-500 hover:bg-green-600 active:bg-green-700 text-[#212E3E] rounded transition-colors font-medium text-[9px] md:text-base shadow-lg"
                   style={{ touchAction: 'manipulation' }}
                 >
                   Salvar Configurações
