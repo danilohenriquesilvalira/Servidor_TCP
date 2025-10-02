@@ -468,4 +468,3 @@ func (s *Server) setupAuthentication() {
 	
 	log.Println("✅ Sistema de autenticação configurado!")
 }
-
