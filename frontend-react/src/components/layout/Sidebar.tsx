@@ -185,7 +185,58 @@ export const Sidebar = ({ isOpen, onToggle, onClose }: SidebarProps) => {
                     `}
                     title={!isOpen ? item.label : undefined}
                   >
-                    <Icon className="w-5 h-5 flex-shrink-0" />
+                    {item.id === 'dashboard' ? (
+                      <img 
+                        src="/Logo_Sidebar/Dashboard.svg" 
+                        alt="Dashboard" 
+                        className={`w-6 h-6 flex-shrink-0 ${isActive ? 'brightness-0 saturate-100' : ''}`}
+                        style={isActive ? { filter: 'brightness(0) saturate(100%) invert(11%) sepia(22%) saturate(1687%) hue-rotate(193deg) brightness(96%) contrast(92%)' } : {}}
+                      />
+                    ) : item.id === 'porta_jusante' ? (
+                      <img 
+                        src="/Logo_Sidebar/PortaJusante.svg" 
+                        alt="Porta Jusante" 
+                        className={`w-6 h-6 flex-shrink-0 ${isActive ? 'brightness-0 saturate-100' : ''}`}
+                        style={isActive ? { filter: 'brightness(0) saturate(100%) invert(11%) sepia(22%) saturate(1687%) hue-rotate(193deg) brightness(96%) contrast(92%)' } : {}}
+                      />
+                    ) : item.id === 'porta_montante' ? (
+                      <img 
+                        src="/Logo_Sidebar/PortaMontante.svg" 
+                        alt="Porta Montante" 
+                        className={`w-6 h-6 flex-shrink-0 ${isActive ? 'brightness-0 saturate-100' : ''}`}
+                        style={isActive ? { filter: 'brightness(0) saturate(100%) invert(11%) sepia(22%) saturate(1687%) hue-rotate(193deg) brightness(96%) contrast(92%)' } : {}}
+                      />
+                    ) : item.id === 'enchimento' ? (
+                      <img 
+                        src="/Logo_Sidebar/Enchimento.svg" 
+                        alt="Enchimento" 
+                        className={`w-6 h-6 flex-shrink-0 ${isActive ? 'brightness-0 saturate-100' : ''}`}
+                        style={isActive ? { filter: 'brightness(0) saturate(100%) invert(11%) sepia(22%) saturate(1687%) hue-rotate(193deg) brightness(96%) contrast(92%)' } : {}}
+                      />
+                    ) : item.id === 'eclusa' ? (
+                      <img 
+                        src="/Logo_Sidebar/Eclusa_Regua.svg" 
+                        alt="Eclusa" 
+                        className={`w-6 h-6 flex-shrink-0 ${isActive ? 'brightness-0 saturate-100' : ''}`}
+                        style={isActive ? { filter: 'brightness(0) saturate(100%) invert(11%) sepia(22%) saturate(1687%) hue-rotate(193deg) brightness(96%) contrast(92%)' } : {}}
+                      />
+                    ) : item.id === 'falhas' ? (
+                      <img 
+                        src="/Logo_Sidebar/Falhas.svg" 
+                        alt="Falhas" 
+                        className={`w-6 h-6 flex-shrink-0 ${isActive ? 'brightness-0 saturate-100' : ''}`}
+                        style={isActive ? { filter: 'brightness(0) saturate(100%) invert(11%) sepia(22%) saturate(1687%) hue-rotate(193deg) brightness(96%) contrast(92%)' } : {}}
+                      />
+                    ) : item.id === 'usuarios' ? (
+                      <img 
+                        src="/Logo_Sidebar/Usuarios.svg" 
+                        alt="Usuários" 
+                        className={`w-6 h-6 flex-shrink-0 ${isActive ? 'brightness-0 saturate-100' : ''}`}
+                        style={isActive ? { filter: 'brightness(0) saturate(100%) invert(11%) sepia(22%) saturate(1687%) hue-rotate(193deg) brightness(96%) contrast(92%)' } : {}}
+                      />
+                    ) : (
+                      <Icon className="w-5 h-5 flex-shrink-0" />
+                    )}
                     
                     <div className={`flex items-center justify-between flex-1 overflow-hidden transition-[width,opacity] duration-50 ease-out ${
                       isOpen ? 'w-auto opacity-100' : 'w-0 opacity-0'
@@ -250,7 +301,58 @@ export const Sidebar = ({ isOpen, onToggle, onClose }: SidebarProps) => {
                     }
                   `}
                 >
-                  <Icon className="w-5 h-5 mb-1" />
+                  {item.id === 'dashboard' ? (
+                    <img 
+                      src="/Logo_Sidebar/Dashboard.svg" 
+                      alt="Dashboard" 
+                      className={`w-6 h-6 mb-1 ${isActive ? 'brightness-0 saturate-100' : ''}`}
+                      style={isActive ? { filter: 'brightness(0) saturate(100%) invert(11%) sepia(22%) saturate(1687%) hue-rotate(193deg) brightness(96%) contrast(92%)' } : {}}
+                    />
+                  ) : item.id === 'porta_jusante' ? (
+                    <img 
+                      src="/Logo_Sidebar/PortaJusante.svg" 
+                      alt="Porta Jusante" 
+                      className={`w-6 h-6 mb-1 ${isActive ? 'brightness-0 saturate-100' : ''}`}
+                      style={isActive ? { filter: 'brightness(0) saturate(100%) invert(11%) sepia(22%) saturate(1687%) hue-rotate(193deg) brightness(96%) contrast(92%)' } : {}}
+                    />
+                  ) : item.id === 'porta_montante' ? (
+                    <img 
+                      src="/Logo_Sidebar/PortaMontante.svg" 
+                      alt="Porta Montante" 
+                      className={`w-6 h-6 mb-1 ${isActive ? 'brightness-0 saturate-100' : ''}`}
+                      style={isActive ? { filter: 'brightness(0) saturate(100%) invert(11%) sepia(22%) saturate(1687%) hue-rotate(193deg) brightness(96%) contrast(92%)' } : {}}
+                    />
+                  ) : item.id === 'enchimento' ? (
+                    <img 
+                      src="/Logo_Sidebar/Enchimento.svg" 
+                      alt="Enchimento" 
+                      className={`w-6 h-6 mb-1 ${isActive ? 'brightness-0 saturate-100' : ''}`}
+                      style={isActive ? { filter: 'brightness(0) saturate(100%) invert(11%) sepia(22%) saturate(1687%) hue-rotate(193deg) brightness(96%) contrast(92%)' } : {}}
+                    />
+                  ) : item.id === 'eclusa' ? (
+                    <img 
+                      src="/Logo_Sidebar/Eclusa_Regua.svg" 
+                      alt="Eclusa" 
+                      className={`w-6 h-6 mb-1 ${isActive ? 'brightness-0 saturate-100' : ''}`}
+                      style={isActive ? { filter: 'brightness(0) saturate(100%) invert(11%) sepia(22%) saturate(1687%) hue-rotate(193deg) brightness(96%) contrast(92%)' } : {}}
+                    />
+                  ) : item.id === 'falhas' ? (
+                    <img 
+                      src="/Logo_Sidebar/Falhas.svg" 
+                      alt="Falhas" 
+                      className={`w-6 h-6 mb-1 ${isActive ? 'brightness-0 saturate-100' : ''}`}
+                      style={isActive ? { filter: 'brightness(0) saturate(100%) invert(11%) sepia(22%) saturate(1687%) hue-rotate(193deg) brightness(96%) contrast(92%)' } : {}}
+                    />
+                  ) : item.id === 'usuarios' ? (
+                    <img 
+                      src="/Logo_Sidebar/Usuarios.svg" 
+                      alt="Usuários" 
+                      className={`w-6 h-6 mb-1 ${isActive ? 'brightness-0 saturate-100' : ''}`}
+                      style={isActive ? { filter: 'brightness(0) saturate(100%) invert(11%) sepia(22%) saturate(1687%) hue-rotate(193deg) brightness(96%) contrast(92%)' } : {}}
+                    />
+                  ) : (
+                    <Icon className="w-5 h-5 mb-1" />
+                  )}
                   <span className="text-[10px] font-edp font-medium text-center leading-tight">
                     {item.label}
                   </span>

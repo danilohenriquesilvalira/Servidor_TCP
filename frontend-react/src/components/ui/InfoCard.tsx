@@ -44,15 +44,15 @@ export const InfoCard: React.FC<InfoCardProps> = ({
 
   return (
     <div className={`${styles.container} border rounded-xl shadow-lg backdrop-blur-sm ${className} overflow-hidden`}>
-      {/* Header Moderno com Gradiente */}
-      <div className={`bg-edp-marine text-white px-6 py-4`}>
-        <h3 className="text-lg font-edp font-bold uppercase tracking-wide">
+      {/* Header Moderno com Gradiente - Mais Compacto */}
+      <div className={`bg-edp-marine text-white px-4 py-2.5`}>
+        <h3 className="text-sm font-edp font-bold uppercase tracking-wide">
           {title}
         </h3>
       </div>
       
-      {/* Conteúdo com Padding Melhorado */}
-      <div className="p-6 space-y-4">
+      {/* Conteúdo com Padding Reduzido - Mais Compacto */}
+      <div className="p-4 space-y-2">
         {children}
       </div>
     </div>

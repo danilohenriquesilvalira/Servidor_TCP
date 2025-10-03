@@ -13,9 +13,14 @@ import {
   XMarkIcon, 
   ArrowUpIcon, 
   ArrowDownIcon,
-  WrenchScrewdriverIcon
+  WrenchScrewdriverIcon,
+  UserIcon,
+  ExclamationTriangleIcon,
+  ClipboardDocumentListIcon
 } from '@heroicons/react/24/outline';
 import { Card } from '../components/ui/Card';
+import { InfoCard } from '../components/ui/InfoCard';
+import { StatusCard } from '../components/ui/StatusCard';
 
 // 🎯 CONFIGURAÇÕES DOS COMPONENTES DE NÍVEL - Separação Desktop/Mobile
 const NIVEL_CONFIG = {
@@ -473,104 +478,183 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
   return (
     <div className="w-full h-screen flex flex-col items-center justify-end pb-8 relative">
         
-        {/* CARDS SUPERIORES - 6 INFORMAÇÕES COMPACTAS */}
+
+        {/* PAINÉIS INFORMATIVOS - ÁREA SUPERIOR COMPLETA */}
         {isInitialized && containerDimensions.width > 100 && (
           <div 
-            className="absolute flex items-center justify-center gap-2"
+            className="absolute top-5 z-10"
             style={{
-              top: isMobile ? '16px' : '20px',
               left: '50%',
               transform: 'translateX(-50%)',
               width: `${Math.min(containerDimensions.width - (isMobile ? 16 : 32), 1920)}px`,
-              height: isMobile ? '60px' : '100px',
-              zIndex: 30
+              height: `${Math.max(
+                (maxWidth * 0.7 * (isMobile ? 0.08 : 0.18)) - 40, 
+                isMobile ? 180 : 280
+              )}px`
             }}
           >
-            {/* Layout moderno com separação entre grupos */}
-            <div className="flex items-center justify-center w-full h-full gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
               
-              {/* GRUPO 1: COTAS */}
-              <div className={`flex ${isMobile ? 'flex-col gap-1' : 'gap-2'} flex-1`}>
-                
-                {/* COTA MONTANTE - Com inteligência ISA-104 */}
-                <div className={`rounded-lg drop-shadow-lg p-2 flex flex-col justify-center items-center min-w-0 flex-1 transition-all duration-300 ${getCardClasses(statusMontante)}`}>
-                  <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-[#212E3E] font-mono leading-tight`}>
-                    {nivelMontante.toFixed(2)}
+              {/* 1º CARD - INFORMAÇÕES OPERACIONAIS */}
+              <InfoCard title="INFORMAÇÕES OPERACIONAIS" variant="system">
+                <div className="space-y-1.5 h-full flex flex-col">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide flex items-center gap-1.5">
+                      <UserIcon className="w-3 h-3" />
+                      Operador:
+                    </span>
+                    <span className="text-sm font-mono font-bold px-2 py-1 rounded bg-white border border-gray-200 text-[#212E3E]">J. SILVA</span>
                   </div>
-                  <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 font-medium text-center leading-tight`}>
-                    Cota Montante
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Turno:</span>
+                    <span className="text-sm font-mono font-bold px-2 py-1 rounded bg-white border border-gray-200 text-[#212E3E]">MANHÃ</span>
                   </div>
-                  <div className="text-xs text-gray-400 font-medium">m</div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Modo:</span>
+                    <span className="text-sm font-mono font-bold text-green-600 bg-green-50 px-2 py-1 rounded">REMOTO</span>
+                  </div>
+                  
+                  <div className="border-t border-gray-600 my-2"></div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide flex items-center gap-1.5">
+                      <ClipboardDocumentListIcon className="w-3 h-3" />
+                      Barcos Hoje:
+                    </span>
+                    <span className="text-sm font-mono font-bold text-[#212E3E] bg-blue-50 px-2 py-1 rounded">12</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide flex items-center gap-1.5">
+                      <ExclamationTriangleIcon className="w-3 h-3" />
+                      Falhas Ativas:
+                    </span>
+                    <span className="text-sm font-mono font-bold text-red-600 bg-red-50 px-2 py-1 rounded">0</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Total Falhas:</span>
+                    <span className="text-sm font-mono font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded">3</span>
+                  </div>
                 </div>
+              </InfoCard>
 
-                {/* COTA CALDEIRA - Com inteligência ISA-104 */}
-                <div className={`rounded-lg drop-shadow-lg p-2 flex flex-col justify-center items-center min-w-0 flex-1 transition-all duration-300 ${getCardClasses(statusCaldeira)}`}>
-                  <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-[#212E3E] font-mono leading-tight`}>
-                    {nivelCaldeira.toFixed(2)}
+              {/* 2º CARD - NÍVEIS DA ECLUSA */}
+              <InfoCard title="NÍVEIS DA ECLUSA" variant="industrial">
+                <div className="space-y-1.5 h-full flex flex-col">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Nível Montante:</span>
+                    <span className={`text-sm font-mono font-bold px-2 py-1 rounded ${Math.abs(nivelMontante - nivelCaldeira) > 0.05 ? 'bg-red-100' : 'bg-white border border-gray-200'}`}>
+                      {nivelMontante.toFixed(2)} m
+                    </span>
                   </div>
-                  <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 font-medium text-center leading-tight`}>
-                    Cota Caldeira
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Nível Caldeira:</span>
+                    <span className="text-sm font-mono font-bold px-2 py-1 rounded bg-white border border-gray-200">
+                      {nivelCaldeira.toFixed(2)} m
+                    </span>
                   </div>
-                  <div className="text-xs text-gray-400 font-medium">m</div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Nível Jusante:</span>
+                    <span className={`text-sm font-mono font-bold px-2 py-1 rounded ${Math.abs(nivelJusante - nivelCaldeira) > 0.05 ? 'bg-red-100' : 'bg-white border border-gray-200'}`}>
+                      {nivelJusante.toFixed(2)} m
+                    </span>
+                  </div>
+                  
+                  <div className="border-t border-gray-600 my-2"></div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Diff. Mont/Cald:</span>
+                    <span className={`text-sm font-mono font-bold px-2 py-1 rounded ${Math.abs(nivelMontante - nivelCaldeira) > 0.05 ? 'text-white bg-red-500' : 'text-green-600 bg-green-50'}`}>
+                      {Math.abs(nivelMontante - nivelCaldeira).toFixed(3)} m
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Diff. Jus/Cald:</span>
+                    <span className={`text-sm font-mono font-bold px-2 py-1 rounded ${Math.abs(nivelJusante - nivelCaldeira) > 0.05 ? 'text-white bg-red-500' : 'text-green-600 bg-green-50'}`}>
+                      {Math.abs(nivelJusante - nivelCaldeira).toFixed(3)} m
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Status:</span>
+                    <span className={`text-sm font-mono font-bold px-2 py-1 rounded text-white ${statusCaldeira === 'normal' ? 'bg-green-500' : statusCaldeira === 'alerta' ? 'bg-yellow-500' : 'bg-red-500'}`}>
+                      {statusCaldeira === 'normal' ? 'NORMAL' : statusCaldeira === 'alerta' ? 'ALERTA' : 'CRÍTICO'}
+                    </span>
+                  </div>
                 </div>
+              </InfoCard>
 
-                {/* COTA JUSANTE - Com inteligência ISA-104 */}
-                <div className={`rounded-lg drop-shadow-lg p-2 flex flex-col justify-center items-center min-w-0 flex-1 transition-all duration-300 ${getCardClasses(statusJusante)}`}>
-                  <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-[#212E3E] font-mono leading-tight`}>
-                    {nivelJusante.toFixed(2)}
+              {/* 3º CARD - VELOCIDADES DOS RADARES */}
+              <InfoCard title="VELOCIDADES RADARES" variant="motor">
+                <div className="space-y-1.5 h-full flex flex-col">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Radar Mont.(117):</span>
+                    <span className={`text-sm font-mono font-bold px-2 py-1 rounded ${radarMontante > 2.0 ? 'bg-red-100' : 'bg-white border border-gray-200'}`}>
+                      {radarMontante.toFixed(2)} m/s
+                    </span>
                   </div>
-                  <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 font-medium text-center leading-tight`}>
-                    Cota Jusante
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Radar Cald.(119):</span>
+                    <span className={`text-sm font-mono font-bold px-2 py-1 rounded ${radarCaldeira > 2.0 ? 'bg-red-100' : 'bg-white border border-gray-200'}`}>
+                      {radarCaldeira.toFixed(2)} m/s
+                    </span>
                   </div>
-                  <div className="text-xs text-gray-400 font-medium">m</div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Radar Jus.(118):</span>
+                    <span className={`text-sm font-mono font-bold px-2 py-1 rounded ${radarJusante > 2.0 ? 'bg-red-100' : 'bg-white border border-gray-200'}`}>
+                      {radarJusante.toFixed(2)} m/s
+                    </span>
+                  </div>
+                  
+                  <div className="border-t border-gray-600 my-2"></div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Velocidade Máx:</span>
+                    <span className="text-sm font-mono font-bold text-white bg-red-500 px-2 py-1 rounded">2.00 m/s</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Status Geral:</span>
+                    <span className="text-sm font-mono font-bold text-green-600 bg-green-50 px-2 py-1 rounded">OPERACIONAL</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-[#212E3E] uppercase tracking-wide">Comunicação:</span>
+                    <span className="text-sm font-mono font-bold text-green-600 bg-green-50 px-2 py-1 rounded">ONLINE</span>
+                  </div>
                 </div>
+              </InfoCard>
 
-              </div>
-
-              {/* SEPARADOR VISUAL MODERNO */}
-              <div className="flex flex-col items-center justify-center px-2">
-                <div className="w-px h-8 bg-gradient-to-b from-transparent via-gray-300 to-transparent"></div>
-                <div className="w-2 h-2 bg-[#212E3E] rounded-full my-1 opacity-60"></div>
-                <div className="w-px h-8 bg-gradient-to-b from-transparent via-gray-300 to-transparent"></div>
-              </div>
-
-              {/* GRUPO 2: RADARES */}
-              <div className={`flex ${isMobile ? 'flex-col gap-1' : 'gap-2'} flex-1`}>
-
-                {/* RADAR MONTANTE */}
-                <div className="bg-white rounded-lg shadow-lg border border-gray-100 p-2 flex flex-col justify-center items-center min-w-0 flex-1">
-                  <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-[#212E3E] font-mono leading-tight`}>
-                    {radarMontante.toFixed(1)}
-                  </div>
-                  <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 font-medium text-center leading-tight`}>
-                    Radar Montante
-                  </div>
-                  <div className="text-xs text-gray-400 font-medium">m/s</div>
+              {/* 4º CARD - STATUS DO SISTEMA */}
+              <InfoCard title="STATUS DO SISTEMA" variant="default">
+                <div className="space-y-1.5">
+                  <StatusCard 
+                    title="OPERAÇÃO EM AUTOMÁTICO"
+                    variant="automatic"
+                  />
+                  
+                  <StatusCard 
+                    title={statusCaldeira === 'normal' ? "NÍVEIS EQUALIZADOS" : "DESEQUILÍBRIO DE NÍVEIS"}
+                    variant={statusCaldeira === 'normal' ? "success" : statusCaldeira === 'alerta' ? "warning" : "error"}
+                  />
+                  
+                  <StatusCard 
+                    title={bitMontanteCaldeira || bitCaldeiraJusante ? "VÁLVULAS ABERTAS" : "VÁLVULAS FECHADAS"}
+                    variant={bitMontanteCaldeira || bitCaldeiraJusante ? "success" : "warning"}
+                  />
+                  
+                  <StatusCard 
+                    title="EMERGÊNCIA ATIVADA"
+                    variant="error"
+                  />
+                  
+                  <StatusCard 
+                    title="SISTEMA CONECTADO"
+                    variant="success"
+                  />
+                  
+                  <StatusCard 
+                    title="CONTROLE LOCAL LIBERADO"
+                    variant="success"
+                  />
                 </div>
-
-                {/* RADAR JUSANTE */}
-                <div className="bg-white rounded-lg shadow-lg border border-gray-100 p-2 flex flex-col justify-center items-center min-w-0 flex-1">
-                  <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-[#212E3E] font-mono leading-tight`}>
-                    {radarJusante.toFixed(1)}
-                  </div>
-                  <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 font-medium text-center leading-tight`}>
-                    Radar Jusante
-                  </div>
-                  <div className="text-xs text-gray-400 font-medium">m/s</div>
-                </div>
-
-                {/* RADAR CALDEIRA */}
-                <div className="bg-white rounded-lg shadow-lg border border-gray-100 p-2 flex flex-col justify-center items-center min-w-0 flex-1">
-                  <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-[#212E3E] font-mono leading-tight`}>
-                    {radarCaldeira.toFixed(1)}
-                  </div>
-                  <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 font-medium text-center leading-tight`}>
-                    Radar Caldeira
-                  </div>
-                  <div className="text-xs text-gray-400 font-medium">m/s</div>
-                </div>
-
-              </div>
+              </InfoCard>
 
             </div>
           </div>
@@ -894,10 +978,10 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
       />
 
 
-      {/* BOTÃO MOBILE - Mesmo estilo do desktop, porém menor (abaixo de 1024px) */}
+      {/* BOTÃO MOBILE - Posicionado na parte inferior da tela */}
       <button
         onClick={() => setMenuParametrosOpen(!menuParametrosOpen)}
-        className="xl:hidden fixed top-20 right-4 z-50 px-4 py-3 bg-[#212E3E] text-white rounded-xl shadow-lg flex items-center gap-2 touch-manipulation transition-all duration-200"
+        className="xl:hidden fixed bottom-20 right-4 z-50 px-4 py-3 bg-[#212E3E] text-white rounded-xl shadow-lg flex items-center gap-2 touch-manipulation transition-all duration-200"
         style={{ touchAction: 'manipulation' }}
       >
         <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
@@ -909,10 +993,10 @@ const EclusaRegua: React.FC<EclusaReguaProps> = () => {
         </div>
       </button>
 
-      {/* BOTÃO DESKTOP - MESMO ESTILO DAS OUTRAS PÁGINAS */}
+      {/* BOTÃO DESKTOP - Posicionado na parte inferior da tela */}
       <button
         onClick={() => setMenuParametrosOpen(!menuParametrosOpen)}
-        className="hidden xl:flex fixed top-20 right-6 z-50 px-8 py-5 bg-[#212E3E] text-white rounded-2xl shadow-2xl items-center gap-5 hover:scale-105 transition-all duration-200 touch-manipulation"
+        className="hidden xl:flex fixed bottom-6 right-6 z-50 px-8 py-5 bg-[#212E3E] text-white rounded-2xl shadow-2xl items-center gap-5 hover:scale-105 transition-all duration-200 touch-manipulation"
         style={{ touchAction: 'manipulation' }}
       >
         <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">

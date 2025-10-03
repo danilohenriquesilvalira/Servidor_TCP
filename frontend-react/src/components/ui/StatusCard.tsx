@@ -30,9 +30,9 @@ export const StatusCard: React.FC<StatusCardProps> = ({
   const styles = getVariantStyles();
 
   return (
-    <div className={`${styles} border rounded-md p-4 ${className}`}>
+    <div className={`${styles} border rounded-md p-2 ${className}`}>
       <div className="text-center">
-        <div className="text-sm font-edp font-bold uppercase tracking-wide">
+        <div className="text-xs font-edp font-bold uppercase tracking-wide">
           {title}
         </div>
       </div>
